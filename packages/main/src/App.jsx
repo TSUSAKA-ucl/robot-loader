@@ -184,7 +184,7 @@ function App() {
           position="0 4.50 -10" radius="0.5" color="#7BC8A4"></a-sphere>
         <a-cylinder position="1 0.75 -3"
                     radius="0.5" height="1.5" color="#FFC65D"
-                    material="opacity: 0.5; transparent: true">
+                    material="opacity: 0.35; transparent: true">
         </a-cylinder>
         <a-sky color="#ECECEC"></a-sky>
     </a-scene>

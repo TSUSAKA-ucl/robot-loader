@@ -24,7 +24,8 @@ async function run_simulation() {
 				{x: -1.0, y: 2.0, z: -3.0},	// position
 				{w: 0.991445, x:0.0, y:0.0, z:0.130526}, // orientation
 				{x: 0.4, y: 0.6, z: 0.2}, // size
-				"#4CC3D9" // light blue color
+				"#4CC3D9", // light blue color
+				'kinematicPosition'
 			       );
   const box2 = boxCreateAndPost('box2', world,
 				{x: -1.0, y: 4.0, z: -3.0},	// position
@@ -113,20 +114,22 @@ async function run_simulation() {
   const pnt5b = { x: 0.0, y: 0.0, z: -0.6 };
   let jntParams5 = RAPIER.JointData.prismatic(pnt5a, pnt5b, y);
   jntParams5.limitsEnabled = true;
-  jntParams5.limits = [-0.28, 0.28];
+  jntParams5.limits = [-0.5, 0.5];
   let joint5 = world.createImpulseJoint(jntParams5, end1, end2, true);
+  joint5.configureMotorPosition(0.0, 10.0*800.0, 100.0);
   // between end1 and end3(blue)
   const pnt6a = { x: 0.0, y: 0.6-0.28, z: 0.2 };
   const pnt6b = { x: 0.0, y: -0.0, z: -0.6 };
   let jntParams6 = RAPIER.JointData.prismatic(pnt6a, pnt6b, y);
   jntParams6.limitsEnabled = true;
-  jntParams6.limits = [-0.28, 0.28];
+  jntParams6.limits = [-0.5, 0.5];
   let joint6 = world.createImpulseJoint(jntParams6, end1, end3, true);
+  joint6.configureMotorPosition(-0.0, 10.0*800.0, 100.0);
   
 
 
   // ****************
-  // main thread message handling
+  // handling of the messages from the main thread
   let snapshot = null;
   let doStep = false;
   let singleStep = false;
@@ -168,14 +171,17 @@ async function run_simulation() {
   // ****************
   // Game loop. Replace by your own game loop system.
   let firstStep = true;
+  let changeJointMotor = true;
   snapshot = world.takeSnapshot();
   const workerTimeStep = 1.0 / 60.0;
   const loopTimeStep = workerTimeStep * 1000;
   world.timestep = workerTimeStep;
+  let time = 0.0;
   let gameLoop = () => {
     // Step the simulation forward.  
     if (doStep) {
       world.step();
+      time += workerTimeStep;
       if (firstStep) {
 	firstStep = false;
 	// The first step is the warm up step to propagate
@@ -190,7 +196,19 @@ async function run_simulation() {
     if (!snapshot) {
       snapshot = world.snapshot;
     }
-    // Get and print the rigid-body's position.
+
+    if (time <= 5.0) {
+      box1.setNextKinematicTranslation({x: -1.0, y: 2.0,
+					z: -3.0 + 0.5*Math.sin(2.0*Math.PI*time)});
+    }
+    if (time > 6.0) {
+      if (changeJointMotor) {
+	joint5.configureMotorPosition(0.2, 0.0, 0.0);
+	joint6.configureMotorPosition(-0.2, 0.0, 0.0);
+	changeJointMotor = false;
+      }
+    }
+    // Get and post the rigid-bodies poses
     const msg = {type: 'poses', id: null, pose: null};
     Object.keys(sharedBodies).forEach((id) => {
       msg.id = id;
@@ -230,10 +248,11 @@ function writeCuboidSizeToMessage(collider, message) {
 
 function boxCreateAndPost(id,
 			  world, position, rotation, size, color,
+			  dynamicsType = 'dynamic',
 			  share = true, shareList = sharedBodies
 			 ) {
   const {box, boxCollider, boxmsg}
-	= createBox(world, position, rotation, size, color, id);
+	= createBox(world, position, rotation, size, color, id, dynamicsType);
   self.postMessage(boxmsg);
   if (share) {
     shareList[id] = box;
@@ -241,11 +260,31 @@ function boxCreateAndPost(id,
   return box;
 }
 
-function createBox(world, position, rotation, size, color, id) {
+function createBox(world, position, rotation, size, color, id,
+		  dynamicsType = 'dynamic') {
   // Create a dynamic rigid-body.
-  let boxDesc = RAPIER.RigidBodyDesc.dynamic()
-      .setTranslation(position.x, position.y, position.z)
-      .setRotation(rotation);
+  let boxDesc;
+  switch (dynamicsType) {
+  case 'dynamic':
+    boxDesc = RAPIER.RigidBodyDesc.dynamic()
+    break;
+  case 'kinematicPosition':
+    boxDesc = RAPIER.RigidBodyDesc.kinematicPositionBased()
+    break;
+  case 'kinematicVelocity':
+    boxDesc = RAPIER.RigidBodyDesc.kinematicVelocityBased()
+    break;
+  case 'fixed':
+    boxDesc = RAPIER.RigidBodyDesc.fixed()
+    break;
+  default:
+    console.warn("Unknown dynamics type:", dynamicsType,
+		 "using dynamic.");
+    boxDesc = RAPIER.RigidBodyDesc.dynamic()
+  }
+  boxDesc
+    .setTranslation(position.x, position.y, position.z)
+    .setRotation(rotation);
   let box = world.createRigidBody(boxDesc);
   // Create a cuboid collider attached to the dynamic rigidBody.
   let boxColliderDesc = RAPIER.ColliderDesc.cuboid(size.x, size.y, size.z);
