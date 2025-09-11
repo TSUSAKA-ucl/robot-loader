@@ -18,52 +18,70 @@ async function run_simulation() {
   writePoseToMessage(groundCollider, groundPlaneMsg);
   self.postMessage(groundPlaneMsg);
   
+  // ****************
   // Create a dynamic rigid-body.
-  const box1id = 'box1';
-  const {box: box1, boxCollider: box1Collider, boxmsg: box1msg}
-  	= createBox(world,
-		    {x: -1.0, y: 2.0, z: -3.0},	// position
-		    {w: 0.991445, x:0.0, y:0.0, z:0.130526}, // orientation
-		    {x: 0.4, y: 0.6, z: 0.2}, // size
-		    "#4CC3D9", // light blue color
-		    box1id);
-  self.postMessage(box1msg);
-  sharedBodies[box1id] = box1;
-  
-  // Create a dynamic rigid-body.
-  const box2id = 'box2';
-  const {box: box2, boxCollider: box2Collider, boxmsg: box2msg}
-	= createBox(world,
-		    {x: -1.0, y: 4.0, z: -3.0},	// position
-		    {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
-		    {x: 0.25, y: 0.05, z: 0.6},	// size
-		    "#FF6347",	// tomato color
-		    box2id);
-  self.postMessage(box2msg);
-  sharedBodies[box2id] = box2;
+  const box1 = boxCreateAndPost('box1', world,
+				{x: -1.0, y: 2.0, z: -3.0},	// position
+				{w: 0.991445, x:0.0, y:0.0, z:0.130526}, // orientation
+				{x: 0.4, y: 0.6, z: 0.2}, // size
+				"#4CC3D9" // light blue color
+			       );
+  const box2 = boxCreateAndPost('box2', world,
+				{x: -1.0, y: 4.0, z: -3.0},	// position
+				{w: 0.991445, x:0.0, y:0.0, z:-0.130526},
+				{x: 0.25, y: 0.05, z: 0.6},	// size
+				"#FF6347"	// tomato color
+			       );
+  const box3 = boxCreateAndPost('box3', world,
+				{x: -1.0, y: 3.5, z: -3.0}, // position
+				{w: 0.991445, x:0.0, y:0.0, z:-0.130526},
+				{x: 0.25, y: 0.05, z: 0.6}, // size
+				'blue'
+			       );
+  const hand1 = boxCreateAndPost('hand1', world,
+				 {x: 1.0, y: 2.0, z: -3.0},	// position
+				 {w: 0.991445, x:0.0, y:0.0, z:0.130526}, // orientation
+				 {x: 0.4, y: 0.6, z: 0.2}, // size
+				 "#4CC3D9" // light blue color
+				);
+  const hand2 = boxCreateAndPost('hand2', world,
+				 {x: 1.0, y: 4.0, z: -3.0},	// position
+				 {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
+				 {x: 0.25, y: 0.05, z: 0.6},	// size
+				 "#FF6347"	// tomato color
+				);
+  const hand3 = boxCreateAndPost('hand3', world,
+				 {x: 1.0, y: 3.5, z: -3.0}, // position
+				 {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
+				 {x: 0.25, y: 0.05, z: 0.6}, // size
+				 'blue'
+				);
+  const end1 = boxCreateAndPost('end1', world,
+				{x: 0.0, y: 3.5, z: -3.0},	// position
+				{w: 1.0, x:0.0, y:0.0, z:0.0}, // orientation
+				{x: 0.4, y: 0.6, z: 0.2}, // size
+				"#4CC3D9" // light blue color
+			       );
+  const end2 = boxCreateAndPost('end2', world,
+				{x: 0.0, y: 3.5-0.6, z: -3.0+0.6+0.2},	// position
+				{w: 1.0, x:0.0, y:0.0, z:0.0},
+				{x: 0.25, y: 0.05, z: 0.6},	// size
+				"#FF6347"	// tomato color
+			       );
+  const end3 = boxCreateAndPost('end3', world,
+				{x: 0.0, y: 3.5+0.6, z: -3.0+0.6+0.2}, // position
+				{w: 1.0, x:0.0, y:0.0, z:0.0},
+				{x: 0.25, y: 0.05, z: 0.6}, // size
+				'blue'
+			       );
 
-  // Create a dynamic rigid-body.
-  const box3id = 'box3';
-  const {box: box3, boxCollider: box3Collider, boxmsg: box3msg}
-	= createBox(world,
-		    {x: -1.0, y: 3.5, z: -3.0}, // position
-		    {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
-		    {x: 0.25, y: 0.05, z: 0.6}, // size
-		    'blue',
-		    box3id);
-  self.postMessage(box3msg);
-  sharedBodies[box3id] = box3;
-
-  // Create a prismatic joint between the two boxes.
+  // ****************
+  // Create some joints
   const x = { x: 1.0, y: 0.0, z: 0.0 };
   const y = { x: 0.0, y: 1.0, z: 0.0 };
   const z = { x: 0.0, y: 0.0, z: 1.0 };
+  const o = { x: 0.0, y: 0.0, z: 0.0 };
   //
-  // let pnt = { x: 0.0, y: 0.0, z: -1.0 };
-  // let params = RAPIER.JointData.prismatic(pnt, y, y);
-  // params.limitsEnabled = true;
-  // params.limits = [-1.5, 0.5];
-  // let joint = world.createImpulseJoint(params, box1, box2, true);
   const pnt1a = { x: 0.0, y: -0.6, z: 0.2 };
   const pnt1b = { x: 0.0, y: 0.05, z: -0.6 };
   let jntParams = RAPIER.JointData.revolute(pnt1a, pnt1b, x);
@@ -71,15 +89,45 @@ async function run_simulation() {
   let joint = world.createImpulseJoint(jntParams, box1, box2, true);
   //
   const pnt2a = { x: 0.0, y: 0.6, z: 0.2 };
-  const pnt2b = { x: 0.0, y: 0.05, z: -0.6 };
+  const pnt2b = { x: 0.0, y: -0.05, z: -0.6 };
   let jntParams2 = RAPIER.JointData.revolute(pnt2a, pnt2b, x);
   jntParams2.limitsEnabled = true;
   let joint2 = world.createImpulseJoint(jntParams2, box1, box3, true);
+  //
+  // Create prismatic joint between hand1 and hand2(tomato)
+  const pnt3a = { x: 0.0, y: -0.0, z: 0.6+0.201 };
+  let jntParams3 = RAPIER.JointData.prismatic(pnt3a, y, y);
+  jntParams3.limitsEnabled = true;
+  jntParams3.limits = [-0.25, 0.25];
+  let joint3 = world.createImpulseJoint(jntParams3, hand1, hand2, true);
+
+  // between hand1 and hand3(blue)
+  const pnt4a = { x: 0.0, y: 0.6+0.6, z: 0.6+0.201 };
+  let jntParams4 = RAPIER.JointData.prismatic(pnt4a, y, y);
+  jntParams4.limitsEnabled = true;
+  jntParams4.limits = [-0.25, 0.25];
+  let joint4 = world.createImpulseJoint(jntParams4, hand1, hand3, true);
+
+  // another prismatic joint between end1 and end2(tomato)
+  const pnt5a = { x: 0.0, y: -0.6+0.28, z: 0.2 };
+  const pnt5b = { x: 0.0, y: 0.0, z: -0.6 };
+  let jntParams5 = RAPIER.JointData.prismatic(pnt5a, pnt5b, y);
+  jntParams5.limitsEnabled = true;
+  jntParams5.limits = [-0.28, 0.28];
+  let joint5 = world.createImpulseJoint(jntParams5, end1, end2, true);
+  // between end1 and end3(blue)
+  const pnt6a = { x: 0.0, y: 0.6-0.28, z: 0.2 };
+  const pnt6b = { x: 0.0, y: -0.0, z: -0.6 };
+  let jntParams6 = RAPIER.JointData.prismatic(pnt6a, pnt6b, y);
+  jntParams6.limitsEnabled = true;
+  jntParams6.limits = [-0.28, 0.28];
+  let joint6 = world.createImpulseJoint(jntParams6, end1, end3, true);
+  
 
 
-  // Game loop. Replace by your own game loop system.
-
-  let snapshot = world.snapshot;
+  // ****************
+  // main thread message handling
+  let snapshot = null;
   let doStep = false;
   let singleStep = false;
   self.onmessage = (e) => {
@@ -107,14 +155,20 @@ async function run_simulation() {
       }
       break;
     case 'snapshot':
-      snapshot = world.snapshot;
-      console.log("Snapshotting simulation");
+      if (!doStep) {
+	snapshot = world.takeSnapshot();
+	console.log("Snapshotting simulation");
+      }
       break;
     default:
       console.warn("Worker: Unknown message", data);
     }
   }
       
+  // ****************
+  // Game loop. Replace by your own game loop system.
+  let firstStep = true;
+  snapshot = world.takeSnapshot();
   const workerTimeStep = 1.0 / 60.0;
   const loopTimeStep = workerTimeStep * 1000;
   world.timestep = workerTimeStep;
@@ -122,6 +176,15 @@ async function run_simulation() {
     // Step the simulation forward.  
     if (doStep) {
       world.step();
+      if (firstStep) {
+	firstStep = false;
+	// The first step is the warm up step to propagate
+	// the position corrections made by the joints.
+	Object.keys(sharedBodies).forEach((id) => {
+	  sharedBodies[id].setLinvel({x:0, y:0, z:0}, true);
+	  sharedBodies[id].setAngvel({x:0, y:0, z:0}, true);
+	});
+      }
       if (singleStep) { doStep = false; singleStep = false; }
     }
     if (!snapshot) {
@@ -163,6 +226,19 @@ function writeCuboidSizeToMessage(collider, message) {
     console.warn("Collider shape is not Cuboid:", shape);
     console.warn("msg without size:", message);
   }
+}
+
+function boxCreateAndPost(id,
+			  world, position, rotation, size, color,
+			  share = true, shareList = sharedBodies
+			 ) {
+  const {box, boxCollider, boxmsg}
+	= createBox(world, position, rotation, size, color, id);
+  self.postMessage(boxmsg);
+  if (share) {
+    shareList[id] = box;
+  }
+  return box;
 }
 
 function createBox(world, position, rotation, size, color, id) {
