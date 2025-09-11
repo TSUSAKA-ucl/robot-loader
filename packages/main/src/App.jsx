@@ -3,6 +3,36 @@ import 'aframe'
 const THREE = window.AFRAME.THREE;
 import './App.css'
 
+// *****************
+// A-Frame component to update the Rapier objects poses
+// :
+// Even if you update the poses within the requestAnimationFrame
+// animation loop, the poses will not be reflected in (only) Quest VR mode,
+// so it is recommend to update them using the a-scene tick function.
+// :
+let globalObjectsRef = null;
+let globalDestinationsRef = null;
+let globalFrameCounter = null;
+AFRAME.registerComponent('update-objects-poses', {
+  tick: function () {
+    if (globalObjectsRef && globalDestinationsRef) {
+      for (const [id, el] of Object.entries(globalObjectsRef.current)) {
+        const p = globalDestinationsRef.current[id];
+        if (p) {
+	  el.object3D.position.copy(new THREE.Vector3(p[0], p[1], p[2]));
+	  el.object3D.quaternion.copy(new THREE.Quaternion(p[4], p[5], p[6], p[3]));
+	  // if (frameCounter.current < 30) {
+	  //   console.log(`Obj ${id} pos:`, el.object3D.position);
+          // }
+          // el.object3D.updateMatrix();
+          // el.object3D.updateMatrixWorld(true);
+        }
+      }
+      if (globalFrameCounter) globalFrameCounter.current += 1;
+    }
+  }
+});
+
 function cuboidAttrs(objDef) {
   const attrs = {};
   if (objDef.size) {
@@ -34,7 +64,9 @@ function defineObject(objDef) {
     console.warn("Unknown shape:", objDef.shape);
   }
   if (!el) return null;
+  // el.isEntity = true; // for raycaster
   if (objDef.pose) {
+    // el.setAttribute('position', '0 0 0'); el.setAttribute('rotation', '0 0 0');
     el.object3D.position.set(objDef.pose[0], objDef.pose[1], objDef.pose[2]);
     el.object3D.quaternion.set(objDef.pose[4], objDef.pose[5], objDef.pose[6],
                                objDef.pose[3]);
@@ -45,11 +77,14 @@ function defineObject(objDef) {
 
 function App() {
   const frameCounter = useRef(0);
+  globalFrameCounter = frameCounter;
   // ****************
   // Rapier worker
   const workerRef = useRef(null);
   const objectsRef = useRef({});
+  globalObjectsRef = objectsRef;
   const destinationsRef = useRef({});
+  globalDestinationsRef = destinationsRef;
   useEffect(() => {
     workerRef.current = new Worker('/rapier-worker.mjs', {type: 'module'});
     const worker = workerRef.current;
@@ -81,29 +116,18 @@ function App() {
     }
   }, []);
   // ****************
-  // Animation loop with Rapier updates
-  const reqIdRef = useRef();
-  const loop = (timestamp)=>{
-    reqIdRef.current = window.requestAnimationFrame(loop) 
-    for (const [id, el] of Object.entries(objectsRef.current)) {
-      const p = destinationsRef.current[id];
-      if (p) {
-	el.object3D.position.copy(new THREE.Vector3(p[0], p[1], p[2]));
-	el.object3D.quaternion.copy(new THREE.Quaternion(p[4], p[5], p[6], p[3]));
-	// if (frameCounter.current < 30) {
-	//   console.log(`Obj ${id} pos:`, el.object3D.position);
-        // }
-      }
-    }
-    frameCounter.current += 1;
-  };
-  useEffect(() => {
-    loop()
-    return () => {
-      window.cancelAnimationFrame(reqIdRef.current);
-      // workerRef.current?.terminate()
-    }
-  },[]);
+  //   Animation loop without Rapier updates
+  // const reqIdRef = useRef();
+  // const loop = (timestamp)=>{
+  //   reqIdRef.current = window.requestAnimationFrame(loop) 
+  // };
+  // useEffect(() => {
+  //   loop()
+  //   return () => {
+  //     window.cancelAnimationFrame(reqIdRef.current);
+  //     workerRef.current?.terminate()
+  //   }
+  // },[]);
 
   // ****************
   // Clickable Object
@@ -113,51 +137,39 @@ function App() {
   const resetButton = useRef(null);
   const startStopRef = useRef(false);
   useEffect(()=>{
+    // start/stop button
     const startStopEl = startStopButton.current;
-    if (!startStopEl) return;
-    const handleClick = (evt) => {
-      startStopEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0).toString(16).padStart(6,'0'));
-      console.log('start/stop clicked!', evt);
-      if (!startStopRef.current) {
-        workerRef.current?.postMessage({type: 'start'});
-        startStopRef.current = true;
-      } else {
-        workerRef.current?.postMessage({type: 'stop'});
-	startStopRef.current = false;
-      }
-    };
-    startStopEl.addEventListener('click',handleClick);
-
-    // const buttonDef = {'step': stepButton, 'reset': resetButton};
-    // Object.entries(buttonDef).forEach(([type,ref])=>{
-    //   const btnEl = ref.current;
-    //   if (btnEl) {
-    //     btnEl.setAttribute('class','clickable');
-    //     btnEl.setAttribute('cursor','pointer');
-    //     // btnEl.setAttribute('raycaster','objects: .clickable');
-    //     const handleBtnClick = (evt) => {
-    //       btnEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0).toString(16).padStart(6,'0'));
-    //       if (type !== 'step') console.log(`${type} button clicked!`, evt);
-    //       workerRef.current?.postMessage({type: type});
-    // 	};
-    //     btnEl.addEventListener('click',handleBtnClick);
-    //   }
-    // });
-        
+    if (startStopEl) {
+      const handleClick = (evt) => {
+        startStopEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0)
+                                 .toString(16).padStart(6,'0'));
+        console.log('start/stop clicked!', evt);
+        if (!startStopRef.current) {
+          workerRef.current?.postMessage({type: 'start'});
+          startStopRef.current = true;
+        } else {
+          workerRef.current?.postMessage({type: 'stop'});
+	  startStopRef.current = false;
+        }
+      };
+      startStopEl.addEventListener('click',handleClick);
+    }
+    // step button
     const stepEl = stepButton.current;
     if (stepEl) {
       const handleStepClick = (evt) => {
-    	stepEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0).toString(16).padStart(6,'0'));
-    	// console.log('Step button clicked!', evt);
+    	stepEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0)
+                            .toString(16).padStart(6,'0'));
     	workerRef.current?.postMessage({type: 'step'});
       };
       stepEl.addEventListener('click',handleStepClick);
     }
-
+    // reset button (does not work well with the current Rapier logic?)
     const resetEl = resetButton.current;
     if (resetEl) {
       const handleResetClick = (evt) => {
-        resetEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0).toString(16).padStart(6,'0'));
+        resetEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0)
+                             .toString(16).padStart(6,'0'));
         console.log('Reset button clicked!', evt);
         workerRef.current?.postMessage({type: 'reset'});
       }
@@ -165,14 +177,20 @@ function App() {
     }
 
     return () => {
-      startStopEl.removeEventListener('click', handleClick);
+      if (resetEl) resetEl.removeEventListener('click', handleResetClick);
+      if (stepEl) stepEl.removeEventListener('click', handleStepClick);
+      if (startStopEl) startStopEl.removeEventListener('click', handleClick);
+      startStopRef.current = false;
     };
   },[]);
 
   return (
     <>
-      <a-scene>
+      <a-scene update-objects-pose>
         <a-entity camera position="0 1.6 2.0" look-controls="enabled: false"></a-entity>
+        <a-entity laser-controls="hand: right"
+                  raycaster="objects: .clickable"
+                  line="color: blue; opacity: 0.75"></a-entity>
         {/* clickableをvr以外でclickするには、ここが重要: シーン直下に cursor */}
         <a-entity cursor="rayOrigin: mouse"
                   raycaster="objects: .clickable"></a-entity>
