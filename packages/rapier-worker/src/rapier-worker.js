@@ -43,7 +43,8 @@ async function run_simulation() {
 				 {x: 1.0, y: 2.0, z: -3.0},	// position
 				 {w: 0.991445, x:0.0, y:0.0, z:0.130526}, // orientation
 				 {x: 0.4, y: 0.6, z: 0.2}, // size
-				 "#4CC3D9" // light blue color
+				 "#4CC3D9", // light blue color
+				 'kinematicPosition'
 				);
   const hand2 = boxCreateAndPost('hand2', world,
 				 {x: 1.0, y: 4.0, z: -3.0},	// position
@@ -161,6 +162,17 @@ async function run_simulation() {
       if (!doStep) {
 	snapshot = world.takeSnapshot();
 	console.log("Snapshotting simulation");
+      }
+      break;
+    case 'setNextPose':
+      {
+	const body = sharedBodies[data.id];
+	if (body) {
+	  const position = new RAPIER.Vector3(data.pose[0], data.pose[1], data.pose[2]);
+	  const orientation = new RAPIER.Quaternion(data.pose[3],
+						    data.pose[4], data.pose[5], data.pose[6]);
+	  setNextPose(body, position, orientation);
+	}
       }
       break;
     default:
@@ -294,4 +306,13 @@ function createBox(world, position, rotation, size, color, id,
   writeCuboidSizeToMessage(boxCollider, boxmsg);
   writePoseToMessage(box, boxmsg);
   return {box, boxCollider, boxmsg};
+}
+
+function setNextPose(body, position, rotation) {
+  if (!body.isKinematic()) {
+    console.warn("setNextPose: body is not kinematic:", body);
+    return;
+  }
+  body.setNextKinematicTranslation(position);
+  body.setNextKinematicRotation(rotation);
 }
