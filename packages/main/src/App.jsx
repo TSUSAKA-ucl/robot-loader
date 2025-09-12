@@ -3,6 +3,90 @@ import 'aframe'
 const THREE = window.AFRAME.THREE;
 import './App.css'
 
+// *****************
+// A-Frame component to update the Rapier objects poses
+// :
+// Even if you update the poses within the requestAnimationFrame
+// animation loop, the poses will not be reflected in (only) Quest VR mode,
+// so it is recommend to update them using the a-scene tick function.
+// :
+let globalObjectsRef = null;
+let globalDestinationsRef = null;
+let globalFrameCounter = null;
+AFRAME.registerComponent('update-objects-poses', {
+  tick: function () {
+    if (globalObjectsRef && globalDestinationsRef) {
+      for (const [id, el] of Object.entries(globalObjectsRef.current)) {
+        const p = globalDestinationsRef.current[id];
+        if (p) {
+	  el.object3D.position.copy(new THREE.Vector3(p[0], p[1], p[2]));
+	  el.object3D.quaternion.copy(new THREE.Quaternion(p[4], p[5], p[6], p[3]));
+	  // if (frameCounter.current < 30) {
+	  //   console.log(`Obj ${id} pos:`, el.object3D.position);
+          // }
+          // el.object3D.updateMatrix();
+          // el.object3D.updateMatrixWorld(true);
+        }
+      }
+      if (globalFrameCounter) globalFrameCounter.current += 1;
+    }
+  }
+});
+// *****************
+// AFRAME.registerComponent('vr-controller-right', {
+//   init: function () {
+//     // thumbstick push event
+//     this.el.addEventListener('thumbstickdown', (evt) => {
+//       console.log('hand: thumbstick down', evt);
+//     }
+//                             );
+//     this.el.addEventListener('thumbstickup', (evt) => {
+//       console.log('hand: thumbstick up', evt);
+//     }
+// 			    );
+//   }
+// });
+let laserVisible = true;
+AFRAME.registerComponent('laser-controller-right', {
+  init: function () {
+    // thumbstick push event
+    this.el.addEventListener('thumbstickdown', (evt) => {
+      // console.log('laser: thumbstick down', evt);
+      // Toggle laser visibility
+      if (laserVisible) {
+        // this.el.setAttribute('visible', false);
+        this.el.setAttribute('line', 'visible: false');
+        this.el.setAttribute('raycaster', 'enabled', false);
+        // this.el.removeAttribute('laser-controls');
+        laserVisible = false;
+      } else {
+        // this.el.setAttribute('visible', true);
+        // this.el.setAttribute('laser-controls', 'hand: right');
+        this.el.setAttribute('line', 'visible: true');
+	this.el.setAttribute('raycaster', 'enabled', true);
+        laserVisible = true;
+      }
+    });
+    this.el.addEventListener('thumstickup', (evt) => {
+      // console.log('laser: thumbstick up', evt);
+    });
+  }
+});
+
+// AFRAME.registerComponent('mouse-cursor', {
+//   init: function () {
+//   }
+// });
+
+// // マウスカーソル無効化
+// const mouseCursor = document.querySelector('[cursor]');
+// mouseCursor.removeAttribute('cursor');
+// mouseCursor.removeAttribute('raycaster');
+
+
+
+
+
 function cuboidAttrs(objDef) {
   const attrs = {};
   if (objDef.size) {
@@ -45,11 +129,14 @@ function defineObject(objDef) {
 
 function App() {
   const frameCounter = useRef(0);
+  globalFrameCounter = frameCounter;
   // ****************
   // Rapier worker
   const workerRef = useRef(null);
   const objectsRef = useRef({});
+  globalObjectsRef = objectsRef;
   const destinationsRef = useRef({});
+  globalDestinationsRef = destinationsRef;
   useEffect(() => {
     workerRef.current = new Worker('/rapier-worker.mjs', {type: 'module'});
     const worker = workerRef.current;
@@ -81,29 +168,18 @@ function App() {
     }
   }, []);
   // ****************
-  // Animation loop with Rapier updates
-  const reqIdRef = useRef();
-  const loop = (timestamp)=>{
-    reqIdRef.current = window.requestAnimationFrame(loop) 
-    for (const [id, el] of Object.entries(objectsRef.current)) {
-      const p = destinationsRef.current[id];
-      if (p) {
-	el.object3D.position.copy(new THREE.Vector3(p[0], p[1], p[2]));
-	el.object3D.quaternion.copy(new THREE.Quaternion(p[4], p[5], p[6], p[3]));
-	// if (frameCounter.current < 30) {
-	//   console.log(`Obj ${id} pos:`, el.object3D.position);
-        // }
-      }
-    }
-    frameCounter.current += 1;
-  };
-  useEffect(() => {
-    loop()
-    return () => {
-      window.cancelAnimationFrame(reqIdRef.current);
-      // workerRef.current?.terminate()
-    }
-  },[]);
+  //   Animation loop without Rapier updates
+  // const reqIdRef = useRef();
+  // const loop = (timestamp)=>{
+  //   reqIdRef.current = window.requestAnimationFrame(loop) 
+  // };
+  // useEffect(() => {
+  //   loop()
+  //   return () => {
+  //     window.cancelAnimationFrame(reqIdRef.current);
+  //     workerRef.current?.terminate()
+  //   }
+  // },[]);
 
   // ****************
   // Clickable Object
@@ -113,10 +189,12 @@ function App() {
   const resetButton = useRef(null);
   const startStopRef = useRef(false);
   useEffect(()=>{
+    function randomColor() {
+      return '#'+(Math.random()*0xFFFFFF<<0).toString(16).padStart(6,'0');
+    }
     const startStopEl = startStopButton.current;
-    if (!startStopEl) return;
-    const handleClick = (evt) => {
-      startStopEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0).toString(16).padStart(6,'0'));
+    const handleClick = startStopEl ? (evt) => {
+      startStopEl.setAttribute('color', randomColor());
       console.log('start/stop clicked!', evt);
       if (!startStopRef.current) {
         workerRef.current?.postMessage({type: 'start'});
@@ -125,56 +203,47 @@ function App() {
         workerRef.current?.postMessage({type: 'stop'});
 	startStopRef.current = false;
       }
-    };
-    startStopEl.addEventListener('click',handleClick);
+    } : null;
+    startStopEl?.addEventListener('click',handleClick);
 
-    // const buttonDef = {'step': stepButton, 'reset': resetButton};
-    // Object.entries(buttonDef).forEach(([type,ref])=>{
-    //   const btnEl = ref.current;
-    //   if (btnEl) {
-    //     btnEl.setAttribute('class','clickable');
-    //     btnEl.setAttribute('cursor','pointer');
-    //     // btnEl.setAttribute('raycaster','objects: .clickable');
-    //     const handleBtnClick = (evt) => {
-    //       btnEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0).toString(16).padStart(6,'0'));
-    //       if (type !== 'step') console.log(`${type} button clicked!`, evt);
-    //       workerRef.current?.postMessage({type: type});
-    // 	};
-    //     btnEl.addEventListener('click',handleBtnClick);
-    //   }
-    // });
-        
     const stepEl = stepButton.current;
-    if (stepEl) {
-      const handleStepClick = (evt) => {
-    	stepEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0).toString(16).padStart(6,'0'));
-    	// console.log('Step button clicked!', evt);
-    	workerRef.current?.postMessage({type: 'step'});
-      };
-      stepEl.addEventListener('click',handleStepClick);
-    }
+    const handleStepClick = stepEl ? (evt) => {
+      // console.log('Step button clicked!', evt);
+      stepEl.setAttribute('color', randomColor());
+      workerRef.current?.postMessage({type: 'step'});
+    } : null;
+    stepEl?.addEventListener('click',handleStepClick);
 
     const resetEl = resetButton.current;
-    if (resetEl) {
-      const handleResetClick = (evt) => {
-        resetEl.setAttribute('color', '#'+(Math.random()*0xFFFFFF<<0).toString(16).padStart(6,'0'));
-        console.log('Reset button clicked!', evt);
-        workerRef.current?.postMessage({type: 'reset'});
-      }
-      resetEl.addEventListener('click',handleResetClick);
-    }
+    const handleResetClick = resetEl ? (evt) => {
+      resetEl.setAttribute('color', randomColor());
+      console.log('Reset button clicked!', evt);
+      workerRef.current?.postMessage({type: 'reset'});
+    } : null;
+    resetEl?.addEventListener('click',handleResetClick);
 
     return () => {
-      startStopEl.removeEventListener('click', handleClick);
+      startStopEl?.removeEventListener('click', handleClick);
+      stepEl?.removeEventListener('click', handleStepClick);
+      resetEl?.removeEventListener('click', handleResetClick);
     };
   },[]);
 
   return (
     <>
-      <a-scene>
+      <a-scene update-objects-poses>
         <a-entity camera position="0 1.6 2.0" look-controls="enabled: false"></a-entity>
-        {/* clickableをvr以外でclickするには、ここが重要: シーン直下に cursor */}
+        {/* <a-entity id="hand_r" oculus-touch-controls="hand: right" */}
+        {/*   	  vr-controller-right */}
+        {/*           visible="true"></a-entity> */}
+        <a-entity laser-controls="hand: right"
+                  laser-controller-right
+                  raycaster="objects: .clickable"
+                  line="color: blue; opacity: 0.75"
+                  visible="false"></a-entity>
+        clickableをvr以外でclickするには、ここが重要: シーン直下に cursor
         <a-entity cursor="rayOrigin: mouse"
+                  mouse-cursor
                   raycaster="objects: .clickable"></a-entity>
         <a-sphere ref={startStopButton} class="clickable"
           position="0 1.25 -10" radius="1.25" color="#EF2D5E"></a-sphere>
