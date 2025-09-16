@@ -22,10 +22,12 @@ export default defineConfig({
 	      closeBundle() {
 		const distDir = path.resolve(__dirname, "dist-worker");
 		const publicDir = path.resolve(__dirname, "../main/public");
+		const mainDistDir = path.resolve(__dirname, "../main/dist");
 		// ディレクトリ内のファイルをすべてコピー
 		// compatを使用している場合wasmはjs内に埋め込まれてるためコピー不要
 		fs.readdirSync(distDir).forEach((file) => {
 		  fs.copyFileSync(path.join(distDir, file), path.join(publicDir, file));
+		  fs.copyFileSync(path.join(distDir, file), path.join(mainDistDir, file));
 		});
 	      },
 	    },

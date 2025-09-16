@@ -31,19 +31,19 @@ async function run_simulation() {
 				{x: -1.0, y: 4.0, z: -3.0},	// position
 				{w: 0.991445, x:0.0, y:0.0, z:-0.130526},
 				{x: 0.25, y: 0.05, z: 0.6},	// size
-				"#FF6347"	// tomato color
+				"PowderBlue"	// tomato color
 			       );
   const box3 = boxCreateAndPost('box3', world,
 				{x: -1.0, y: 3.5, z: -3.0}, // position
 				{w: 0.991445, x:0.0, y:0.0, z:-0.130526},
 				{x: 0.25, y: 0.05, z: 0.6}, // size
-				'blue'
+				'SteelBlue'
 			       );
   const hand1 = boxCreateAndPost('hand1', world,
 				 {x: 1.0, y: 2.0, z: -3.0},	// position
 				 {w: 0.991445, x:0.0, y:0.0, z:0.130526}, // orientation
 				 {x: 0.4, y: 0.6, z: 0.2}, // size
-				 "#4CC3D9", // light blue color
+				 "Crimson", // dark red color
 				 'kinematicPosition'
 				);
   const hand2 = boxCreateAndPost('hand2', world,
@@ -56,25 +56,25 @@ async function run_simulation() {
 				 {x: 1.0, y: 3.5, z: -3.0}, // position
 				 {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
 				 {x: 0.25, y: 0.05, z: 0.6}, // size
-				 'blue'
+				 'LightCoral'
 				);
   const end1 = boxCreateAndPost('end1', world,
 				{x: 0.0, y: 3.5, z: -3.0},	// position
 				{w: 1.0, x:0.0, y:0.0, z:0.0}, // orientation
 				{x: 0.4, y: 0.6, z: 0.2}, // size
-				"#4CC3D9" // light blue color
+				"Moccasin" // light orange color
 			       );
   const end2 = boxCreateAndPost('end2', world,
 				{x: 0.0, y: 3.5-0.6, z: -3.0+0.6+0.2},	// position
 				{w: 1.0, x:0.0, y:0.0, z:0.0},
 				{x: 0.25, y: 0.05, z: 0.6},	// size
-				"#FF6347"	// tomato color
+				"LemonChiffon"	// light yellow color
 			       );
   const end3 = boxCreateAndPost('end3', world,
 				{x: 0.0, y: 3.5+0.6, z: -3.0+0.6+0.2}, // position
 				{w: 1.0, x:0.0, y:0.0, z:0.0},
 				{x: 0.25, y: 0.05, z: 0.6}, // size
-				'blue'
+				'Khaki' // light yellow color
 			       );
 
   // ****************
@@ -144,9 +144,11 @@ async function run_simulation() {
       }
       break;
     case 'stop':
+      console.log("Stopping simulation");
       doStep = false;
       break;
     case 'start':
+      console.log("Starting simulation");
       if (!doStep) {
 	doStep = true;
 	singleStep = false;
