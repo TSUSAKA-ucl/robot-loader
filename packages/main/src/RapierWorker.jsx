@@ -55,6 +55,22 @@ function defineObject(objDef) {
   return el;
 }
 
+AFRAME.registerComponent('rapier-tick', {
+  tick: function () {
+    if (globalObjectsRef && globalDestinationsRef) {
+      // console.log("Updating Rapier objects poses. number of objects:",
+      //             Object.keys(globalObjectsRef.current).length);
+      for (const [id, el] of Object.entries(globalObjectsRef.current)) {
+	const p = globalDestinationsRef.current[id];
+	if (p) {
+	  el.object3D.position.copy(new THREE.Vector3(p[0], p[1], p[2]));
+	  el.object3D.quaternion.copy(new THREE.Quaternion(p[4], p[5], p[6], p[3]));
+	}
+      }
+    }
+    if (globalFrameCounter) globalFrameCounter.current += 1;
+  }
+});
 // ****************
 // the entry point
 // :
@@ -71,24 +87,16 @@ function RapierWorker() {
     if (!sceneEl) {
       console.warn("No a-scene found");
       return;
+    } else {
+      console.log("a-scene found");
     }
     // console.log("a-scene FOUND, setting up tick function");
     const onAsceneLoaded = () => {
       console.log("a-scene LOADED, setting up tick function");
-      sceneEl.tick = function () {
-	if (globalObjectsRef && globalDestinationsRef) {
-          // console.log("Updating Rapier objects poses. number of objects:",
-          //             Object.keys(globalObjectsRef.current).length);
-	  for (const [id, el] of Object.entries(globalObjectsRef.current)) {
-	    const p = globalDestinationsRef.current[id];
-	    if (p) {
-	      el.object3D.position.copy(new THREE.Vector3(p[0], p[1], p[2]));
-	      el.object3D.quaternion.copy(new THREE.Quaternion(p[4], p[5], p[6], p[3]));
-	    }
-	  }
-	}
-        if (globalFrameCounter) globalFrameCounter.current += 1;
-      };
+      console.debug("a-scene tick functions is ",sceneEl.tick);
+      const newEl = document.createElement('a-entity');
+      newEl.setAttribute('rapier-tick', '');
+      sceneEl.appendChild(newEl);
     };
     if (sceneEl.hasLoaded) {
       onAsceneLoaded();

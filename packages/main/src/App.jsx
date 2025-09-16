@@ -2,15 +2,19 @@
 import { useEffect, useRef } from 'react'
 import AFRAME from 'aframe'
 const THREE = window.AFRAME.THREE;
+import {globalWorkerRef} from './RapierWorker.jsx'
+import VrControllerComponents from './VrControllerComponents.jsx'
 import './App.css'
-import {globalWorkerRef} from './RapierWorker.jsx';
-import VrControllerComponents from './VrControllerComponents.jsx';
+
 
 // ****************
 // the entry point
 // :
 function App() {
+  // ****************
+  // Rapier worker
   const workerRef = globalWorkerRef;
+
   // ****************
   // Clickable Object
   const startStopButton = useRef(null);
@@ -61,7 +65,7 @@ function App() {
 
   return (
     <>
-      <a-scene>
+      <a-scene update-objects-poses>
         <a-entity camera position="0 1.6 2.0" look-controls="enabled: false"></a-entity>
         <VrControllerComponents />
         <a-sphere ref={startStopButton} class="clickable"
