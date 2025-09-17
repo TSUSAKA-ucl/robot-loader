@@ -41,9 +41,12 @@ cd ../main/dist/ && <START HTTPS SERVER>
 
 2. User-defined module  
    1. [`App.jsx`](packages/main/src/App.jsx): 
-	  The root component of React. In this sample, we define **the appearance
-	  and functionality of the three spheres** here, but depending on your
-	  application you may want to separate them out in a different location,
-	  such as Home.jsx.
+	  The root component of React. This is where users write
+	  user-defined AFRAME views and behaviors that are not related to Rapier,
+	  but depending on your application you may want to separate them
+	  out in a different location, such as `Home.jsx`.
+   2. [`ButtonUI.jsx`](packages/main/src/ButtonUI.jsx): 
+	  In this sample, we define **the appearance and functionality of
+	  the three spheres** that start and stop the Rapier physics engine.
    2. [`VrControllerComponents.jsx`](packages/main/src/VrControllerComponents.jsx):
       Definitions of the VR controller operations

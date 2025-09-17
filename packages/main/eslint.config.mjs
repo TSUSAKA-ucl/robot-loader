@@ -1,5 +1,6 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
+import pluginReact from "eslint-plugin-react";
 
 export default [
   {
@@ -11,7 +12,19 @@ export default [
         sourceType: "module",
 	ecmaFeatures: {
 	  jsx: true
-	}
+	},
+      },
+    },
+    plugins: {
+      react: pluginReact,   // ← plugin を追加
+    },
+    rules: {
+      ...pluginReact.configs.recommended.rules, // ← React の recommended rules を展開
+      "react/react-in-jsx-scope": "off",        // ← React 17+ なら不要なので off
+    },
+    settings: {
+      react: {
+	version: "detect", // ← React のバージョンを自動検出
       },
     },
   },
