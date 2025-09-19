@@ -61,11 +61,11 @@ function ButtonUI() {
   return (
     <>
       <a-sphere ref={startStopButton} class="clickable"
-                position="0 1.25 -10" radius="1.25" color="#EF2D5E"></a-sphere>
+                position="0 0.3 -4" radius="0.3" color="#EF2D5E"></a-sphere>
       <a-sphere ref={stepButton} class="clickable"
-                position="0 3.25 -10" radius="0.75" color="#4CC3D9"></a-sphere>
+                position="0 0.8 -4" radius="0.2" color="#4CC3D9"></a-sphere>
       <a-sphere ref={resetButton} class="clickable"
-                position="0 4.50 -10" radius="0.5" color="#7BC8A4"></a-sphere>
+                position="0 1.1 -4" radius="0.1" color="#7BC8A4"></a-sphere>
     </>
   )
 }

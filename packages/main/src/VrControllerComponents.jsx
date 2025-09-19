@@ -30,6 +30,16 @@ if (!AFRAME.components['laser-controller-right']) {
                               new THREE.Quaternion(0,0,0,1)];
       this.vrCtrlStartingPoseInv = [new THREE.Vector3(0,0,0),
 				    new THREE.Quaternion(0,0,0,1)];
+      const cylinder = document.createElement('a-cylinder');
+      cylinder.setAttribute('radius', 0.002); // 半径 (太さ)
+      cylinder.setAttribute('height', 0.1);  // 長さ
+      cylinder.setAttribute('color', 'red'); // 色
+      cylinder.setAttribute('position', '0 0 -0.05'); 
+      // コントローラの先端から前方へ伸ばす（height/2 の位置を意識）
+      // デフォルトで cylinder はY軸方向に伸びるので、-Z方向へ回す
+      cylinder.setAttribute('rotation', '90 0 0');
+      this.el.appendChild(cylinder);
+
       // thumbstick push event
       this.el.addEventListener('thumbstickdown', (evt) => {
 	// console.log('laser: thumbstick down', evt);
@@ -39,12 +49,14 @@ if (!AFRAME.components['laser-controller-right']) {
           this.el.setAttribute('line', 'visible: false');
           this.el.setAttribute('raycaster', 'enabled', false);
           // this.el.removeAttribute('laser-controls');
+          cylinder.setAttribute('material', 'opacity: 0');
           globalLaserVisible = false;
 	} else {
           // this.el.setAttribute('visible', true);
           // this.el.setAttribute('laser-controls', 'hand: right');
           this.el.setAttribute('line', 'visible: true');
 	  this.el.setAttribute('raycaster', 'enabled', true);
+          cylinder.setAttribute('material', 'color: red; opacity: 0.5');
           globalLaserVisible = true;
 	}
       });
@@ -86,7 +98,7 @@ if (!AFRAME.components['vr-controller-right']) {
 				 this.el.object3D.quaternion];
 	const vrControllerDelta = isoMultiply(this.vrCtrlStartingPoseInv,
                                               this.vrControllerPose);
-	vrControllerDelta[0] = vrControllerDelta[0].multiplyScalar(5.0);
+	vrControllerDelta[0] = vrControllerDelta[0].multiplyScalar(1.0);
 	vrControllerDelta[1].normalize();
 	const vrCtrlToObj = [new THREE.Vector3(0, 0, 0),
                              this.vrCtrlStartingPoseInv[1].clone()

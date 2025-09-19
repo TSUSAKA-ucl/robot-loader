@@ -1,6 +1,7 @@
 import RAPIER from '@dimforge/rapier3d-compat'
 
 const sharedBodies = {};
+const mag=0.25;
 
 run_simulation();
 async function run_simulation() {
@@ -21,59 +22,59 @@ async function run_simulation() {
   // ****************
   // Create a dynamic rigid-body.
   const box1 = boxCreateAndPost('box1', world,
-				{x: -1.0, y: 2.0, z: -3.0},	// position
+				{x: (-1.0)*mag, y: (2.0)*mag, z: (-3.0)*mag},	// position
 				{w: 0.991445, x:0.0, y:0.0, z:0.130526}, // orientation
-				{x: 0.4, y: 0.6, z: 0.2}, // size
+				{x: (0.4)*mag, y: (0.6)*mag, z: (0.2)*mag}, // size
 				"#4CC3D9", // light blue color
 				'kinematicPosition'
 			       );
   const box2 = boxCreateAndPost('box2', world,
-				{x: -1.0, y: 4.0, z: -3.0},	// position
+				{x: (-1.0)*mag, y: (4.0)*mag, z: (-3.0)*mag},	// position
 				{w: 0.991445, x:0.0, y:0.0, z:-0.130526},
-				{x: 0.25, y: 0.05, z: 0.6},	// size
-				"PowderBlue"	// tomato color
+				{x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag},	// size
+				"PowderBlue"
 			       );
   const box3 = boxCreateAndPost('box3', world,
-				{x: -1.0, y: 3.5, z: -3.0}, // position
+				{x: (-1.0)*mag, y: (3.5)*mag, z: (-3.0)*mag}, // position
 				{w: 0.991445, x:0.0, y:0.0, z:-0.130526},
-				{x: 0.25, y: 0.05, z: 0.6}, // size
+				{x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag}, // size
 				'SteelBlue'
 			       );
   const hand1 = boxCreateAndPost('hand1', world,
-				 {x: 1.0, y: 2.0, z: -3.0},	// position
+				 {x: (1.0)*mag, y: (2.0)*mag, z: (-3.0)*mag},	// position
 				 {w: 0.991445, x:0.0, y:0.0, z:0.130526}, // orientation
-				 {x: 0.4, y: 0.6, z: 0.2}, // size
+				 {x: (0.4)*mag, y: (0.6)*mag, z: (0.2)*mag}, // size
 				 "Crimson", // dark red color
 				 'kinematicPosition'
 				);
   const hand2 = boxCreateAndPost('hand2', world,
-				 {x: 1.0, y: 4.0, z: -3.0},	// position
+				 {x: (1.0)*mag, y: (4.0)*mag, z: (-3.0)*mag},	// position
 				 {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
-				 {x: 0.25, y: 0.05, z: 0.6},	// size
+				 {x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag},	// size
 				 "#FF6347"	// tomato color
 				);
   const hand3 = boxCreateAndPost('hand3', world,
-				 {x: 1.0, y: 3.5, z: -3.0}, // position
+				 {x: (1.0)*mag, y: (3.5)*mag, z: (-3.0)*mag}, // position
 				 {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
-				 {x: 0.25, y: 0.05, z: 0.6}, // size
+				 {x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag}, // size
 				 'LightCoral'
 				);
   const end1 = boxCreateAndPost('end1', world,
-				{x: 0.0, y: 3.5, z: -3.0},	// position
+				{x: (0.0)*mag, y: (3.5)*mag, z: (-3.0)*mag},	// position
 				{w: 1.0, x:0.0, y:0.0, z:0.0}, // orientation
-				{x: 0.4, y: 0.6, z: 0.2}, // size
+				{x: (0.4)*mag, y: (0.6)*mag, z: (0.2)*mag}, // size
 				"Moccasin" // light orange color
 			       );
   const end2 = boxCreateAndPost('end2', world,
-				{x: 0.0, y: 3.5-0.6, z: -3.0+0.6+0.2},	// position
+				{x: (0.0)*mag, y: (3.5-0.6)*mag, z: (-3.0+0.6+0.2)*mag},	// position
 				{w: 1.0, x:0.0, y:0.0, z:0.0},
-				{x: 0.25, y: 0.05, z: 0.6},	// size
+				{x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag},	// size
 				"LemonChiffon"	// light yellow color
 			       );
   const end3 = boxCreateAndPost('end3', world,
-				{x: 0.0, y: 3.5+0.6, z: -3.0+0.6+0.2}, // position
+				{x: (0.0)*mag, y: (3.5+0.6)*mag, z: (-3.0+0.6+0.2)*mag}, // position
 				{w: 1.0, x:0.0, y:0.0, z:0.0},
-				{x: 0.25, y: 0.05, z: 0.6}, // size
+				{x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag}, // size
 				'Khaki' // light yellow color
 			       );
 
@@ -84,43 +85,42 @@ async function run_simulation() {
   const z = { x: 0.0, y: 0.0, z: 1.0 };
   const o = { x: 0.0, y: 0.0, z: 0.0 };
   //
-  const pnt1a = { x: 0.0, y: -0.6, z: 0.2 };
-  const pnt1b = { x: 0.0, y: 0.05, z: -0.6 };
+  const pnt1a = {x: (0.0)*mag, y: (-0.6)*mag, z: (0.2)*mag};
+  const pnt1b = {x: (0.0)*mag, y: (0.05)*mag, z: (-0.6)*mag};
   let jntParams = RAPIER.JointData.revolute(pnt1a, pnt1b, x);
   jntParams.limitsEnabled = true;
   let joint = world.createImpulseJoint(jntParams, box1, box2, true);
   //
-  const pnt2a = { x: 0.0, y: 0.6, z: 0.2 };
-  const pnt2b = { x: 0.0, y: -0.05, z: -0.6 };
+  const pnt2a = {x: (0.0)*mag, y: (0.6)*mag, z: (0.2)*mag};
+  const pnt2b = {x: (0.0)*mag, y: (-0.05)*mag, z: (-0.6)*mag};
   let jntParams2 = RAPIER.JointData.revolute(pnt2a, pnt2b, x);
   jntParams2.limitsEnabled = true;
   let joint2 = world.createImpulseJoint(jntParams2, box1, box3, true);
   //
-  // Create prismatic joint between hand1 and hand2(tomato)
-  const pnt3a = { x: 0.0, y: -0.0, z: 0.6+0.201 };
-  let jntParams3 = RAPIER.JointData.prismatic(pnt3a, y, y);
+  // Create prismatic joint between hand1(tomato) and hand2
+  const pnt3a = {x: (0.0)*mag, y: (-0.6)*mag, z: (0.6+0.201)*mag};
+  let jntParams3 = RAPIER.JointData.prismatic(pnt3a, o, y);
   jntParams3.limitsEnabled = true;
-  jntParams3.limits = [-0.25, 0.25];
+  jntParams3.limits = [-0.25*mag, 0.25*mag];
   let joint3 = world.createImpulseJoint(jntParams3, hand1, hand2, true);
-
-  // between hand1 and hand3(blue)
-  const pnt4a = { x: 0.0, y: 0.6+0.6, z: 0.6+0.201 };
-  let jntParams4 = RAPIER.JointData.prismatic(pnt4a, y, y);
+  // between hand1(tomato) and hand3
+  const pnt4a = {x: (0.0)*mag, y: (0.6)*mag, z: (0.6+0.201)*mag};
+  let jntParams4 = RAPIER.JointData.prismatic(pnt4a, o, y);
   jntParams4.limitsEnabled = true;
-  jntParams4.limits = [-0.25, 0.25];
+  jntParams4.limits = [-0.25*mag, 0.25*mag];
   let joint4 = world.createImpulseJoint(jntParams4, hand1, hand3, true);
 
   // another prismatic joint between end1 and end2(tomato)
-  const pnt5a = { x: 0.0, y: -0.6+0.28, z: 0.2 };
-  const pnt5b = { x: 0.0, y: 0.0, z: -0.6 };
+  const pnt5a = {x: (0.0)*mag, y: (-0.6+0.28)*mag, z: (0.2)*mag};
+  const pnt5b = {x: (0.0)*mag, y: (0.0)*mag, z: (-0.6)*mag};
   let jntParams5 = RAPIER.JointData.prismatic(pnt5a, pnt5b, y);
   jntParams5.limitsEnabled = true;
   jntParams5.limits = [-0.5, 0.5];
   let joint5 = world.createImpulseJoint(jntParams5, end1, end2, true);
   joint5.configureMotorPosition(0.0, 10.0*800.0, 100.0);
   // between end1 and end3(blue)
-  const pnt6a = { x: 0.0, y: 0.6-0.28, z: 0.2 };
-  const pnt6b = { x: 0.0, y: -0.0, z: -0.6 };
+  const pnt6a = {x: (0.0)*mag, y: (0.6-0.28)*mag, z: (0.2)*mag};
+  const pnt6b = {x: 0.0*mag, y: -0.0*mag, z: -0.6*mag};
   let jntParams6 = RAPIER.JointData.prismatic(pnt6a, pnt6b, y);
   jntParams6.limitsEnabled = true;
   jntParams6.limits = [-0.5, 0.5];
@@ -212,8 +212,8 @@ async function run_simulation() {
     }
 
     if (time <= 5.0) {
-      box1.setNextKinematicTranslation({x: -1.0, y: 2.0,
-					z: -3.0 + 0.5*Math.sin(2.0*Math.PI*time)});
+      box1.setNextKinematicTranslation({x: -1.0*mag, y: 2.0*mag,
+					z: (-3.0 + 0.5*Math.sin(2.0*Math.PI*time))*mag});
     }
     if (time > 6.0) {
       if (changeJointMotor) {
