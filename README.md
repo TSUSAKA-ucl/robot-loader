@@ -38,6 +38,11 @@ cd ../main/dist/ && <START HTTPS SERVER>
    2. [`RapierWorker.jsx`](packages/main/src/RapierWorker.jsx):
 	  Launch a worker that uses [the Rapier 3D physics engine](https://rapier.rs/) to
 	  calculate object movement.
+   3. [`LoadUrdf.jsx`](packages/main/src/LoadUrdf.jsx):
+      loads a robot model(URDF with modifiers, glTF) from a directory
+      with the robot name and places it on a a-entity(a-plane) with a unique
+      name.The robot is registered in a global registry and managed
+      by this name.
 
 2. User-defined module  
    1. [`App.jsx`](packages/main/src/App.jsx): 
@@ -50,3 +55,8 @@ cd ../main/dist/ && <START HTTPS SERVER>
 	  the three spheres** that start and stop the Rapier physics engine.
    2. [`VrControllerComponents.jsx`](packages/main/src/VrControllerComponents.jsx):
       Definitions of the VR controller operations
+
+********************************  
+CURRENTLY, ONLY AXIS INFORMATION can be obtained directly from robot_registry,
+but in the future it would be better to be able to obtain
+the END EFFECTOR's el directly as well.
