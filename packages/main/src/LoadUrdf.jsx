@@ -22,45 +22,41 @@ AFRAME.registerComponent('robot-registry', {
 function LoadUrdf({robotPlane, robotModel}) {
   // const robotPlaneId = props.robotPlane;
   // const robotModel = props.robotModel;
-  const robotPlaneId = (typeof robotPlane === 'string') ? robotPlane : robotPlane?.id;
+  const indivRobotId = robotPlane;
   useEffect(() => {
     const robotRegistry = document.getElementById('robot_registry');
-    console.log('robotPlaneId:', robotPlaneId, 'robotModel:', robotModel);
-    const planeEl = document.getElementById(robotPlaneId);
+    console.log('robotPlaneId:', indivRobotId, 'robotModel:', robotModel);
+    const planeEl = document.getElementById(indivRobotId);
     if (!robotRegistry) {
       console.error('robot-registry entity not found');
       return;
     }
     if (!planeEl) {
-      console.error('robotPlane entity not found:', robotPlaneId);
+      console.error('robotPlane entity not found:', indivRobotId);
       return;
     }
     let planeLoaded = planeEl.hasLoaded;
     let registryLoaded = robotRegistry.hasLoaded;
     if (planeLoaded && registryLoaded) {
-      const axes = loadAndBuildRobot({worldEl: planeEl, robotModel,
-				      urdfFile: 'urdf.json', linkFile: 'linkmap.json',
-				      modifierFile: 'update.json'});
-      robotRegistry.components['robot-registry'].add(robotModel, axes);
-      return;
+      loadAndRegisterRobot({indivEl: planeEl, robotModel,
+			 urdfFile: 'urdf.json', linkFile: 'linkmap.json',
+			 modifierFile: 'update.json'});
     }
     planeEl.addEventListener('loaded', () => {
       planeLoaded = true;
       if (registryLoaded) {
-        const axes = loadAndBuildRobot({worldEl: planeEl, robotModel,
-					urdfFile: 'urdf.json', linkFile: 'linkmap.json',
-					modifierFile: 'update.json'});
-	robotRegistry.components['robot-registry'].add(robotModel, axes);
+        loadAndRegisterRobot({indivEl: planeEl, robotModel,
+			   urdfFile: 'urdf.json', linkFile: 'linkmap.json',
+			   modifierFile: 'update.json'});
         planeEl.removeEventListener('loaded', this);
       }
     });
     robotRegistry.addEventListener('loaded', () => {
       registryLoaded = true;
       if (planeLoaded) {
-	const axes = loadAndBuildRobot({worldEl: planeEl, robotModel,
-					urdfFile: 'urdf.json', linkFile: 'linkmap.json',
-					modifierFile: 'update.json'});
-        robotRegistry.components['robot-registry'].add(robotModel, axes);
+        loadAndRegisterRobot({indivEl: planeEl, robotModel,
+			   urdfFile: 'urdf.json', linkFile: 'linkmap.json',
+			   modifierFile: 'update.json'});
         robotRegistry.removeEventListener('loaded', this);
       }
     });
@@ -69,6 +65,20 @@ function LoadUrdf({robotPlane, robotModel}) {
     <>
     </>
   );
+}
+
+function loadAndRegisterRobot({indivEl, robotModel, urdfFile, linkFile, modifierFile}) {
+  const robotRegistry = document.getElementById('robot_registry');
+  const indivId = indivEl.id;
+  console.log('robot individual ID: ', indivId);
+  const robot = robotRegistry.components['robot-registry'].get(indivId);
+  if (robot) {
+    console.warn('robot ',indivId,' already registered');
+    return;
+  }
+  const axes = loadAndBuildRobot({worldEl: indivEl, robotModel,
+				  urdfFile, linkFile, modifierFile});
+  robotRegistry.components['robot-registry'].add(indivId, axes);
 }
 
 function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFile}) {
@@ -112,9 +122,28 @@ function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFil
               worldEl.appendChild(base);
               let parentEl = base;
               revolutes.forEach(joint => {
+                // *** joint origin
                 const jEl = document.createElement('a-entity');
                 jEl.setAttribute('class', 'link');
+                setUrdfOrigin(jEl, joint.origin);
                 parentEl.appendChild(jEl);
+                // *** axis
+                const axisEl = document.createElement('a-entity');
+                // const additionalQuat = new THREE.Quaternion(0, 0, 0.130526,
+                //                                             0.991445);
+		const identityQuat = new THREE.Quaternion().identity();
+                axisEl.object3D.quaternion.copy(identityQuat);
+		axisEl.object3D.position.set(0.0,0.0,0.0);
+                axisEl.setAttribute('class', 'axis');
+                if (joint.axis?.$.xyz) {
+                  const axis = new THREE.Vector3(...joint.axis.$.xyz);
+                  axisEl.axis = axis.normalize();
+                }
+                jEl.appendChild(axisEl);
+                axesList.push(axisEl);
+                // next
+                parentEl = axisEl;
+                // *** visuals
                 console.log("Processing joint:", joint.$.name, "child link:", joint.child.$.link);
                 linkMap[joint.child.$.link].visual.forEach(visual => {
                   console.log('Joint visual geometry.mesh.$.filename:', visual.geometry.mesh?.$.filename);
@@ -126,27 +155,10 @@ function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFil
                   console.log('Joint meshes:', filename, 'origin:', origin);
                   const el = document.createElement('a-entity');
 		  el.setAttribute('class', 'visual');
-		  jEl.appendChild(el);
+		  axisEl.appendChild(el);
                   setUrdfOrigin(el, origin);
 	          el.setAttribute('gltf-model', robotModel + '/' + filename);
 		});
-                setUrdfOrigin(jEl, joint.origin);
-                // console.log("link:", joint.child.$.link,
-                //             "quaternion:", jEl.object3D.quaternion);
-                // const additionalQuat = new THREE.Quaternion(0, 0, 0.130526,
-                //                                             0.991445);
-                // const jointQuat = jEl.object3D.quaternion;
-                // jEl.object3D.quaternion.multiplyQuaternions(jointQuat,
-                //                                             additionalQuat);
-                const axisEl = document.createElement('a-entity');
-                axisEl.setAttribute('class', 'axis');
-                if (joint.axis?.$.xyz) {
-                  const axis = new THREE.Vector3(...joint.axis.$.xyz);
-                  axisEl.axis = axis.normalize();
-                }
-                jEl.appendChild(axisEl);
-                axesList.push(axisEl);
-                parentEl = axisEl;
               });
 	      // initScene(urdf, linkMap, modifiers);
 	    }).catch(error => {
