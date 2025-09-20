@@ -7,126 +7,105 @@ import AFRAME from 'aframe'
 const THREE = window.AFRAME.THREE;
 import {globalWorkerRef, globalObjectsRef} from './RapierWorker.jsx';
 
-// AFRAME.registerComponent('log-pose', {
-//   tick: function () {
-//     let p = this.el.object3D.position;
-//     let q = this.el.object3D.quaternion;
-//     document.querySelector('#debugText').setAttribute(
-//       'value',
-//       `pos=(${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)})\n` +
-//       `rot=(${q.x.toFixed(2)}, ${q.y.toFixed(2)}, ${q.z.toFixed(2)}, ${q.w.toFixed(2)})`
-//     );
-//   }
-// });
+let controllerPosition = null;
+let controllerQuaternion = null;
+let frameObject3D = null;
 
-let globalLaserVisible = true;
-
-if (!AFRAME.components['laser-controller-right']) {
-  console.log("Registering laser-controller-right component");
-  AFRAME.registerComponent('laser-controller-right', {
-    init: function () {
-      this.triggerdownState = false;
-      this.objStartingPose = [new THREE.Vector3(0,0,0),
-                              new THREE.Quaternion(0,0,0,1)];
-      this.vrCtrlStartingPoseInv = [new THREE.Vector3(0,0,0),
-				    new THREE.Quaternion(0,0,0,1)];
-      const cylinder = document.createElement('a-cylinder');
-      cylinder.setAttribute('radius', 0.002); // 半径 (太さ)
-      cylinder.setAttribute('height', 0.1);  // 長さ
-      cylinder.setAttribute('color', 'red'); // 色
-      cylinder.setAttribute('position', '0 0 -0.05'); 
-      // コントローラの先端から前方へ伸ばす（height/2 の位置を意識）
-      // デフォルトで cylinder はY軸方向に伸びるので、-Z方向へ回す
-      cylinder.setAttribute('rotation', '90 0 0');
-      this.el.appendChild(cylinder);
-
-      // thumbstick push event
-      this.el.addEventListener('thumbstickdown', (evt) => {
-	// console.log('laser: thumbstick down', evt);
-	// Toggle laser visibility
-	if (globalLaserVisible) {
-          // this.el.setAttribute('visible', false);
-          this.el.setAttribute('line', 'visible: false');
-          this.el.setAttribute('raycaster', 'enabled', false);
-          // this.el.removeAttribute('laser-controls');
-          cylinder.setAttribute('material', 'opacity: 0');
-          globalLaserVisible = false;
-	} else {
-          // this.el.setAttribute('visible', true);
-          // this.el.setAttribute('laser-controls', 'hand: right');
-          this.el.setAttribute('line', 'visible: true');
-	  this.el.setAttribute('raycaster', 'enabled', true);
-          cylinder.setAttribute('material', 'color: red; opacity: 0.5');
-          globalLaserVisible = true;
-	}
-      });
-      this.el.addEventListener('thumstickup', (evt) => {
-	// console.log('laser: thumbstick up', evt);
-      });
-    },
-  });
-} else {
-  console.log("laser-controller-right component already registered");
-}
-
-if (!AFRAME.components['vr-controller-right']) {
-  AFRAME.registerComponent('vr-controller-right', {
-    init: function () {
-      this.el.addEventListener('axismove', (evt) => {});
-      //
-      this.triggerdownState = false;
-      this.el.addEventListener('triggerdown', (evt) => {
-	if (!globalLaserVisible) {
-          this.triggerdownState = true;
-	}
-      });
-      this.el.addEventListener('triggerup', (evt) => {
-	this.triggerdownState = false;
-      });
-    },
-    tick: function () {
-      if (!globalObjectsRef) return;
-      const movingObj = globalObjectsRef.current['hand1'];
-      if (!movingObj) return;
-      if (! this.triggerdownState) {
-	this.objStartingPose = [movingObj.object3D.position.clone(),
-				movingObj.object3D.quaternion.clone()];
-	this.vrCtrlStartingPoseInv = isoInvert([this.el.object3D.position,
-						this.el.object3D.quaternion]);
-      } else {
-	this.vrControllerPose = [this.el.object3D.position,
-				 this.el.object3D.quaternion];
-	const vrControllerDelta = isoMultiply(this.vrCtrlStartingPoseInv,
-                                              this.vrControllerPose);
-	vrControllerDelta[0] = vrControllerDelta[0].multiplyScalar(1.0);
-	vrControllerDelta[1].normalize();
-	const vrCtrlToObj = [new THREE.Vector3(0, 0, 0),
-                             this.vrCtrlStartingPoseInv[1].clone()
-                             .multiply(this.objStartingPose[1])];
-	const ObjToVrCtrl = [new THREE.Vector3(0, 0, 0),
-                             vrCtrlToObj[1].clone().conjugate()];
-	const newObjPose = isoMultiply(isoMultiply(this.objStartingPose,
-                                                   isoMultiply(ObjToVrCtrl,
-                                                               vrControllerDelta)),
-                                       vrCtrlToObj);
-	// document.querySelector('#debugText').setAttribute(
-	//   'value',
-	//   `pos=(${newObjPose[0].x.toFixed(2)}, ${newObjPose[0].y.toFixed(2)}, ${newObjPose[0].z.toFixed(2)})\n` +
-	//   `rot=(${q.x.toFixed(2)}, ${q.y.toFixed(2)}, ${q.z.toFixed(2)}, ${q.w.toFixed(2)})`
-	// );
-	if (globalWorkerRef) {
-          globalWorkerRef.current
-          ?.postMessage({type: 'setNextPose',
-			 id: 'hand1',
-			 pose: [...newObjPose[0].toArray(),
-				...newObjPose[1].toArray()]});
-	}
-      }
+AFRAME.registerComponent('right-controller-frame', {
+  init() {
+    frameObject3D = this.el.object3D;
+  },
+  tick() {
+    if (controllerPosition && controllerQuaternion) {
+      this.el.object3D.position.copy(controllerPosition);
+      this.el.object3D.quaternion.copy(controllerQuaternion);
     }
-  });
-} else {
-  console.log("vr-controller-right component already registered");
-}
+  }
+});
+
+AFRAME.registerComponent('right-controller', {
+  init: function () {
+    this.triggerdownState = false;
+    this.laserVisible = true;
+    this.objStartingPose = [new THREE.Vector3(0,0,0),
+                            new THREE.Quaternion(0,0,0,1)];
+    this.vrCtrlStartingPoseInv = [new THREE.Vector3(0,0,0),
+				  new THREE.Quaternion(0,0,0,1)];
+
+    const cylinder = document.createElement('a-cylinder');
+    const cylinderHeight = 0.25;
+    cylinder.setAttribute('radius', 0.002); // radius
+    cylinder.setAttribute('height', cylinderHeight);  // length
+    cylinder.setAttribute('color', 'red');
+    // cylinder.setAttribute('position', `0 ${-cylinderHeight/2} 0`);
+    cylinder.setAttribute('position', '0 0 0');
+    cylinder.setAttribute('rotation', '0 0 0');
+    // cylinder.setAttribute('position', '-0.01 -0.06 -0.10'); 
+    // cylinder.setAttribute('rotation', '57 10.5 0');
+    this.el.appendChild(cylinder);
+    // this.frame = buildUpFrameAxes(this.el);
+    //
+    this.el.addEventListener('thumbstickdown', () => {
+      // console.log('### detect THUMBSTICK down event');
+      const ray = this.el.getAttribute('raycaster').direction;
+      const v = new THREE.Vector3(ray.x, ray.y, ray.z).normalize();
+      const q = new THREE.Quaternion()
+            .setFromUnitVectors(new THREE.Vector3(0,1,0), v);
+      const p = new THREE.Vector3(0.005, cylinderHeight*0.5, 0.015);
+      cylinder.object3D.quaternion.copy(q);
+      cylinder.object3D.position.copy(p.applyQuaternion(q));
+      // console.log('ray x,y,z: ', ray.x, ray.y, ray.z);
+      //
+      this.laserVisible = !this.laserVisible;
+      this.el.setAttribute('line', 'visible', this.laserVisible);
+      this.el.setAttribute('raycaster', 'enabled', this.laserVisible);
+      cylinder.object3D.visible = this.laserVisible;
+      frameObject3D.visible = ! this.laserVisible;
+      // this.frame.object3D.visible = !this.laserVisible;
+    });
+    this.el.addEventListener('triggerdown', () => {
+      if (!this.laserVisible) this.triggerdownState = true;
+    });
+    this.el.addEventListener('triggerup', () => {
+      this.triggerdownState = false;
+    });
+  },
+
+  tick: function () {
+    controllerPosition = this.el.object3D.position;
+    controllerQuaternion = this.el.object3D.quaternion;
+    if (!globalObjectsRef) return;
+    const movingObj = globalObjectsRef.current['hand1'];
+    if (!movingObj) return;
+    if (! this.triggerdownState || this.laserVisible) {
+      this.objStartingPose = [movingObj.object3D.position.clone(),
+			      movingObj.object3D.quaternion.clone()];
+      this.vrCtrlStartingPoseInv = isoInvert([this.el.object3D.position,
+					      this.el.object3D.quaternion]);
+    } else {
+      const vrControllerPose = [this.el.object3D.position,
+				this.el.object3D.quaternion];
+      const vrControllerDelta = isoMultiply(this.vrCtrlStartingPoseInv,
+                                            vrControllerPose);
+      vrControllerDelta[0] = vrControllerDelta[0].multiplyScalar(1.0);
+      vrControllerDelta[1].normalize();
+      const vrCtrlToObj = [new THREE.Vector3(0, 0, 0),
+                           this.vrCtrlStartingPoseInv[1].clone()
+                           .multiply(this.objStartingPose[1])];
+      const ObjToVrCtrl = [new THREE.Vector3(0, 0, 0),
+                           vrCtrlToObj[1].clone().conjugate()];
+      const newObjPose = isoMultiply(isoMultiply(this.objStartingPose,
+                                                 isoMultiply(ObjToVrCtrl,
+                                                             vrControllerDelta)),
+                                     vrCtrlToObj);
+      globalWorkerRef?.current?.postMessage({
+        type: 'setNextPose',
+        id: 'hand1',
+	pose: [...newObjPose[0].toArray(), ...newObjPose[1].toArray()]
+      });
+    }
+  }
+});
 
 // *****************
 // isometry multiplication function isoMultiply(a, b) 
@@ -159,20 +138,35 @@ function isoInvert(a) {
 }
 
 function VrControllerComponents() {
+  // definition of the end link axes marker
+  const con_axis_length = 0.100;
+  const con_length = (con_axis_length/2).toString();
+  const con_hight = (con_axis_length).toString();
+  const con_radius = '0.0035';
+  const controller_axes = (
+    <a-entity right-controller-frame position={'0 1 0'} >
+      <a-sphere
+        scale="0.012 0.012 0.012"
+        color="white"
+        visible={true}>
+      </a-sphere>
+      <a-cylinder position={`${con_length} 0 0`} rotation={`0 0 -90`}
+        	  height={con_hight} radius={con_radius} color="red" />
+      <a-cylinder position={`0 ${con_length} 0`} rotation={`0 0 0`}
+		  height={con_hight} radius={con_radius} material='color: #00ff00' />
+      <a-cylinder position={`0 0 ${con_length}`} rotation={`90 0 0`}
+        	  height={con_hight} radius={con_radius} color="blue" />
+    </a-entity>
+  );
   return (
     <>
-      <a-entity id="hand_r" oculus-touch-controls="hand: right"
-          	vr-controller-right
-                /* log-pose */
-                visible="true"></a-entity>
-      {/* <a-text id="debugText" value="waiting..." */}
-      {/*         position="0 2 -2" color="yellow"></a-text> */}
-      <a-entity laser-controls="hand: right"
-                laser-controller-right
+      <a-entity right-controller
+                laser-controls="hand: right"
                 raycaster="objects: .clickable"
                 line="color: blue; opacity: 0.75"
-                visible="false"></a-entity>
-      clickableをvr以外でclickするには、ここが重要: シーン直下に cursor
+                visible="true">
+      </a-entity>
+      {controller_axes}
       <a-entity cursor="rayOrigin: mouse"
                 mouse-cursor
                 raycaster="objects: .clickable"></a-entity>
@@ -180,5 +174,6 @@ function VrControllerComponents() {
     </>
   );
 }
+//                 oculus-touch-controls="hand: right"
 
 export default VrControllerComponents;
