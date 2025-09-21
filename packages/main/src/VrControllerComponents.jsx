@@ -24,6 +24,7 @@ AFRAME.registerComponent('right-controller-frame', {
 });
 
 AFRAME.registerComponent('right-controller', {
+  schema: { radius: {default: 0.2}, items: {default: 8} },
   init: function () {
     this.triggerdownState = false;
     this.laserVisible = true;
@@ -45,8 +46,95 @@ AFRAME.registerComponent('right-controller', {
     this.el.appendChild(cylinder);
     // this.frame = buildUpFrameAxes(this.el);
     //
+    this.el.addEventListener('triggerdown', () => {
+      if (!this.laserVisible) this.triggerdownState = true;
+    });
+    this.el.addEventListener('triggerup', () => {
+      this.triggerdownState = false;
+    });
+//  },
+// });
+// AFRAME.registerComponent('right-controller-menu', {
+//  init: function () {
+    this.menuVisible = false;
+    this.menuEls = [];
+    this.currentIndex = -1;
+
+    // flower-like menu entity
+    this.menuRoot = new AFRAME.THREE.Group();
+    // this.menuRoot.object3D.position('0, -0.02, -0.04');
+    this.el.object3D.add(this.menuRoot);
+
+    const menuText = 'P,Q,R,S,T,U,V,W';
+    const menuTexts = menuText.split(",");
+
+    const angleStep = (2 * Math.PI) / this.data.items;
+    for (let i = 0; i < this.data.items; i++) {
+      const angle = i * angleStep;
+      const circle = document.createElement('a-circle');
+      const label = document.createElement('a-text');
+      label.setAttribute('value', menuTexts[i]);
+      label.setAttribute('align', 'center');
+      label.setAttribute('color', 'black');
+      label.setAttribute('width', 2);
+      label.object3D.position.set(0,0,0.01);
+      circle.appendChild(label);
+      circle.setAttribute('radius', 0.05);
+      circle.setAttribute('color', 'gray');
+      circle.setAttribute('opacity', '0.6');
+      circle.setAttribute('rotation', '-90 0 0'); // flat facing up
+      circle.object3D.position.set(
+        Math.cos(angle) * this.data.radius,
+        -0.02, // small offset above controller
+        Math.sin(angle) * this.data.radius - 0.04
+      );
+      this.el.sceneEl.appendChild(circle);
+      circle.object3D.visible = false;
+      this.menuEls.push(circle);
+      this.menuRoot.add(circle.object3D);
+    }
+
     this.el.addEventListener('thumbstickdown', () => {
-      // console.log('### detect THUMBSTICK down event');
+      this.menuVisible = true;
+      this.menuEls.forEach(el => { el.object3D.visible = true; });
+    });
+
+    // this.el.addEventListener('axismove', (evt) => {
+    this.el.addEventListener('thumbstickmoved', (evt) => {
+      if (!this.menuVisible) return;
+      // console.log('evt.detail: ', evt.detail);
+      // const [x, y] = evt.detail.axis; // -1..1
+      const x = evt.detail.x;
+      const y = evt.detail.y;
+      if (Math.hypot(x, y) < 0.2) { // deadzone
+        this.highlight(-1);
+        return;
+      }
+      let angle = Math.atan2(y, x); // -π..π
+      if (angle < 0) angle += 2 * Math.PI;
+      const sector = Math.floor(angle / (2 * Math.PI / this.data.items));
+      this.highlight(sector);
+    });
+
+    this.el.addEventListener('thumbstickup', () => {
+      // console.log('### thumbstick UP event');
+      // console.log('current index: ', this.currentIndex);
+      // console.log('menuVisible: ', this.menuVisible);
+      if (!this.menuVisible) return;
+      this.menuVisible = false;
+      this.menuEls.forEach(el => { el.object3D.visible = false; });
+      if (this.currentIndex >= 0) {
+        // dispatch custom event with chosen index
+        // console.log('emit menu number :', this.currentIndex);
+        this.el.emit('menu-select', { index: this.currentIndex });
+      }
+      this.currentIndex = -1;
+      this.menuEls.forEach((el,i)=>{el.setAttribute('color','gray');});
+    });
+
+    this.el.addEventListener('menu-select', (evt) => {
+      console.log('### menu select event: ', evt.detail.index);
+      if (evt.detail.index != 6) return;
       const ray = this.el.getAttribute('raycaster').direction;
       const v = new THREE.Vector3(ray.x, ray.y, ray.z).normalize();
       const q = new THREE.Quaternion()
@@ -55,7 +143,7 @@ AFRAME.registerComponent('right-controller', {
       cylinder.object3D.quaternion.copy(q);
       cylinder.object3D.position.copy(p.applyQuaternion(q));
       // console.log('ray x,y,z: ', ray.x, ray.y, ray.z);
-      //
+      
       this.laserVisible = !this.laserVisible;
       this.el.setAttribute('line', 'visible', this.laserVisible);
       this.el.setAttribute('raycaster', 'enabled', this.laserVisible);
@@ -63,11 +151,15 @@ AFRAME.registerComponent('right-controller', {
       frameObject3D.visible = ! this.laserVisible;
       // this.frame.object3D.visible = !this.laserVisible;
     });
-    this.el.addEventListener('triggerdown', () => {
-      if (!this.laserVisible) this.triggerdownState = true;
-    });
-    this.el.addEventListener('triggerup', () => {
-      this.triggerdownState = false;
+
+  },
+
+  highlight: function (index) {
+    if (this.currentIndex === index) return;
+    this.currentIndex = index;
+    this.menuEls.forEach((el, i) => {
+      el.setAttribute('color', i === index ? 'yellow' : 'gray');
+      // console.log('## HIGHLIGHT ',i);
     });
   },
 
@@ -105,6 +197,7 @@ AFRAME.registerComponent('right-controller', {
       });
     }
   }
+
 });
 
 // *****************
