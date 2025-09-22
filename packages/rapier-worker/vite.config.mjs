@@ -6,14 +6,16 @@ import path from "path";
 export default defineConfig({
   build: {
     lib: {
-      entry: "src/rapier-worker.js",
+      entry: "src/rapierWorker.js",
       name: "RapierWorker",
       fileName: "rapier-worker",
       formats: ["es"],
     },
     outDir: "dist-worker",
     rollupOptions: {
-      external: [],
+      external: [
+        'rapierObjectUtils.js',
+      ],
     },
   },
   plugins: [wasm(),
@@ -27,7 +29,12 @@ export default defineConfig({
 		// compatを使用している場合wasmはjs内に埋め込まれてるためコピー不要
 		fs.readdirSync(distDir).forEach((file) => {
 		  fs.copyFileSync(path.join(distDir, file), path.join(publicDir, file));
-		  fs.copyFileSync(path.join(distDir, file), path.join(mainDistDir, file));
+		  fs.copyFileSync(path.join(distDir, file),
+				  path.join(mainDistDir, file));
+		});
+		['rapierObjectUtils.js', 'physicalObj.config.js'].forEach((file)=>{
+		  fs.copyFileSync(path.join('src', file), path.join(publicDir, file));
+		  fs.copyFileSync(path.join('src', file), path.join(mainDistDir, file));
 		});
 	      },
 	    },
