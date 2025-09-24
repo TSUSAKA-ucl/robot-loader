@@ -35,6 +35,7 @@ async function run_simulation() {
 		       obj.position, obj.orientation,
 		       obj.collider.size,
 		       obj.collider.color,
+		       obj?.collider.props,
 		       obj?.type);
     });
   userConfig.joints
@@ -57,6 +58,8 @@ async function run_simulation() {
 	const m = jnt.motor;
 	if (m?.type === 'position') {
 	  jj1.configureMotorPosition(m.targetPos, m.stiffness, m.damping);
+	} else if (m?.type === 'velocity') {
+	  jj1.configureMotorVelocity(m.targetVel, m.factor);
 	}
       }
       storedJoints[jnt.name] = jj1;
@@ -284,6 +287,7 @@ function writeCuboidSizeToMessage(collider, message) {
 
 function boxCreateAndPost(id,
 			  world, position, rotation, size, color,
+			  colliderProps = {},
 			  dynamicsType = 'dynamic',
 			  share = true, bodyList = storedBodies,
 			  coliderList = storedColliders,
@@ -291,7 +295,7 @@ function boxCreateAndPost(id,
   if (!dynamicsType) dynamicsType = 'dynamic';
   const {box, boxCollider, boxmsg}
 	= createBox(world, position, rotation, size, color,
-		    id, dynamicsType);
+		    id, dynamicsType, colliderProps);
   self.postMessage(boxmsg);
   if (share) {
     bodyList[id] = box;
@@ -300,8 +304,37 @@ function boxCreateAndPost(id,
   return box;
 }
 
+function setColliderProperties(collider, props)
+{
+  if (props?.density) {
+    collider.setDensity(props.density);
+  }
+  if (props?.mass) {
+    collider.setMass(props.mass);
+  }
+  if (props?.massProperties) {
+    // mass
+    // centerOfMass (Vector3)
+    // principalAngularInertia (Vector3)
+    // angularInertiaLocalFrame (Quaternion)
+    collider.setMassProperties(...props.massProperties);
+  }
+  if (props?.friction) {
+    collider.setFriction(props.friction);
+  }
+  if (props?.frictionCombineRule) {
+    collider.setFrictionCombineRule(RAPIER.CoefficientCombineRule[props.frictionCombineRule]);
+  }
+  if (props?.restitution) {
+    collider.setRestitution(props.restitution);
+  }
+  if (props?.restitutionCombineRule) {
+    collider.setRestitutionCombineRule(RAPIER.CoefficientCombineRule[props.restitutionCombineRule]);
+  }
+}
+
 function createBox(world, position, rotation, size, color, id,
-		  dynamicsType = 'dynamic') {
+		   dynamicsType, colliderProps) {
   // Create a dynamic rigid-body.
   if (!position) {
     position = {x: 0.0, y: 0.0, z: 0.0};
@@ -334,6 +367,7 @@ function createBox(world, position, rotation, size, color, id,
   let box = world.createRigidBody(boxDesc);
   // Create a cuboid collider attached to the dynamic rigidBody.
   let boxColliderDesc = RAPIER.ColliderDesc.cuboid(size.x, size.y, size.z);
+  setColliderProperties(boxColliderDesc, colliderProps);
   let boxCollider = world.createCollider(boxColliderDesc, box);
   const boxmsg = {type: 'definition', id: id, shape: 'cuboid',
 		   color: color };

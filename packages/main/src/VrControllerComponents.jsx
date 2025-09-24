@@ -165,6 +165,18 @@ AFRAME.registerComponent('right-controller', {
           name: 'endJointClose',
         });
         break;
+      case 7:
+        globalWorkerRef?.current?.postMessage({
+          type: 'call',
+          name: 'handJointOpen',
+        })
+        break;
+      case 5:
+        globalWorkerRef?.current?.postMessage({
+          type: 'call',
+          name: 'handJointClose',
+        });
+        break;
       case 1:
         globalWorkerRef?.current?.postMessage({
           type: 'activate',

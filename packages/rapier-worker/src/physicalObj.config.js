@@ -1,10 +1,16 @@
-import {storedBodies, getRigidBody,
-	storedJoints, getJoint,
-	FunctionState,
-	getStepTime} from './rapierObjectUtils.js'
+import {getRigidBody, getJoint,
+	FunctionState, getStepTime} from './rapierObjectUtils.js'
 
 // ****************
 // Create a dynamic rigid-body.
+const hand23props = {
+  density: 0.000000000002, // or mass or massProperties
+  friction: 0.3,
+  frictionCombineRule: 'Min',
+  restitution: 0.7,
+  restitutionCombineRule: 'Min',
+};
+//
 const mag=0.25;
 const rigidBodyArray = [
   { name: 'floor',
@@ -54,6 +60,7 @@ const rigidBodyArray = [
     orientation: {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
     collider: { shape: 'box',
 		size: {x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag},
+		props: hand23props,
 		color: '#FF6347',	// tomato color
 	      },
   },
@@ -62,6 +69,8 @@ const rigidBodyArray = [
     orientation: {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
     collider: { shape: 'box',
 		size: {x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag},
+		props: hand23props,
+		density: 0.02,
 		color: 'LightCoral',
 	      },
   },
@@ -134,14 +143,22 @@ const jointArray = [
     bodyA: 'hand1',  anchorA: apHandJnt1A,
     bodyB: 'hand2',  anchorB: o,
     axis: y,
-    limits: [-0.65*mag, 0.65*mag],
+    limits: [-0.05*mag, 0.65*mag],
+    motor: {
+      type: 'position',
+      targetPos: 0, stiffness: endJStiffness, damping: endJDamping
+    },
   },
   {
     name: 'handJoint2',  type: 'prismatic',
     bodyA: 'hand1',  anchorA: apHandJnt2A,
     bodyB: 'hand3',  anchorB: o,
     axis: y,
-    limits: [-0.65*mag, 0.65*mag],
+    limits: [-0.65*mag, 0.05*mag],
+    motor: {
+      type: 'position',
+      targetPos: 0, stiffness: endJStiffness, damping: endJDamping
+    },
   },
   {
     name: 'endJoint1',  type: 'prismatic',
@@ -197,6 +214,22 @@ const functionArray = [
         .configureMotorPosition(-0.1, endJStiffness, endJDamping);
       getJoint('endJoint2')
         .configureMotorPosition(0.1, endJStiffness, endJDamping);
+    },
+  },
+  { name: 'handJointClose',
+    method: () => {
+      getJoint('handJoint1')
+        .configureMotorPosition(0.65*mag, endJStiffness, endJDamping);
+      getJoint('handJoint2')
+        .configureMotorPosition(-0.65*mag, endJStiffness, endJDamping);
+    },
+  },
+  { name: 'handJointOpen',
+    method: () => {
+      getJoint('handJoint1')
+        .configureMotorPosition(-0.65*mag, endJStiffness, endJDamping);
+      getJoint('handJoint2')
+        .configureMotorPosition(0.65*mag, endJStiffness, endJDamping);
     },
   },
 ];
