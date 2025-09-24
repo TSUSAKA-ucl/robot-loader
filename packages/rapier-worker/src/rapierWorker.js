@@ -1,7 +1,9 @@
 import RAPIER from '@dimforge/rapier3d-compat'
 import {getRigidBody, storedBodies,
-	storedJoints, storedFunctions,
-	setStepTime} from './rapierObjectUtils'
+	storedJoints, storedFunctions, FunctionState,
+	setStepTime} from './rapierObjectUtils.js'
+const storedColliders = {};
+const storedObjects = {};
 
 async function loadUserConfig(path) {
   const module = await import(path);
@@ -17,14 +19,14 @@ async function run_simulation() {
   let gravity = { x: 0.0, y: -9.81, z: 0.0 };
   let world = new RAPIER.World(gravity);
 
-  // Create the ground
-  let groundColliderDesc = RAPIER.ColliderDesc.cuboid(10.5, 0.1, 10.5);
-  const groundCollider = world.createCollider(groundColliderDesc);
-  const groundPlaneMsg = {type: 'definition', id: 'plane1', shape: 'cuboid',
-			  color: "#7BC8A4"};
-  writeCuboidSizeToMessage(groundCollider, groundPlaneMsg);
-  writePoseToMessage(groundCollider, groundPlaneMsg);
-  self.postMessage(groundPlaneMsg);
+  // // Create the ground
+  // let groundColliderDesc = RAPIER.ColliderDesc.cuboid(10.5, 0.1, 10.5);
+  // const groundCollider = world.createCollider(groundColliderDesc);
+  // const groundPlaneMsg = {type: 'definition', id: 'plane1', shape: 'cuboid',
+  // 			  color: "#7BC8A4"};
+  // writeCuboidSizeToMessage(groundCollider, groundPlaneMsg);
+  // writePoseToMessage(groundCollider, groundPlaneMsg);
+  // self.postMessage(groundPlaneMsg);
   
   userConfig.rigidBodies
     .filter(obj=>{return obj?.collider?.shape === 'box';})
@@ -78,6 +80,39 @@ async function run_simulation() {
       storedJoints[jnt.name] = jj1;
     });
 
+  function uniqueObjectName(base) {
+    let name = base;
+    let i = 1;
+    while (storedObjects[name]) {
+      name = base + "_" + i;
+      i++;
+    }
+    return name;
+  }
+  userConfig.functions?.forEach(func=>{
+    if (!func?.method || !func?.name) {
+      console.warn("Function without method or name:", func);
+      return;
+    }
+    const funcObj = {};
+    if (func?.object) {
+      if (!storedObjects[func.object]) {
+	storedObjects[func.object] = {};
+      }
+      funcObj.object = storedObjects[func.object];
+    } else {
+      const objName = uniqueObjectName(func.name);
+      storedObjects[objName] = {};
+      funcObj.object = storedObjects[objName];
+    }
+    funcObj.object.method = func.method;
+    if (func?.initialState) {
+      funcObj.state = func.initialState;
+    } else {
+      funcObj.state = FunctionState.DORMANT;
+    }
+    storedFunctions[func.name] = funcObj;
+  });
   // ****************
   // handling of the messages from the main thread
   let snapshot = null;
@@ -126,14 +161,38 @@ async function run_simulation() {
 	}
       }
       break;
-    // case 'call': {
-    // }
-    //   break;
+    case 'call': 
+      setFuncStateAndArgs(data.name, FunctionState.SINGLE_SHOT, data.args);
+      break;
+    case 'activate':
+      setFuncStateAndArgs(data.name, FunctionState.ACTIVE, data.args);
+      break;
+    case 'deactivate':
+      setFuncStateAndArgs(data.name, FunctionState.STOPPED, data.args);
+      break;
     default:
       console.warn("Worker: Unknown message", data);
     }
+    function setFuncStateAndArgs(name, state, args) {
+      if (!name) {
+	console.warn("Function name slot is empty.");
+	return;
+      }
+      const funcObj = storedFunctions[name];
+      if (funcObj) {
+	funcObj.state = state;
+	if (args) {
+	  funcObj.object.args = args;
+	} else {
+	  funcObj.object.args = {};
+	}
+      } else {
+	console.warn("No such function to set state:", name);
+      }
+    }
   }
       
+  console.log('rigidBodies in the worker:', storedBodies);
   // ****************
   // Game loop. Replace by your own game loop system.
   let firstStep = true;
@@ -148,7 +207,6 @@ async function run_simulation() {
     if (doStep) {
       setStepTime(world.timestep);
       world.step();
-      time += workerTimeStep;
       if (firstStep) {
 	firstStep = false;
 	// The first step is the warm up step to propagate
@@ -158,6 +216,17 @@ async function run_simulation() {
 	  storedBodies[id].setAngvel({x:0, y:0, z:0}, true);
 	});
       }
+      storedFunctions && Object.keys(storedFunctions).forEach((key) => {
+	const funcObj = storedFunctions[key];
+	if (funcObj.state === FunctionState.ACTIVE ||
+	    funcObj.state === FunctionState.SINGLE_SHOT) {
+	  funcObj.object.method(time, funcObj.object.args);
+	  if (funcObj.state === FunctionState.SINGLE_SHOT) {
+	    funcObj.state = FunctionState.STOPPED;
+	  }
+	}
+      });
+      time += workerTimeStep;
       if (singleStep) { doStep = false; singleStep = false; }
     }
     if (!snapshot) {
@@ -216,7 +285,8 @@ function writeCuboidSizeToMessage(collider, message) {
 function boxCreateAndPost(id,
 			  world, position, rotation, size, color,
 			  dynamicsType = 'dynamic',
-			  share = true, shareList = storedBodies
+			  share = true, bodyList = storedBodies,
+			  coliderList = storedColliders,
 			 ) {
   if (!dynamicsType) dynamicsType = 'dynamic';
   const {box, boxCollider, boxmsg}
@@ -224,7 +294,8 @@ function boxCreateAndPost(id,
 		    id, dynamicsType);
   self.postMessage(boxmsg);
   if (share) {
-    shareList[id] = box;
+    bodyList[id] = box;
+    coliderList[id] = boxCollider;
   }
   return box;
 }
@@ -232,6 +303,12 @@ function boxCreateAndPost(id,
 function createBox(world, position, rotation, size, color, id,
 		  dynamicsType = 'dynamic') {
   // Create a dynamic rigid-body.
+  if (!position) {
+    position = {x: 0.0, y: 0.0, z: 0.0};
+  }
+  if (!rotation) {
+    rotation = {w: 1.0, x: 0.0, y: 0.0, z: 0.0};
+  }
   let boxDesc;
   switch (dynamicsType) {
   case 'dynamic':

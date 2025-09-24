@@ -134,24 +134,51 @@ AFRAME.registerComponent('right-controller', {
 
     this.el.addEventListener('menu-select', (evt) => {
       console.log('### menu select event: ', evt.detail.index);
-      if (evt.detail.index != 6) return;
-      const ray = this.el.getAttribute('raycaster').direction;
-      const v = new THREE.Vector3(ray.x, ray.y, ray.z).normalize();
-      const q = new THREE.Quaternion()
-            .setFromUnitVectors(new THREE.Vector3(0,1,0), v);
-      const p = new THREE.Vector3(0.005, cylinderHeight*0.5, 0.015);
-      cylinder.object3D.quaternion.copy(q);
-      cylinder.object3D.position.copy(p.applyQuaternion(q));
-      // console.log('ray x,y,z: ', ray.x, ray.y, ray.z);
+      switch (evt.detail.index) {
+      case 6: {
+        const ray = this.el.getAttribute('raycaster').direction;
+        const v = new THREE.Vector3(ray.x, ray.y, ray.z).normalize();
+        const q = new THREE.Quaternion()
+              .setFromUnitVectors(new THREE.Vector3(0,1,0), v);
+        const p = new THREE.Vector3(0.005, cylinderHeight*0.5, 0.015);
+        cylinder.object3D.quaternion.copy(q);
+        cylinder.object3D.position.copy(p.applyQuaternion(q));
+        // console.log('ray x,y,z: ', ray.x, ray.y, ray.z);
       
-      this.laserVisible = !this.laserVisible;
-      this.el.setAttribute('line', 'visible', this.laserVisible);
-      this.el.setAttribute('raycaster', 'enabled', this.laserVisible);
-      cylinder.object3D.visible = this.laserVisible;
-      frameObject3D.visible = ! this.laserVisible;
-      // this.frame.object3D.visible = !this.laserVisible;
+        this.laserVisible = !this.laserVisible;
+        this.el.setAttribute('line', 'visible', this.laserVisible);
+        this.el.setAttribute('raycaster', 'enabled', this.laserVisible);
+        cylinder.object3D.visible = this.laserVisible;
+        frameObject3D.visible = ! this.laserVisible;
+        // this.frame.object3D.visible = !this.laserVisible;
+      }
+        break;
+      case 4:
+        globalWorkerRef?.current?.postMessage({
+          type: 'call',
+          name: 'endJointOpen',
+        })
+        break;
+      case 0:
+        globalWorkerRef?.current?.postMessage({
+          type: 'call',
+          name: 'endJointClose',
+        });
+        break;
+      case 1:
+        globalWorkerRef?.current?.postMessage({
+          type: 'activate',
+          name: 'box1Translation',
+        });
+        break;
+      case 3:
+        globalWorkerRef?.current?.postMessage({
+          type: 'deactivate',
+          name: 'box1Translation',
+        });
+        break;
+      }
     });
-
   },
 
   highlight: function (index) {

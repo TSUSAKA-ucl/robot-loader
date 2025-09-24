@@ -19,9 +19,10 @@ cd ../main/dist/ && <START HTTPS SERVER>
 ```
 ## How to Operate this Sample Scene
 
-1. The three spheres and the light green cylinder are only present
-   in the A-frame and are not present in the Rapier model.
-2. Pushing the thumbstick toggles the ray on and off.
+1. The three spheres, the light green cylinder and a robot arm
+   are only present in the A-frame and are not present in the Rapier model.
+2. Pushing the thumbstick and selecting "(pie menu)V" toggles the ray on
+   and off.
 3. When the ray is displayed, the three spheres are push buttons
    that can be clicked with a ray. The largest sphere is for start/stop,
    and the second sphere is for stepping.
@@ -29,6 +30,8 @@ cd ../main/dist/ && <START HTTPS SERVER>
    the trigger is being pulled, following the movement of the VR controller.
 5. The light yellow object is not fixed, and will be thrown off when
    the red object hits it. The blue object is fixed in space only by its base.
+6. The pie menu "S" stops the movement of the blue object, and "Q" resume it.
+7. The pie menu "P" closes the yellow object, and "T" opens it.
 
 ### Explanation of the Sample Scene Creation in the Main Thread
 
@@ -50,6 +53,8 @@ cd ../main/dist/ && <START HTTPS SERVER>
 	  user-defined AFRAME views and behaviors that are not related to Rapier,
 	  but depending on your application you may want to separate them
 	  out in a different location, such as `Home.jsx`.
+   2. [`physicalObj.config.js`](packages/rapier-worker/src/physicalObj.config.js): definition file of objects, joints, and user defined functions in Rapier
+	  simulation environ
    2. [`ButtonUI.jsx`](packages/main/src/ButtonUI.jsx): 
 	  In this sample, we define **the appearance and functionality of
 	  the three spheres** that start and stop the Rapier physics engine.

@@ -14,7 +14,7 @@ export default defineConfig({
     outDir: "dist-worker",
     rollupOptions: {
       external: [
-        'rapierObjectUtils.js',
+        './rapierObjectUtils.js'
       ],
     },
   },

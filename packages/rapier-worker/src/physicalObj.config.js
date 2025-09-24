@@ -1,12 +1,22 @@
-import {getRigidBody, getJoint, getStepTime} from './rapierObjectUtils.js'
+import {storedBodies, getRigidBody,
+	storedJoints, getJoint,
+	FunctionState,
+	getStepTime} from './rapierObjectUtils.js'
 
 // ****************
 // Create a dynamic rigid-body.
 const mag=0.25;
 const rigidBodyArray = [
+  { name: 'floor',
+    type: 'kinematicPosition',
+    collider: { shape: 'box',
+		size: {x: 10.5, y:0.1, z:10.5},
+		color: '#7BC8A4',
+	      },
+  },
   { name: 'box1',
     type: 'kinematicPosition',
-    position: {x: (-1.0)*mag, y: (2.0)*mag, z: (-3.0)*mag},
+    position: {x: (-1.0)*mag, y: (2.5)*mag, z: (-3.0)*mag},
     orientation: {w: 0.991445, x:0.0, y:0.0, z:0.130526},
     collider: { shape: 'box',
 		size: {x: (0.4)*mag, y: (0.6)*mag, z: (0.2)*mag},
@@ -102,6 +112,8 @@ const apEndJnt1A = {x: (0.0)*mag, y: (-0.6+0.28)*mag, z: (0.2)*mag};
 const apEndJnt2A = {...apEndJnt1A}; apEndJnt2A.y = -apEndJnt1A.y;
 const apEndJnt1B = {x: (0.0)*mag, y: (0.0)*mag, z: (-0.6)*mag};
 const apEndJnt2B = {...apEndJnt1B}; apEndJnt2B.y = -apEndJnt1B.y;
+const endJStiffness = 2.0*800.0;
+const endJDamping = 1000.0;
 //
 const jointArray = [
   {
@@ -122,24 +134,24 @@ const jointArray = [
     bodyA: 'hand1',  anchorA: apHandJnt1A,
     bodyB: 'hand2',  anchorB: o,
     axis: y,
-    limits: [-0.25*mag, 0.25*mag],
+    limits: [-0.65*mag, 0.65*mag],
   },
   {
     name: 'handJoint2',  type: 'prismatic',
     bodyA: 'hand1',  anchorA: apHandJnt2A,
     bodyB: 'hand3',  anchorB: o,
     axis: y,
-    limits: [-0.25*mag, 0.25*mag],
+    limits: [-0.65*mag, 0.65*mag],
   },
   {
-    name: 'endJoint2',  type: 'prismatic',
+    name: 'endJoint1',  type: 'prismatic',
     bodyA: 'end1',  anchorA: apEndJnt1A,
-    bodyB: 'end3',  anchorB: apEndJnt1B,
+    bodyB: 'end2',  anchorB: apEndJnt1B,
     axis: y,
     limits: [-0.5, 0.5],
     motor: {
       type: 'position',
-      targetPos: 0, stiffness: 20.0*800.0, damping: 1000.0,
+      targetPos: 0, stiffness: endJStiffness, damping: endJDamping
     },
   },
   {
@@ -150,7 +162,7 @@ const jointArray = [
     limits: [-0.5, 0.5],
     motor: {
       type: 'position',
-      targetPos: 0, stiffness: 20.0*800.0, damping: 1000.0,
+      targetPos: 0, stiffness: endJStiffness, damping: endJDamping
     },
   },
 ];
@@ -158,26 +170,33 @@ const jointArray = [
 // ****************
 const functionArray = [
   { name: 'box1Translation',
-    code: (t) => {
-      const object = this.object;
+    initialState: FunctionState.ACTIVE,
+    method: function (t) {
+      const object = this;
       if (!object.time) object.time = t;
       const ot = object.time;
-      getRigidBody('box1')
-	.setNextKinematicTranslation({x: -1.0*mag, y: 2.0*mag,
-				      z: (-3.0 + 0.5*Math.sin(2.0*Math.PI*ot))*mag});
+      const rigidbody = getRigidBody('box1');
+      rigidbody
+        .setNextKinematicTranslation({x: -1.0*mag, y: 2.5*mag,
+				      z: (-3.0+0.5*Math.sin(2.0*Math.PI*ot))*mag
+                                     });
       object.time += getStepTime();
     },
   },
-  { name: 'endJointOpen',
-    code: () => {
-      getJoint('endJoint1').configureMotorPosition(0.2, 0, 0);
-      getJoint('endJoint2').configureMotorPosition(-0.2, 0, 0);
+  { name: 'endJointClose',
+    method: () => {
+      getJoint('endJoint1')
+        .configureMotorPosition(0.1, endJStiffness, endJDamping);
+      getJoint('endJoint2')
+        .configureMotorPosition(-0.1, endJStiffness, endJDamping);
     },
   },
-  { name: 'endJointClose',
-    code: () => {
-      getJoint('endJoint1').configureMotorPosition(0, 0, 0);
-      getJoint('endJoint2').configureMotorPosition(0, 0, 0);
+  { name: 'endJointOpen',
+    method: () => {
+      getJoint('endJoint1')
+        .configureMotorPosition(-0.1, endJStiffness, endJDamping);
+      getJoint('endJoint2')
+        .configureMotorPosition(0.1, endJStiffness, endJDamping);
     },
   },
 ];
