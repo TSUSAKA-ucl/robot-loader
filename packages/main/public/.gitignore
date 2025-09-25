@@ -1,4 +1,4 @@
 rapier-worker.mjs
-physicalObj.config.js
 rapierObjectUtils.js
+!physicalObj.config.js
 !.gitignore

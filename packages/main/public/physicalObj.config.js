@@ -4,11 +4,15 @@ import {getRigidBody, getJoint,
 // ****************
 // Create a dynamic rigid-body.
 const hand23props = {
-  density: 0.000000000002, // or mass or massProperties
-  friction: 0.3,
+  // density: 0.000000000002, // or mass or massProperties
+  friction: 0.9,
   frictionCombineRule: 'Min',
   restitution: 0.7,
   restitutionCombineRule: 'Min',
+};
+const end1props = {
+  friction: 0.9,
+  frictionCombineRule: 'Min',
 };
 //
 const mag=0.25;
@@ -80,6 +84,7 @@ const rigidBodyArray = [
     orientation: {w: 1.0, x:0.0, y:0.0, z:0.0},
     collider: { shape: 'box',
 		size: {x: (0.4)*mag, y: (0.6)*mag, z: (0.2)*mag},
+		props: end1props,
 		color: 'Moccasin' // light orange color
 	      },
   },

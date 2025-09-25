@@ -32,7 +32,7 @@ export default defineConfig({
 		  fs.copyFileSync(path.join(distDir, file),
 				  path.join(mainDistDir, file));
 		});
-		['rapierObjectUtils.js', 'physicalObj.config.js'].forEach((file)=>{
+		['rapierObjectUtils.js'].forEach((file)=>{
 		  fs.copyFileSync(path.join('src', file), path.join(publicDir, file));
 		  fs.copyFileSync(path.join('src', file), path.join(mainDistDir, file));
 		});
