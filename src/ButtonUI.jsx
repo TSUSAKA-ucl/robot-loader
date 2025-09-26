@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import 'aframe'
-import {globalWorkerRef} from './RapierWorker.jsx'
+import {globalWorkerRef} from '@ucl-nuee/rapier-worker'
 
 // ****************
 // the entry point

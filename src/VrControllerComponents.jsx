@@ -5,7 +5,7 @@
 // ********
 import AFRAME from 'aframe'
 const THREE = window.AFRAME.THREE;
-import {globalWorkerRef, globalObjectsRef} from './RapierWorker.jsx';
+import {globalWorkerRef, globalObjectsRef} from '@ucl-nuee/rapier-worker'
 
 let controllerPosition = null;
 let controllerQuaternion = null;
