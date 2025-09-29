@@ -14,13 +14,12 @@
     "aframe": "^1.7.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "@ucl-nuee/rapier-worker": "file:../rapierWorkerDir"
+    "@ucl-nuee/rapier-worker": "https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.0.tgz"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
     "@types/react": "^19.1.10",
     "@types/react-dom": "^19.1.7",
-    "@ucl-nuee/rapier-worker": "file:../rapierWorkerDir",
     "@vitejs/plugin-react": "^5.0.0",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",

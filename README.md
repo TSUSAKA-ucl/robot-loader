@@ -5,17 +5,14 @@
 pnpm install
 ```
 ```
-cd packages/main/ && pnpm build
-```
-```
-cd ../rapier-worker/ && pnpm build
+pnpm build
 ```
 ```
 cd ../main && pnpm dev
 ```
 or
 ```
-cd ../main/dist/ && <START HTTPS SERVER>
+cd dist/ && <START HTTPS SERVER>
 ```
 ## How to Operate this Sample Scene
 

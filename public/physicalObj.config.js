@@ -104,6 +104,22 @@ const rigidBodyArray = [
 		color: 'Khaki' // light yellow color
 	      },
   },
+  { name: 'ball1',
+    position: {x: (-0.7)*mag, y: (3.5+0.6)*mag, z: (-3.0+0.6+0.2)*mag},
+    orientation: {w: 1.0, x:0.0, y:0.0, z:0.0},
+    collider: { shape: 'sphere',
+		size: {radius: (0.15)*mag},
+		color: 'Gold',
+	      },
+  },
+  { name: 'cylinder1',
+    position: {x: (-0.7)*mag, y: (3.5+0.6)*mag, z: (-3.0+0.6+0.2)*mag},
+    orientation: {w: 1.0, x:0.0, y:0.0, z:0.0},
+    collider: { shape: 'cylinder',
+		size: {radius: (0.15)*mag, halfHeight: (0.3)*mag},
+		color: 'Orange',
+	      },
+  },
 ];
 
 // ****************

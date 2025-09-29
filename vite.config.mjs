@@ -17,10 +17,6 @@ export default defineConfig({
           src: RapierWorkerDist+'rapierObjectUtils.js',
           dest: '.',
         },
-        {
-          src: 'public/physicalObj.config.js',
-          dest: '.',
-        },
       ],
     }),
   ],

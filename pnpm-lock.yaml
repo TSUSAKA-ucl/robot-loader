@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ucl-nuee/rapier-worker':
-        specifier: file:../rapierWorkerDir
-        version: file:../rapierWorkerDir(aframe@1.7.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
+        specifier: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.0.tgz
+        version: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.0.tgz(aframe@1.7.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       aframe:
         specifier: ^1.7.1
         version: 1.7.1
@@ -519,8 +519,9 @@ packages:
   '@types/responselike@1.0.3':
     resolution: {integrity: sha512-H/+L+UkTV33uf49PH5pCAUBVPNj2nDBXTN+qS1dOwyyg24l3CcicicCA7ca+HMvJBZcFgl5r8e+RR6elsb4Lyw==}
 
-  '@ucl-nuee/rapier-worker@file:../rapierWorkerDir':
-    resolution: {directory: ../rapierWorkerDir, type: directory}
+  '@ucl-nuee/rapier-worker@https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.0.tgz':
+    resolution: {tarball: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.0.tgz}
+    version: 0.1.0
     peerDependencies:
       aframe: '>=1.4.0'
       react: '>=18'
@@ -1680,7 +1681,7 @@ snapshots:
     dependencies:
       '@types/node': 24.5.2
 
-  '@ucl-nuee/rapier-worker@file:../rapierWorkerDir(aframe@1.7.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
+  '@ucl-nuee/rapier-worker@https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.0.tgz(aframe@1.7.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
       aframe: 1.7.1
       react: 19.1.1
