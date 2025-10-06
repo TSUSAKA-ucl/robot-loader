@@ -58,6 +58,15 @@ cd dist/ && <START HTTPS SERVER>
    2. [`VrControllerComponents.jsx`](packages/main/src/VrControllerComponents.jsx):
       Definitions of the VR controller operations
 
+3. Download cite of `rapier-worker`  
+   You can download this worker's package by adding the following to your `package.json`   
+   ```
+   "dependencies": {
+-    "@ucl-nuee/rapier-worker": "https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.0.tgz"
+   }
+   ```
+   Please remove `pnpm pnpm-lock.yaml` and `pnpm-workspace.yaml` before `pnpm intall`
+
 ********************************  
 CURRENTLY, ONLY AXIS INFORMATION can be obtained directly from robot_registry,
 but in the future it would be better to be able to obtain

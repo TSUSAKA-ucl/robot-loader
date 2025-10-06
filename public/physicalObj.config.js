@@ -5,14 +5,14 @@ import {getRigidBody, getJoint,
 // Create a dynamic rigid-body.
 const hand23props = {
   // density: 0.000000000002, // or mass or massProperties
-  friction: 0.9,
-  frictionCombineRule: 'Min',
-  restitution: 0.7,
+  friction: 3.9,
+  frictionCombineRule: 'Max',
+  restitution: 0.9,
   restitutionCombineRule: 'Min',
 };
 const end1props = {
-  friction: 0.9,
-  frictionCombineRule: 'Min',
+  friction: 3.9,
+  frictionCombineRule: 'Max',
 };
 //
 const mag=0.25;
@@ -126,6 +126,7 @@ const rigidBodyArray = [
 // definition of joints
 const x = { x: 1.0, y: 0.0, z: 0.0 };
 const y = { x: 0.0, y: 1.0, z: 0.0 };
+const yInv = { x: 0.0, y: -1.0, z: 0.0 };
 // const z = { x: 0.0, y: 0.0, z: 1.0 };
 const o = { x: 0.0, y: 0.0, z: 0.0 };
 //
@@ -144,6 +145,7 @@ const apEndJnt1B = {x: (0.0)*mag, y: (0.0)*mag, z: (-0.6)*mag};
 const apEndJnt2B = {...apEndJnt1B}; apEndJnt2B.y = -apEndJnt1B.y;
 const endJStiffness = 2.0*800.0;
 const endJDamping = 1000.0;
+const handJDamping = 3000.0;
 //
 const jointArray = [
   {
@@ -166,8 +168,8 @@ const jointArray = [
     axis: y,
     limits: [-0.05*mag, 0.65*mag],
     motor: {
-      type: 'position',
-      targetPos: 0, stiffness: endJStiffness, damping: endJDamping
+      type: 'velocity',
+      targetVel: 0, damping: handJDamping
     },
   },
   {
@@ -177,8 +179,8 @@ const jointArray = [
     axis: y,
     limits: [-0.65*mag, 0.05*mag],
     motor: {
-      type: 'position',
-      targetPos: 0, stiffness: endJStiffness, damping: endJDamping
+      type: 'velocity',
+      targetVel: 0, damping: handJDamping
     },
   },
   {
@@ -240,17 +242,17 @@ const functionArray = [
   { name: 'handJointClose',
     method: () => {
       getJoint('handJoint1')
-        .configureMotorPosition(0.65*mag, endJStiffness, endJDamping);
+        .configureMotorVelocity(-0.4*mag, handJDamping);
       getJoint('handJoint2')
-        .configureMotorPosition(-0.65*mag, endJStiffness, endJDamping);
+        .configureMotorVelocity(0.4*mag, handJDamping);
     },
   },
   { name: 'handJointOpen',
     method: () => {
       getJoint('handJoint1')
-        .configureMotorPosition(-0.65*mag, endJStiffness, endJDamping);
+        .configureMotorVelocity(0.2*mag, handJDamping);
       getJoint('handJoint2')
-        .configureMotorPosition(0.65*mag, endJStiffness, endJDamping);
+        .configureMotorVelocity(-0.2*mag, handJDamping);
     },
   },
 ];
