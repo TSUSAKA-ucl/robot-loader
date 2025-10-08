@@ -28,13 +28,14 @@ AFRAME.registerComponent('robot-set-joint', {
       console.error('robotId not set.');
       return;
     }
-    const robotRegistry = document.getElementById('robot_registry');
+    const robotRegistry = this.el.sceneEl.robotRegistryComp;
+    // const robotRegistry = document.getElementById('robot_registry');
     const robotId = this.data.robotId;
     const jointData = this.data.workerData?.current?.joints;
     if (robotRegistry) {
       // console.log('robot_registry found');
-      if (robotRegistry.hasLoaded) {
-        const axesList = robotRegistry.components['robot-registry'].get(robotId);
+      if (robotRegistry) {
+        const axesList = robotRegistry.get(robotId)?.axes;
         // console.log('robot_registry loaded. robotId:', robotId,
         //             ' axesList: ', axesList);
         if (axesList && axesList.length === jointData.length) {
@@ -48,7 +49,7 @@ AFRAME.registerComponent('robot-set-joint', {
                        ' jointData:', jointData);
         }
       } else {
-	console.warn('robot_registry not loaded yet.');
+	console.warn('robotRegistry not loaded yet.');
       }
     }
   }

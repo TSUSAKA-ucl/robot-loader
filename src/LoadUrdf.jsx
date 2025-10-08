@@ -1,34 +1,21 @@
-import {useEffect} from 'react';
-import AFRAME from 'aframe'
+import {useRef, useEffect} from 'react';
+import 'aframe';
 const THREE = window.AFRAME.THREE;
 
-export default LoadUrdf
-
-AFRAME.registerComponent('robot-registry', {
-  init: function () {
-    this.objects = new Map();
-  },
-  add: function(id, el) {
-    this.objects.set(id, el);
-  },
-  get: function(id) {
-    return this.objects.get(id);
-  },
-  getAll: function() {
-    return Array.from(this.objects.values());
-  }
-});
+export default LoadUrdf;
 
 function LoadUrdf({robotPlane, robotModel}) {
   // const robotPlaneId = props.robotPlane;
   // const robotModel = props.robotModel;
   const indivRobotId = robotPlane;
+  // const loaderRef = useRef(null);
   useEffect(() => {
-    const robotRegistry = document.getElementById('robot_registry');
-    console.log('robotPlaneId:', indivRobotId, 'robotModel:', robotModel);
     const planeEl = document.getElementById(indivRobotId);
+    const robotRegistry = planeEl?.sceneEl?.robotRegistryComp?.el;
+    // const robotRegistry = document.getElementById('robot_registry');
+    console.log('robotPlaneId:', indivRobotId, 'robotModel:', robotModel);
     if (!robotRegistry) {
-      console.error('robot-registry entity not found');
+      console.error('robotRegistry entity not found');
       return;
     }
     if (!planeEl) {
@@ -62,23 +49,25 @@ function LoadUrdf({robotPlane, robotModel}) {
     });
   },[]);
   return (
+    // <a-entity ref={loaderRef}></a-entity>
     <>
     </>
   );
 }
 
 function loadAndRegisterRobot({indivEl, robotModel, urdfFile, linkFile, modifierFile}) {
-  const robotRegistry = document.getElementById('robot_registry');
+  const robotRegistryComp = indivEl?.sceneEl?.robotRegistryComp;
+  //const robotRegistry = document.getElementById('robot_registry');
   const indivId = indivEl.id;
   console.log('robot individual ID: ', indivId);
-  const robot = robotRegistry.components['robot-registry'].get(indivId);
+  const robot = robotRegistryComp.get(indivId);
   if (robot) {
     console.warn('robot ',indivId,' already registered');
     return;
   }
   const axes = loadAndBuildRobot({worldEl: indivEl, robotModel,
 				  urdfFile, linkFile, modifierFile});
-  robotRegistry.components['robot-registry'].add(indivId, axes);
+  robotRegistryComp.add(indivId, {el: indivEl, axes: axes});
 }
 
 function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFile}) {

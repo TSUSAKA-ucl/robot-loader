@@ -62,7 +62,7 @@ cd dist/ && <START HTTPS SERVER>
    You can download this worker's package by adding the following to your `package.json`   
    ```
    "dependencies": {
--    "@ucl-nuee/rapier-worker": "https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.0.tgz"
+     "@ucl-nuee/rapier-worker": "https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.0.tgz"
    }
    ```
    Please remove `pnpm pnpm-lock.yaml` and `pnpm-workspace.yaml` before `pnpm intall`

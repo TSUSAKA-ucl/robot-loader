@@ -2,47 +2,37 @@ import AFRAME from 'aframe'
 const THREE = window.AFRAME.THREE;
 import {globalWorkerRef, globalObjectsRef} from '@ucl-nuee/rapier-worker'
 
-let controllerPosition = null;
-let controllerQuaternion = null;
-export let frameObject3D = null;
-
-AFRAME.registerComponent('right-controller-frame', {
-  init() {
-    frameObject3D = this.el.object3D;
-  },
-  tick() {
-    if (controllerPosition && controllerQuaternion) {
-      this.el.object3D.position.copy(controllerPosition);
-      this.el.object3D.quaternion.copy(controllerQuaternion);
-    }
-  }
-});
-
-AFRAME.registerComponent('motion-controller', {
+AFRAME.registerComponent('rapier-hand1-motion-ui', {
   init: function () {
     this.triggerdownState = false;
-    this.el.laserVisible = true;
+    // this.el.laserVisible = true;
+    this.vrControllerEl = null;
     this.objStartingPose = [new THREE.Vector3(0,0,0),
                             new THREE.Quaternion(0,0,0,1)];
     this.vrCtrlStartingPoseInv = [new THREE.Vector3(0,0,0),
 				  new THREE.Quaternion(0,0,0,1)];
 
-    this.el.addEventListener('triggerdown', () => {
-      console.log('### trigger down event: laserVisible:', this.el.laserVisible);
-      if (!this.el.laserVisible) {
+    this.el.addEventListener('triggerdown', (evt) => {
+      console.log('### trigger down event. laserVisible: ',
+		  evt.detail?.originalTarget.laserVisible);
+      this.vrControllerEl = evt.detail?.originalTarget;
+      if (!this.vrControllerEl.laserVisible) {
 	if (!this.triggerdownState) {
 	  this.triggerdownState = true;
 	}
       }
     });
-    this.el.addEventListener('triggerup', () => {
+    this.el.addEventListener('triggerup', (evt) => {
       console.log('### trigger up event');
+      this.vrControllerEl = evt.detail?.originalTarget;
       this.triggerdownState = false;
     });
   },
   tick: function () {
-    controllerPosition = this.el.object3D.position;
-    controllerQuaternion = this.el.object3D.quaternion;
+    const ctrlEl = this.vrControllerEl;
+    if (!ctrlEl) return;
+    // controllerPosition = ctrlEl.object3D.position;
+    // controllerQuaternion = ctrlEl.object3D.quaternion;
     if (!globalObjectsRef) {
       console.warn('globalObjectsRef not ready yet.');
       return;
@@ -52,14 +42,14 @@ AFRAME.registerComponent('motion-controller', {
       console.warn('hand1 object not found');
       return;
     }
-    if (! this.triggerdownState || this.el.laserVisible) {
+    if (! this.triggerdownState || ctrlEl.laserVisible) {
       this.objStartingPose = [movingObj.object3D.position.clone(),
 			      movingObj.object3D.quaternion.clone()];
-      this.vrCtrlStartingPoseInv = isoInvert([this.el.object3D.position,
-					      this.el.object3D.quaternion]);
+      this.vrCtrlStartingPoseInv = isoInvert([ctrlEl.object3D.position,
+					      ctrlEl.object3D.quaternion]);
     } else {
-      const vrControllerPose = [this.el.object3D.position,
-				this.el.object3D.quaternion];
+      const vrControllerPose = [ctrlEl.object3D.position,
+				ctrlEl.object3D.quaternion];
       const vrControllerDelta = isoMultiply(this.vrCtrlStartingPoseInv,
                                             vrControllerPose);
       vrControllerDelta[0] = vrControllerDelta[0].multiplyScalar(1.0);

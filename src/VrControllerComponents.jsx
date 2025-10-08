@@ -1,14 +1,24 @@
 // ********
-// DO NOT IMPORT THIS FILE FROM MULTIPLE LOCATIONS
-// This file defines A-Frame components for VR controller handling directly
-// in the main thread, so it should be imported only once.
 // ********
 import AFRAME from 'aframe'
-const THREE = window.AFRAME.THREE;
-import {globalWorkerRef, globalObjectsRef} from '@ucl-nuee/rapier-worker'
-import './vrControllerThumbMenu.js';
-import './vrControllerMotionUI.js';
-import './thumbMenuEventHandler.js';
+import './vrControllerThumbMenu.js'; // with thumbMenuEventHandler
+
+export default VrControllerComponents;
+
+// let controllerPosition = null;
+// let controllerQuaternion = null;
+
+AFRAME.registerComponent('right-controller-frame', {
+  init() {
+    this.el.parentNode.frameObject3D = this.el.object3D;
+  // },
+  // tick() {
+  //   if (controllerPosition && controllerQuaternion) {
+  //     this.el.object3D.position.copy(controllerPosition);
+  //     this.el.object3D.quaternion.copy(controllerQuaternion);
+  //   }
+  }
+});
 
 function VrControllerComponents() {
   // definition of the end link axes marker
@@ -31,6 +41,7 @@ function VrControllerComponents() {
         	  height={con_hight} radius={con_radius} color="blue" />
     </a-entity>
   );
+
   return (
     <>
       <a-entity right-controller
@@ -38,11 +49,10 @@ function VrControllerComponents() {
                 raycaster="objects: .clickable"
                 line="color: blue; opacity: 0.75"
                 thumbstick-menu="items: A,B,C,D,E,F,G,H"
-                thumbmenu-event-hander
-                motion-controller
+                thumbmenu-event-handler
                 visible="true">
+        {controller_axes}
       </a-entity>
-      {controller_axes}
       <a-entity cursor="rayOrigin: mouse"
                 mouse-cursor
                 raycaster="objects: .clickable"></a-entity>
@@ -51,5 +61,3 @@ function VrControllerComponents() {
   );
 }
 //                 oculus-touch-controls="hand: right"
-
-export default VrControllerComponents;

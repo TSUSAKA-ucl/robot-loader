@@ -1,6 +1,5 @@
 import AFRAME from 'aframe';
-import {frameObject3D} from './vrControllerMotionUI';
-
+const THREE = AFRAME.THREE;
 
 AFRAME.registerComponent('thumbstick-menu', {
   schema: { radius: {default: 0.2},
@@ -108,6 +107,36 @@ AFRAME.registerComponent('thumbstick-menu', {
     this.menuEls.forEach((el, i) => {
       el.setAttribute('color', i === index ? 'yellow' : 'gray');
       // console.log('## HIGHLIGHT ',i);
+    });
+  }
+});
+
+AFRAME.registerComponent('thumbmenu-event-handler', {
+  init: function() {
+    this.el.addEventListener('thumbmenu-select', (evt) => {
+      console.log('### menu select event: ', evt.detail.index);
+      const cylinder = this.el.laserCylinder;
+      const cylinderHeight = this.el.laserCylinderHeight;
+      switch (evt.detail.index) {
+      case 6: { 
+        const ray = this.el.getAttribute('raycaster').direction;
+        const v = new THREE.Vector3(ray.x, ray.y, ray.z).normalize();
+        const q = new THREE.Quaternion()
+              .setFromUnitVectors(new THREE.Vector3(0,1,0), v);
+        const p = new THREE.Vector3(0.005, cylinderHeight*0.5, 0.015);
+        cylinder.object3D.quaternion.copy(q);
+        cylinder.object3D.position.copy(p.applyQuaternion(q));
+        // console.log('ray x,y,z: ', ray.x, ray.y, ray.z);
+      
+        this.el.laserVisible = !this.el.laserVisible;
+        this.el.setAttribute('line', 'visible', this.el.laserVisible);
+        this.el.setAttribute('raycaster', 'enabled', this.el.laserVisible);
+        cylinder.object3D.visible = this.el.laserVisible;
+        if (this.el?.frameObject3D?.visible) {
+	  this.el.frameObject3D.visible = ! this.el.laserVisible;
+	}
+      }	break;
+      }
     });
   }
 });
