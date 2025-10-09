@@ -10,10 +10,10 @@ AFRAME.registerComponent('robot-set-joint', {
   init: function () {
     console.log('robot-set-joint initialzed.');
     if (this.el.workerData) {
-      console.log('**** workerData:', this.el.workerData, '****');
+      console.log('**** el.workerData:', this.el.workerData, '****');
     }
     if (this.data.workerData) {
-      console.log('**** workerData:', this.data.workerData, '****');
+      console.log('**** data.workerData:', this.data.workerData, '****');
     }
     if (this.el.data?.workerData) {
       console.log('**** el.data.workerData:', this.el.data.workerData, '****');
@@ -36,18 +36,20 @@ AFRAME.registerComponent('robot-set-joint', {
       // console.log('robot_registry found');
       if (robotRegistry) {
         const axesList = robotRegistry.get(robotId)?.axes;
-        // console.log('robot_registry loaded. robotId:', robotId,
-        //             ' axesList: ', axesList);
-        if (axesList && axesList.length === jointData.length) {
-          axesList.map((axisEl, idx)=> {
-            // verify class 'axis' 
-            const axis = axisEl.axis;
-            axisEl.object3D.setRotationFromAxisAngle(axis, jointData[idx] /*radian*/);
-          });
-        } else {
-          console.warn('axiesList not found or length mismatch. axesList:', axesList,
-                       ' jointData:', jointData);
-        }
+	if (axesList) {
+          // console.log('robot_registry loaded. robotId:', robotId,
+          //             ' axesList: ', axesList);
+          if (axesList && axesList.length === jointData.length) {
+            axesList.map((axisEl, idx)=> {
+              // verify class 'axis' 
+              const axis = axisEl.axis;
+              axisEl.object3D.setRotationFromAxisAngle(axis, jointData[idx] /*radian*/);
+            });
+          } else {
+            console.warn('length mismatch. axesList:', axesList,
+			 ' jointData:', jointData);
+          }
+	}
       } else {
 	console.warn('robotRegistry not loaded yet.');
       }

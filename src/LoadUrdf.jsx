@@ -65,12 +65,19 @@ function loadAndRegisterRobot({indivEl, robotModel, urdfFile, linkFile, modifier
     console.warn('robot ',indivId,' already registered');
     return;
   }
+
+  const registerRobot = (id, indivEl, axes, endLinkEl) => {
+    robotRegistryComp.add(id, {el: indivEl, axes: axes, endLink: endLinkEl});
+    console.log('Robot ', id, ' registered with axes:', axes, 'endLink:', endLinkEl);
+  };
+
   const axes = loadAndBuildRobot({worldEl: indivEl, robotModel,
-				  urdfFile, linkFile, modifierFile});
-  robotRegistryComp.add(indivId, {el: indivEl, axes: axes});
+				  urdfFile, linkFile, modifierFile},
+                                 registerRobot.bind(this, indivId, indivEl));
 }
 
-function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFile}) {
+function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFile},
+                           registerFunction) {
   console.log("Loading robot model from:", robotModel + '/' + urdfFile);
   const axesList = [];
   let base = null;
@@ -88,7 +95,7 @@ function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFil
               updateLeaves(urdf, modifiers);
               updateLeaves(linkMap, modifiers);
               const revolutes = urdf.filter(obj => obj.$.type === 'revolute');
-              console.log('1: type of base:', typeof base, base);
+              // console.log('1: type of base:', typeof base, base);
               base = document.createElement('a-entity');
               console.log('2: type of base:', typeof base, base);
               base.setAttribute('class', 'link');
@@ -103,7 +110,7 @@ function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFil
                 el.setAttribute('class', 'visual');
                 base.appendChild(el);
                 setUrdfOrigin(el, origin);
-                console.log('Setting gltf-model to:', robotModel + '/' + filename);
+                // console.log('Setting gltf-model to:', robotModel + '/' + filename);
                 el.setAttribute('gltf-model', robotModel + '/' + filename);
               });
               // base.object3D.position.set(0, 0.25, 0);
@@ -133,7 +140,7 @@ function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFil
                 // next
                 parentEl = axisEl;
                 // *** visuals
-                console.log("Processing joint:", joint.$.name, "child link:", joint.child.$.link);
+                // console.log("Processing joint:", joint.$.name, "child link:", joint.child.$.link);
                 linkMap[joint.child.$.link].visual.forEach(visual => {
                   console.log('Joint visual geometry.mesh.$.filename:', visual.geometry.mesh?.$.filename);
                 });
@@ -149,6 +156,8 @@ function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFil
 	          el.setAttribute('gltf-model', robotModel + '/' + filename);
 		});
               });
+              console.log('Final: base link:', base, 'end link:', parentEl);
+              registerFunction(axesList, parentEl);
 	      // initScene(urdf, linkMap, modifiers);
 	    }).catch(error => {
               console.error('Error loading modifiers:', error);
@@ -162,7 +171,7 @@ function loadAndBuildRobot({worldEl, robotModel, urdfFile, linkFile, modifierFil
   console.log('3: type of base:', typeof base, base);
   consoleChildLink(base);
   // A-Frameエンティティの作成
-  return axesList;
+  // return axesList;
 }
 
 function updateLeaves(a, b) {

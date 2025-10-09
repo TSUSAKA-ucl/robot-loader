@@ -11,6 +11,7 @@
   "Link1": {
     "visual": [
       {
+        "origin": { "$": { "rpyDegrees": [ 0, 0, 90 ], "xyz": [ 0, 0, 0 ]}},
         "geometry": { "mesh": { "$": {
           "filename": "Link1.STL.gltf"
         }}}
