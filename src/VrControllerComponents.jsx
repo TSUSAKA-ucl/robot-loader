@@ -27,7 +27,7 @@ function VrControllerComponents() {
   const con_hight = (con_axis_length).toString();
   const con_radius = '0.0035';
   const controller_axes = (
-    <a-entity right-controller-frame position={'0 1 0'} >
+    <a-entity right-controller-frame position={'0 0 0'} >
       <a-sphere
         scale="0.012 0.012 0.012"
         color="white"
@@ -48,7 +48,7 @@ function VrControllerComponents() {
                 laser-controls="hand: right"
                 raycaster="objects: .clickable"
                 line="color: blue; opacity: 0.75"
-                thumbstick-menu="items: A,B,C,D,E,F,G,H"
+                thumbstick-menu="items: A,act.,C,deact.,E,F,ray\nmot,H"
                 thumbmenu-event-handler
                 visible="true">
         {controller_axes}

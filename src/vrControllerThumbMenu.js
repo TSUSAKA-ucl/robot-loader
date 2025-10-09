@@ -7,6 +7,7 @@ AFRAME.registerComponent('thumbstick-menu', {
 	    cylinderHeight: { default: 0.25},
 	  },
   init: function () {
+    this.el.thumbstick = [0,0];
     const menuText = this.data.items;
     const menuTexts = menuText.split(",");
     const numOfItems = menuTexts.length;
@@ -62,13 +63,7 @@ AFRAME.registerComponent('thumbstick-menu', {
       this.menuRoot.add(circle.object3D);
     }
 
-    this.el.addEventListener('thumbstickdown', () => {
-      this.menuVisible = true;
-      this.menuEls.forEach(el => { el.object3D.visible = true; });
-    });
-
-    // this.el.addEventListener('axismove', (evt) => {
-    this.el.addEventListener('thumbstickmoved', (evt) => {
+    const menuSelector = (evt) => {
       if (!this.menuVisible) return;
       // console.log('evt.detail: ', evt.detail);
       // const [x, y] = evt.detail.axis; // -1..1
@@ -80,9 +75,24 @@ AFRAME.registerComponent('thumbstick-menu', {
       }
       let angle = Math.atan2(y, x); // -π..π
       if (angle < 0) angle += 2 * Math.PI;
-      const sector = Math.floor(angle / (2 * Math.PI / numOfItems));
+      const sector = Math.floor(angle / (2 * Math.PI / numOfItems)+0.5);
       this.highlight(sector);
+    };
+
+    this.el.addEventListener('thumbstickdown', () => {
+      const evt = {detail: {x: this.el.thumbstick[0],
+			    y: this.el.thumbstick[1]}};
+      this.menuVisible = true;
+      this.menuEls.forEach(el => { el.object3D.visible = true; });
+      menuSelector(evt);
     });
+    // this.el.addEventListener('axismove', (evt) => {
+    this.el.addEventListener('thumbstickmoved',
+			     (evt) => {
+			       this.el.thumbstick[0] = evt.detail.x;
+			       this.el.thumbstick[1] = evt.detail.y;
+			       menuSelector(evt);
+			    });
 
     this.el.addEventListener('thumbstickup', () => {
       // console.log('### thumbstick UP event');
@@ -132,7 +142,7 @@ AFRAME.registerComponent('thumbmenu-event-handler', {
         this.el.setAttribute('line', 'visible', this.el.laserVisible);
         this.el.setAttribute('raycaster', 'enabled', this.el.laserVisible);
         cylinder.object3D.visible = this.el.laserVisible;
-        if (this.el?.frameObject3D?.visible) {
+        if (this.el?.frameObject3D) {
 	  this.el.frameObject3D.visible = ! this.el.laserVisible;
 	}
       }	break;
