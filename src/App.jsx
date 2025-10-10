@@ -8,7 +8,7 @@ import VrControllerComponents from './VrControllerComponents.jsx';
 import ButtonUI from './ButtonUI.jsx';
 import './rapierBoxController.js'; // registers the rapier-box-controller AFrame component
 import './rapierHand1MotionUI.js'; // registers the rapier-hand1-motion-ui AFrame component
-import RobotLoader from './RobotLoader.jsx'; // also imports LoadUrdf and registers robot-set-joint AFrame component
+import RobotLoader from './RobotLoader.jsx';
 
 // ****************
 // the entry point
