@@ -70,6 +70,7 @@ function loadAndRegisterRobot({indivEl,
     robotRegistryComp.add(id, {el: indivEl, axes: axes, endLink: endLinkEl});
     console.warn('el tag is:', indivEl.dataset.instanceTag);
     console.log('Robot ', id, ' registered with axes:', axes, 'endLink:', endLinkEl);
+    indivEl.emit('robot-registered', {id, axes, endLinkEl});
   };
 
   const axes = loadAndBuildRobot({worldEl: indivEl, robotModel,

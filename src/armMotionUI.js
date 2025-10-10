@@ -1,8 +1,8 @@
-import AFRAME from 'aframe'
+import AFRAME from 'aframe';
 const THREE = window.AFRAME.THREE;
-import {globalWorkerRef, globalObjectsRef} from '@ucl-nuee/rapier-worker'
+import {isoInvert, isoMultiply} from './isometry3.js';
 
-AFRAME.registerComponent('hand-motion-ui', {
+AFRAME.registerComponent('arm-motion-ui', {
   init: function () {
     this.triggerdownState = false;
     // this.el.laserVisible = true;
@@ -31,30 +31,28 @@ AFRAME.registerComponent('hand-motion-ui', {
   tick: function () {
     const ctrlEl = this.vrControllerEl;
     if (!ctrlEl) return;
-    // controllerPosition = ctrlEl.object3D.position;
-    // controllerQuaternion = ctrlEl.object3D.quaternion;
-
-
-
-
-    if (!globalObjectsRef) {
-      console.warn('globalObjectsRef not ready yet.');
+    if (!this.el.regData) {
+      console.warn('not yet registered:', this.el);
       return;
     }
-    const destinationFrameObj = globalObjectsRef.current['hand1'];
-
-
-
-    if (!destinationFrameObj) {
-      console.warn('hand1 object not found');
+    if (!this.el.regData.workerData ||
+	!this.el.regData.workerRef) {
+      console.warn('workerData or workerRef not ready yet.');
       return;
     }
+    const workerData = this.el.regData.workerData;
     if (! this.triggerdownState || ctrlEl.laserVisible) {
-      this.objStartingPose = [destinationFrameObj.object3D.position.clone(),
-			      destinationFrameObj.object3D.quaternion.clone()];
+      const ppw = workerData.current.pose.position;
+      const qqw = workerData.current.pose.quaternion;
+      if (ppw && qqw) {
+	const ppt = new THREE.Vector3(ppw[0], ppw[1], ppw[2]);
+	const qqt = new THREE.Quaternion(qqw[1], qqw[2], qqw[3], qqw[0]);
+	this.objStartingPose = [ppt, qqt];
+      }
       this.vrCtrlStartingPoseInv = isoInvert([ctrlEl.object3D.position,
 					      ctrlEl.object3D.quaternion]);
-    } else {
+    } else if (this.vrControllerEl && this.triggerdownState &&
+	       !ctrlEl.laserVisible) {
       const vrControllerPose = [ctrlEl.object3D.position,
 				ctrlEl.object3D.quaternion];
       const vrControllerDelta = isoMultiply(this.vrCtrlStartingPoseInv,
@@ -70,42 +68,11 @@ AFRAME.registerComponent('hand-motion-ui', {
                                                  isoMultiply(ObjToVrCtrl,
                                                              vrControllerDelta)),
                                      vrCtrlToObj);
-      globalWorkerRef?.current?.postMessage({
-        type: 'setNextPose',
-        id: 'hand1',
-	pose: [...newObjPose[0].toArray(), ...newObjPose[1].toArray()]
+      this.el.regData.workerRef?.current?.postMessage({
+	type: 'destination2',
+	endLinkPose: [...newObjPose[0].toArray(), ...newObjPose[1].toArray()]
       });
     }
   }
-
 });
 
-// *****************
-// isometry multiplication function isoMultiply(a, b) 
-// a = [p, q] where p: THREE.Vector3, q: THREE.Quaternion
-function isoMultiply(a, b) {
-  const p = a[0];
-  const q = a[1];
-  const r = b[0];
-  const s = b[1];
-  const p2 = new THREE.Vector3();
-  p2.copy(r);
-  p2.applyQuaternion(q);
-  p2.add(p);
-  const q2 = new THREE.Quaternion();
-  q2.copy(q);
-  q2.multiply(s);
-  return [p2, q2];
-}
-function isoInvert(a) {
-  const p = a[0];
-  const q = a[1];
-  const q2 = new THREE.Quaternion();
-  q2.copy(q);
-  q2.conjugate();
-  const p2 = new THREE.Vector3();
-  p2.copy(p);
-  p2.negate();
-  p2.applyQuaternion(q2);
-  return [p2, q2];
-}

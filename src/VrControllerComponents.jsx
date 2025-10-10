@@ -48,7 +48,7 @@ function VrControllerComponents() {
                 laser-controls="hand: right"
                 raycaster="objects: .clickable"
                 line="color: blue; opacity: 0.75"
-                thumbstick-menu="items: A,act.,C,deact.,E,F,ray\nmot,H"
+                thumbstick-menu="items: nova,act.,hand,deact.,jaka,close,ray\nmot,open"
                 thumbmenu-event-handler
                 visible="true">
         {controller_axes}

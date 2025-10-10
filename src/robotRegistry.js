@@ -30,6 +30,18 @@ AFRAME.registerComponent('robot-registry', {
     const entry = this.objects.get(id);
     return entry ? entry.eventDelivery : false;
   },
+  eventDeliveryOneLocation: function(id) {
+    const idList = this.list();
+    if (!idList.includes(id)) {
+      console.error('The specified id does not exist in the registry:', id);
+      return;
+    }
+    idList.forEach((otherId) => {
+      this.disableEventDelivery(otherId);
+    });
+    this.enableEventDelivery(id);
+    console.log('eventDeliveryOneLocation: enabled event delivery for id:', id);
+  },
   list: function() {
     return Array.from(this.objects.keys());
   },

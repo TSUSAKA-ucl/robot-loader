@@ -1,6 +1,7 @@
 import AFRAME from 'aframe'
 const THREE = window.AFRAME.THREE;
 import {globalWorkerRef, globalObjectsRef} from '@ucl-nuee/rapier-worker'
+import {isoInvert, isoMultiply} from './isometry3.js';
 
 AFRAME.registerComponent('rapier-hand1-motion-ui', {
   init: function () {
@@ -72,33 +73,3 @@ AFRAME.registerComponent('rapier-hand1-motion-ui', {
   }
 
 });
-
-// *****************
-// isometry multiplication function isoMultiply(a, b) 
-// a = [p, q] where p: THREE.Vector3, q: THREE.Quaternion
-function isoMultiply(a, b) {
-  const p = a[0];
-  const q = a[1];
-  const r = b[0];
-  const s = b[1];
-  const p2 = new THREE.Vector3();
-  p2.copy(r);
-  p2.applyQuaternion(q);
-  p2.add(p);
-  const q2 = new THREE.Quaternion();
-  q2.copy(q);
-  q2.multiply(s);
-  return [p2, q2];
-}
-function isoInvert(a) {
-  const p = a[0];
-  const q = a[1];
-  const q2 = new THREE.Quaternion();
-  q2.copy(q);
-  q2.conjugate();
-  const p2 = new THREE.Vector3();
-  p2.copy(p);
-  p2.negate();
-  p2.applyQuaternion(q2);
-  return [p2, q2];
-}

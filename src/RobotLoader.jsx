@@ -3,6 +3,8 @@ import 'aframe';
 // const THREE = window.AFRAME.THREE;
 import {urdfLoader} from './urdfLoader.js';
 import './robotSetJoint.js'; // registers the robot-set-joint AFrame component
+import IkWorkerManager from '@ucl-nuee/ik-cd-worker';
+import './armMotionUI.js'; // registers the arm-motion-ui AFrame component
 
 export default RobotLoader;
 
@@ -24,11 +26,12 @@ function LoadUrdf({robotPlane, robotId, robotModel}) {
           el.dataset.instanceTag = tag;
           console.log('ADD robotBasePlaneTag:', tag, 'el:', el);
 
-	  console.warn('robotPlane: ', robotPlane.current);
-          console.warn('el tag:', robotPlane.current.dataset.instanceTag);
-	  console.warn('robotId: ', robotId);
-	  console.warn('robotModel: ', robotModel);
-          console.warn('sceneEl:', robotPlane.current.sceneEl);
+	  console.warn('NO WARNING:robotPlane: ', robotPlane.current);
+          console.warn('NO WARNING:el tag:',
+                       robotPlane.current.dataset.instanceTag);
+	  console.warn('NO WARNING:robotId: ', robotId);
+	  console.warn('NO WARNING:robotModel: ', robotModel);
+          console.warn('NO WARNING:sceneEl:', robotPlane.current.sceneEl);
 	  urdfLoader(robotPlane.current, robotId, robotModel);
         }
       } else {
@@ -39,7 +42,7 @@ function LoadUrdf({robotPlane, robotId, robotModel}) {
       onLoadPlane();
     } else {
       robotPlane.current?.addEventListener('loaded', ()=>{
-        console.warn('robotPlane loaded event fired');
+        console.warn('NO WARNING:robotPlane loaded event fired');
         onLoadPlane();
       });
       return () => {
@@ -56,12 +59,39 @@ function LoadUrdf({robotPlane, robotId, robotModel}) {
 function RobotLoader(props) {
   const {id, model, initialJoints, bridgeURL, ...planeProps} = props;
   const robotBasePlaneElRef = useRef(null);
-  const workerData = useRef({joints: initialJoints || [0,0,0,0,0,0],});
+  // ****************
+  // Worker thread management
+  const workerRef = useRef(null);
+  const workerData = useRef({ joints: [], status: {}, pose: {} });
+  useEffect(() => {
+    const remove = IkWorkerManager({robotName: model,
+                                    initialJoints: initialJoints ||
+                                    [0, 0, 0, 0, 0, 0],
+		                    workerRef,
+		                    workerData});
+    robotBasePlaneElRef.current.addEventListener('robot-registered', (e) => {
+      console.warn('NO WARNING:robot-registered event received in RobotLoader:', e);
+      const sceneEl = robotBasePlaneElRef.current.sceneEl;
+      const robotRegistryComp = sceneEl?.robotRegistryComp;
+      const data = robotRegistryComp.get(id);
+      if (data) {
+        data.workerData = workerData;
+        data.workerRef = workerRef;
+        robotBasePlaneElRef.current.regData = data;
+        console.log('robot data updated with workerData:', data);
+      } else {
+        console.error('robot data not found for id:', id);
+      }
+    });
+    return remove;
+  }, []);
   console.log('workerData:', workerData.current);
   return (
     <>
       <a-plane ref={robotBasePlaneElRef}
-               id={id} {...planeProps}>
+               id={id} {...planeProps}
+               arm-motion-ui
+      >
         <LoadUrdf robotPlane={robotBasePlaneElRef}
                   robotId={id}
                   robotModel={model} />

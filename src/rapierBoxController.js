@@ -28,18 +28,6 @@ AFRAME.registerComponent('rapier-box-controller', {
     this.el.addEventListener('thumbmenu-select', (evt) => {
       console.log('### menu select event: ', evt.detail.index);
       switch (evt.detail.index) {
-      case 4:
-        globalWorkerRef?.current?.postMessage({
-          type: 'call',
-          name: 'endJointOpen',
-        })
-        break;
-      case 0:
-        globalWorkerRef?.current?.postMessage({
-          type: 'call',
-          name: 'endJointClose',
-        });
-        break;
       case 7:
         globalWorkerRef?.current?.postMessage({
           type: 'call',
