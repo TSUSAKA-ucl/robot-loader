@@ -2,25 +2,12 @@
 // ********
 import AFRAME from 'aframe'
 import './vrControllerThumbMenu.js'; // with thumbMenuEventHandler
+import './targetSelector.js';
 
 export default VrControllerComponents;
 
-// let controllerPosition = null;
-// let controllerQuaternion = null;
-
-AFRAME.registerComponent('right-controller-frame', {
-  init() {
-    this.el.parentNode.frameObject3D = this.el.object3D;
-  // },
-  // tick() {
-  //   if (controllerPosition && controllerQuaternion) {
-  //     this.el.object3D.position.copy(controllerPosition);
-  //     this.el.object3D.quaternion.copy(controllerQuaternion);
-  //   }
-  }
-});
-
 function VrControllerComponents() {
+  const menuItems = "nova,act,hand,deact,jaka,open,ray,close";
   // definition of the end link axes marker
   const con_axis_length = 0.100;
   const con_length = (con_axis_length/2).toString();
@@ -48,8 +35,9 @@ function VrControllerComponents() {
                 laser-controls="hand: right"
                 raycaster="objects: .clickable"
                 line="color: blue; opacity: 0.75"
-                thumbstick-menu="items: nova,act.,hand,deact.,jaka,close,ray\nmot,open"
+                thumbstick-menu={`items: ${menuItems}`}
                 thumbmenu-event-handler
+                target-selector
                 visible="true">
         {controller_axes}
       </a-entity>
@@ -60,4 +48,18 @@ function VrControllerComponents() {
     </>
   );
 }
+
+// let controllerPosition = null;
+// let controllerQuaternion = null;
+AFRAME.registerComponent('right-controller-frame', {
+  init() {
+    this.el.parentNode.frameObject3D = this.el.object3D;
+  // },
+  // tick() {
+  //   if (controllerPosition && controllerQuaternion) {
+  //     this.el.object3D.position.copy(controllerPosition);
+  //     this.el.object3D.quaternion.copy(controllerQuaternion);
+  //   }
+  }
+});
 //                 oculus-touch-controls="hand: right"

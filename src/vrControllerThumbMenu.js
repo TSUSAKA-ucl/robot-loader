@@ -9,8 +9,9 @@ AFRAME.registerComponent('thumbstick-menu', {
   init: function () {
     this.el.thumbstick = [0,0];
     const menuText = this.data.items;
-    const menuTexts = menuText.split(",");
-    const numOfItems = menuTexts.length;
+    this.menuTexts = menuText.split(",");
+    const numOfItems = this.menuTexts.length;
+    this.menuColors = Array(numOfItems).fill('gray');
 
     this.menuVisible = false;
     this.menuEls = [];
@@ -37,19 +38,20 @@ AFRAME.registerComponent('thumbstick-menu', {
     // this.menuRoot.object3D.position('0, -0.02, -0.04');
     this.el.object3D.add(this.menuRoot);
 
+    Object.freeze(this.menuTexts);
     const angleStep = (2 * Math.PI) / numOfItems;
     for (let i = 0; i < numOfItems; i++) {
       const angle = i * angleStep;
       const circle = document.createElement('a-circle');
       const label = document.createElement('a-text');
-      label.setAttribute('value', menuTexts[i]);
+      label.setAttribute('value', this.menuTexts[i]);
       label.setAttribute('align', 'center');
       label.setAttribute('color', 'black');
       label.setAttribute('width', 2);
       label.object3D.position.set(0,0,0.01);
       circle.appendChild(label);
       circle.setAttribute('radius', 0.05);
-      circle.setAttribute('color', 'gray');
+      circle.setAttribute('color', this.menuColors[i]);
       circle.setAttribute('opacity', '0.6');
       circle.setAttribute('rotation', '-90 0 0'); // flat facing up
       circle.object3D.position.set(
@@ -104,10 +106,14 @@ AFRAME.registerComponent('thumbstick-menu', {
       if (this.currentIndex >= 0) {
         // dispatch custom event with chosen index
         // console.log('emit menu number :', this.currentIndex);
-        this.el.emit('thumbmenu-select', { index: this.currentIndex });
+        this.el.emit('thumbmenu-select', { index: this.currentIndex,
+					   colors: this.menuColors,
+					   texts: this.menuTexts
+					 });
       }
       this.currentIndex = -1;
-      this.menuEls.forEach((el,i)=>{el.setAttribute('color','gray');});
+      this.menuEls.forEach((el,i)=>{el.setAttribute('color',
+						    this.menuColors[i]);});
     });
   },
 
@@ -115,7 +121,7 @@ AFRAME.registerComponent('thumbstick-menu', {
     if (this.currentIndex === index) return;
     this.currentIndex = index;
     this.menuEls.forEach((el, i) => {
-      el.setAttribute('color', i === index ? 'yellow' : 'gray');
+      el.setAttribute('color', i === index ? 'yellow' : this.menuColors[i]);
       // console.log('## HIGHLIGHT ',i);
     });
   }
@@ -127,8 +133,8 @@ AFRAME.registerComponent('thumbmenu-event-handler', {
       console.log('### menu select event: ', evt.detail.index);
       const cylinder = this.el.laserCylinder;
       const cylinderHeight = this.el.laserCylinderHeight;
-      switch (evt.detail.index) {
-      case 6: { 
+      switch (evt.detail.texts[evt.detail.index]) {
+      case 'ray': { 
         const ray = this.el.getAttribute('raycaster').direction;
         const v = new THREE.Vector3(ray.x, ray.y, ray.z).normalize();
         const q = new THREE.Quaternion()
@@ -145,6 +151,8 @@ AFRAME.registerComponent('thumbmenu-event-handler', {
         if (this.el?.frameObject3D) {
 	  this.el.frameObject3D.visible = ! this.el.laserVisible;
 	}
+	evt.detail.colors[evt.detail.index] = this.el.laserVisible ?
+	  'orange' : 'lightSkyBlue';
       }	break;
       }
     });

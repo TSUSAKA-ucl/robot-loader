@@ -15,6 +15,7 @@ import RobotLoader from './RobotLoader.jsx';
 // :
 function App() {
   const sceneRef = useRef(null);
+  const registryRef = useRef(null);
   useEffect(() => {
     const sceneEl = sceneRef.current;
     if (sceneEl) {
@@ -48,7 +49,8 @@ function App() {
   const deg22 = Math.PI/8;
   return (
     <a-scene ref={sceneRef} xr-mode-ui="XRMode: ar">
-      <a-entity robot-registry event-distributor id="robot_registry">
+      <a-entity ref={registryRef}
+                robot-registry event-distributor id="robot_registry">
         <VrControllerComponents />
       </a-entity>
       <a-entity camera position="-0.5 1.2 1.7" look-controls="enabled: false"></a-entity>
@@ -65,13 +67,13 @@ function App() {
         rapier-hand1-motion-ui
       />
 
-      <RobotLoader id="jaka_plane" model="jaka_zu_5"
+      <RobotLoader id="jaka-plane" model="jaka_zu_5"
                    initialJoints={[deg22, deg30, -deg45, 0, -deg90, 0]}
                    position="0 0.1 -1.25" rotation="-90 0 90"
                    width="2" height="2" color="lightskyblue"
 	           material="opacity: 0.15; transparent: true; side: double;"
       />
-      <RobotLoader id="nova2_plane" model="nova2_robot"
+      <RobotLoader id="nova2-plane" model="nova2_robot"
 	           initialJoints={[deg90, -deg45, deg45, 0, -deg90, 0]}
 		   position="-0.7 0.1 -0.5" rotation="-90 0 90"
 		   width="2" height="2" color="lightskyblue"
