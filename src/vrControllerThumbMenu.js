@@ -149,8 +149,11 @@ AFRAME.registerComponent('thumbmenu-event-handler', {
         this.el.setAttribute('line', 'visible', this.el.laserVisible);
         this.el.setAttribute('raycaster', 'enabled', this.el.laserVisible);
         cylinder.object3D.visible = this.el.laserVisible;
-        if (this.el?.frameObject3D) {
-	  this.el.frameObject3D.visible = ! this.el.laserVisible;
+	console.warn('#### frameObject exists?', this.el?.frameObject);
+        if (this.el?.frameObject) {
+	  this.el.frameObject.object3D.visible = ! this.el.laserVisible;
+	  console.warn('#### changeVisibility:',
+		       this.el.frameObject.object3D.visible);
 	}
 	evt.detail.colors[evt.detail.index] = this.el.laserVisible ?
 	  'orange' : 'lightSkyBlue';
