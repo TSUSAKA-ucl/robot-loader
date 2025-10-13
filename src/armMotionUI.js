@@ -1,3 +1,21 @@
+
+  // motion controller コンポーネントもa-planeに付ける。
+  // ただし、別ファイル。poseをevt.detail.targetPoseをrobot-set-targetイベントを発生
+  // あるいは、el.workerRef.postMessage(で直接workerに送る
+  //
+  // motion controllerはvrControllerからeventを受けて
+  // trigger on/off に従ってmarker frameとcontroller frameからik-workerの
+  // 目標poseを作る。
+  // trigger offのときはtickで、marker frameは
+  // a) controller frame
+  // b) marker frame 
+  // c==b) robot destination pose
+  // d) robot pose
+  // はじめはtrigger offになったら瞬時にc==dにしても良い。いずれcはtrigger offの経過
+  // 時間に対して**非線形に**dに近づくようにする。例えば1秒待ってからdとcの偏差をcに
+  // フィードバックする。
+  // trigger ONのときは、c==bはaの動きを直接反映して(onになるbのポーズをベースに)動く
+
 import AFRAME from 'aframe';
 const THREE = window.AFRAME.THREE;
 import {isoInvert, isoMultiply} from './isometry3.js';

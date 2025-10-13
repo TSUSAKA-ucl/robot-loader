@@ -5,11 +5,21 @@ AFRAME.registerComponent('robot-registry', {
     this.el.sceneEl.robotRegistryComp = this;
     this.objects = new Map();
   },
-  add: function(id, data) { // data: {el: robotEl, axes: [...axes]}
+  set: function(id, data) { // data: {el: robotEl, axes: [...axes]}
     this.objects.set(id, {data: data, eventDelivery: false});
   },
   get: function(id) {
     return this.objects.get(id)?.data;
+  },
+  add: function(id, data) {
+    console.warn('registry add id:', id);
+    if (this.get(id)) {
+      console.warn('registry add already exist id:', id);
+      Object.assign(this.get(id), data);
+      console.warn('registry add data:', this.get(id));
+    } else {
+      this.set(id, data);
+    }
   },
   getWhole: function(id) {
     return this.objects.get(id);
@@ -53,7 +63,7 @@ AFRAME.registerComponent('robot-registry', {
 AFRAME.registerComponent('event-distributor', {
   init: function () {
     const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
-    // const robotRegistry = document.getElementById('robot_registry');
+    // const robotRegistry = document.getElementById('robot-registry');
     // const robotRegistryComp = robotRegistry?.components['robot-registry'];
     if (!robotRegistryComp) {
       console.error('robot-registry component not found!');

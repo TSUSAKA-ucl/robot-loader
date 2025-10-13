@@ -10,7 +10,7 @@ AFRAME.registerComponent('rapier-box-controller', {
     const sceneEl = this.el.sceneEl;
     const onSceneLoaded = () => {
       const robotRegistry = this.el.sceneEl.robotRegistryComp;
-      // const robotRegistry = document.getElementById('robot_registry');
+      // const robotRegistry = document.getElementById('robot-registry');
       if (robotRegistry) {
 	robotRegistry.add(this.data.robotId, {el: this.el, axes: []});
 	this.registered = true;
@@ -58,7 +58,7 @@ AFRAME.registerComponent('rapier-box-controller', {
   tick: function() {
     if (!this.registered) {
       const robotRegistry = this.el.sceneEl.robotRegistryComp;
-      // const robotRegistry = document.getElementById('robot_registry');
+      // const robotRegistry = document.getElementById('robot-registry');
       if (robotRegistry) {
 	robotRegistry.add(this.data.robotId, {el: this.el, axes: []});
 	this.registered = true;
@@ -68,7 +68,7 @@ AFRAME.registerComponent('rapier-box-controller', {
   remove: function() {
     if (this.registered) {
       const robotRegistry = this.el.sceneEl.robotRegistryComp;
-      // const robotRegistry = document.getElementById('robot_registry');
+      // const robotRegistry = document.getElementById('robot-registry');
       if (robotRegistry) {
 	robotRegistry.remove(this.data.robotId);
 	this.registered = false;

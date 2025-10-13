@@ -39,7 +39,8 @@ AFRAME.registerComponent('thumbstick-menu', {
     this.el.object3D.add(this.menuRoot);
 
     Object.freeze(this.menuTexts);
-    const angleStep = (2 * Math.PI) / numOfItems;
+    const angleStepHalf = Math.PI/numOfItems;
+    const angleStep = 2*angleStepHalf;
     for (let i = 0; i < numOfItems; i++) {
       const angle = i * angleStep;
       const circle = document.createElement('a-circle');
@@ -75,9 +76,9 @@ AFRAME.registerComponent('thumbstick-menu', {
         this.highlight(-1);
         return;
       }
-      let angle = Math.atan2(y, x); // -π..π
+      let angle = Math.atan2(y, x) + angleStepHalf; // -π..π
       if (angle < 0) angle += 2 * Math.PI;
-      const sector = Math.floor(angle / (2 * Math.PI / numOfItems)+0.5);
+      const sector = Math.floor(angle / angleStep);
       this.highlight(sector);
     };
 

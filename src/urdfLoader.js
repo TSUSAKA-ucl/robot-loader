@@ -11,7 +11,7 @@ export function urdfLoader(robotPlaneEl,
     console.error('robotPlaneEl:', robotPlaneEl);
   }
   const robotRegistry = planeEl?.sceneEl?.robotRegistryComp?.el;
-  // const robotRegistry = document.getElementById('robot_registry');
+  // const robotRegistry = document.getElementById('robot-registry');
   console.log('robotPlaneId:', robotIdString, 'robotModel:', robotModel);
   if (!robotRegistry) {
     console.error('The robotRegistry itself cannot be found');
@@ -57,7 +57,7 @@ function loadAndRegisterRobot({indivEl,
 			       linkFile,
 			       modifierFile}) {
   const robotRegistryComp = indivEl?.sceneEl?.robotRegistryComp;
-  //const robotRegistry = document.getElementById('robot_registry');
+  //const robotRegistry = document.getElementById('robot-registry');
   const indivId = indivEl.id;
   console.log('robot individual ID: ', indivId);
   const robot = robotRegistryComp.get(indivId);
