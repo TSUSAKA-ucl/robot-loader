@@ -34,8 +34,8 @@ AFRAME.registerComponent('ik-worker', {
     this.el.addEventListener('robot-dom-ready', () => {
       // ****************
       // Worker thread management
-      this.el.worker = {current: null};
-      const workerRef = this.el.worker;
+      this.el.workerRef = {current: null};
+      const workerRef = this.el.workerRef;
       this.el.workerData = {current: { joints: null,
 				       status: {}, pose: {} }};
       const workerData = this.el.workerData;
@@ -44,7 +44,8 @@ AFRAME.registerComponent('ik-worker', {
       const bridgeProtocol = location.protocol==='https:' ? 'wss:':'ws:';
       const bridgePort = 9090;
       const topicBridgeWebSocketURL =
-	    `${bridgeProtocol}//${location.hostname}:${bridgePort}`;
+	    // `${bridgeProtocol}//${location.hostname}:${bridgePort}`;
+	    null;
       this.remove = IkWorkerManager({robotName: this.el.model,
                                      initialJoints,
 		                     workerRef,
@@ -56,9 +57,9 @@ AFRAME.registerComponent('ik-worker', {
       const id = this.el.id;
       const registerRobotFunc = () => { // 
 	const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
-	robotRegistryComp.add(id, {worker: this.el.worker,
+	robotRegistryComp.add(id, {worker: this.el.workerRef,
 				   workerData: this.el.workerData});
-	console.log('Robot ', id, ' worker added:', this.el.worker);
+	console.log('Robot ', id, ' worker added:', this.el.workerRef);
 	this.el.emit('ik-worker-start'); // what do i do next?
       };
       if (this.el.sceneEl.hasLoaded) {

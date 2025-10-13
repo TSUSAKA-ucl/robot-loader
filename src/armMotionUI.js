@@ -1,27 +1,23 @@
-
-  // motion controller コンポーネントもa-planeに付ける。
-  // ただし、別ファイル。poseをevt.detail.targetPoseをrobot-set-targetイベントを発生
-  // あるいは、el.workerRef.postMessage(で直接workerに送る
-  //
-  // motion controllerはvrControllerからeventを受けて
-  // trigger on/off に従ってmarker frameとcontroller frameからik-workerの
-  // 目標poseを作る。
-  // trigger offのときはtickで、marker frameは
-  // a) controller frame
-  // b) marker frame 
-  // c==b) robot destination pose
-  // d) robot pose
-  // はじめはtrigger offになったら瞬時にc==dにしても良い。いずれcはtrigger offの経過
-  // 時間に対して**非線形に**dに近づくようにする。例えば1秒待ってからdとcの偏差をcに
-  // フィードバックする。
-  // trigger ONのときは、c==bはaの動きを直接反映して(onになるbのポーズをベースに)動く
-
 import AFRAME from 'aframe';
 const THREE = window.AFRAME.THREE;
 import {isoInvert, isoMultiply} from './isometry3.js';
+import './armMotionUI.js';
 
 AFRAME.registerComponent('arm-motion-ui', {
   init: function () {
+    const frameMarker = document.createElement('a-entity');
+    frameMarker.setAttribute('a-axes-frame', {
+      length: 0.2,
+      radius: 0.02,
+      sphere: 0.05,
+      color: 'blue'
+    });
+    this.el.appendChild(frameMarker);
+    this.frameMarker = frameMarker;
+    frameMarker.object3D.visible = true;
+    frameMarker.object3D.position.copy(new THREE.Vector3(0,1,0));
+    //
+    //
     this.triggerdownState = false;
     // this.el.laserVisible = true;
     this.vrControllerEl = null;
@@ -45,20 +41,20 @@ AFRAME.registerComponent('arm-motion-ui', {
       this.vrControllerEl = evt.detail?.originalTarget;
       this.triggerdownState = false;
     });
+    this.pptPrev = new THREE.Vector3();
+    this.qqtPrev = new THREE.Quaternion();
   },
+
+  // ********
   tick: function () {
     const ctrlEl = this.vrControllerEl;
     if (!ctrlEl) return;
-    if (!this.el.regData) {
-      console.warn('not yet registered:', this.el);
-      return;
-    }
-    if (!this.el.regData.workerData ||
-	!this.el.regData.workerRef) {
+    if (!this.el.workerData ||
+	!this.el.workerRef) {
       console.warn('workerData or workerRef not ready yet.');
       return;
     }
-    const workerData = this.el.regData.workerData;
+    const workerData = this.el.workerData;
     if (! this.triggerdownState || ctrlEl.laserVisible) {
       const ppw = workerData.current.pose.position;
       const qqw = workerData.current.pose.quaternion;
@@ -66,6 +62,14 @@ AFRAME.registerComponent('arm-motion-ui', {
 	const ppt = new THREE.Vector3(ppw[0], ppw[1], ppw[2]);
 	const qqt = new THREE.Quaternion(qqw[1], qqw[2], qqw[3], qqw[0]);
 	this.objStartingPose = [ppt, qqt];
+	this.frameMarker.object3D.position.copy(ppt);
+	this.frameMarker.object3D.quaternion.copy(qqt);
+	if (!this.pptPrev.equals(ppt) || !this.qqtPrev.equals(qqt)) {
+	  console.warn('frameMarker:',this.frameMarker,
+		       'pos:',ppw, 'ori:',qqw);
+	}
+	this.pptPrev = ppt;
+	this.qqtPrev = qqt;
       }
       this.vrCtrlStartingPoseInv = isoInvert([ctrlEl.object3D.position,
 					      ctrlEl.object3D.quaternion]);
@@ -86,11 +90,30 @@ AFRAME.registerComponent('arm-motion-ui', {
                                                  isoMultiply(ObjToVrCtrl,
                                                              vrControllerDelta)),
                                      vrCtrlToObj);
-      this.el.regData.workerRef?.current?.postMessage({
+      this.el.workerRef?.current?.postMessage({
 	type: 'destination2',
 	endLinkPose: [...newObjPose[0].toArray(), ...newObjPose[1].toArray()]
       });
     }
   }
 });
+
+
+
+  // motion controller コンポーネントもa-planeに付ける。
+  // ただし、別ファイル。poseをevt.detail.targetPoseをrobot-set-targetイベントを発生
+  // あるいは、el.workerRef.postMessage(で直接workerに送る
+  //
+  // motion controllerはvrControllerからeventを受けて
+  // trigger on/off に従ってmarker frameとcontroller frameからik-workerの
+  // 目標poseを作る。
+  // trigger offのときはtickで、marker frameは
+  // a) controller frame
+  // b) marker frame 
+  // c==b) robot destination pose
+  // d) robot pose
+  // はじめはtrigger offになったら瞬時にc==dにしても良い。いずれcはtrigger offの経過
+  // 時間に対して**非線形に**dに近づくようにする。例えば1秒待ってからdとcの偏差をcに
+  // フィードバックする。
+  // trigger ONのときは、c==bはaの動きを直接反映して(onになるbのポーズをベースに)動く
 

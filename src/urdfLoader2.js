@@ -97,6 +97,8 @@ export async function urdfLoader2(planeEl,
   });
   // base.object3D.position.set(0, 0.25, 0);
   // base.object3D.quaternion.set(-0.5, 0.5, 0.5, 0.5); // world to three.js
+  base.object3D.position.set(0, 0, 0);
+  base.object3D.quaternion.set(0, 0, 0, 1);
   planeEl.appendChild(base);
   let parentEl = base;
   // FINISH base link creation

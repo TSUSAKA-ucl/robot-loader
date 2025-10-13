@@ -49,6 +49,7 @@ AFRAME.registerComponent('reflect-worker-joints', {
 	  if (this.axesList) { // exists?
 	    if (this.axesList.length === jointData.length) {
 	      // SUCCEED
+	      this.workerDataJointsReady = true;
 	      return;
 	    } else {
               console.warn('length mismatch. axesList:', this.axesList,
@@ -65,7 +66,6 @@ AFRAME.registerComponent('reflect-worker-joints', {
 	setTimeout(checkWorkerJoints, 500);
       };
       checkWorkerJoints();
-      this.workerDataJointsReady = true;
       console.warn('workerDataJointsReady:', this.workerDataJointsReady);
     }, {once: true});
   },

@@ -10,6 +10,8 @@ import './rapierBoxController.js'; // registers the rapier-box-controller AFrame
 import './rapierHand1MotionUI.js'; // registers the rapier-hand1-motion-ui AFrame component
 import './robotLoader.js'; // register 'robot-loader'&'ik-worker' AFrame comp.
 import './reflectWorkerJoints.js'; // register AFrame comp.
+import './armMotionUI.js';
+
 // ****************
 // the entry point
 // :
@@ -72,24 +74,26 @@ function App() {
 
       <a-plane id="jaka-plane"
                robot-loader="model: jaka_zu_5"
-               set-joints-directly={`${deg22}, ${deg30}, ${-deg45}, 0, ${-deg90}, 0`}
                position="0 0.1 -1.25" rotation="-90 0 90"
                width="2" height="2" color="lightskyblue"
-	       material="opacity: 0.15; transparent: true; side: double;"
+               material="opacity: 0.15; transparent: true; side: double;"
                ik-worker={`${deg22}, ${deg30}, ${-deg45}, 0, ${-deg90}, 0`}
                reflect-worker-joints
+               arm-motion-ui
       />
       <a-plane id="nova2-plane"
-	       position="-0.7 0.1 -0.5" rotation="-90 0 90"
+	       position="-1.0 0.0 -1.0" rotation="-90 0 90"
 	       width="2" height="2" color="lightskyblue"
 	       material="opacity: 0.15; transparent: true; side: double;"
                robot-loader="model: nova2_robot"
-               ik-worker={`${deg90}, ${-deg45}, ${deg45}, 0, ${-deg90}, 0`}
+               ik-worker={`${deg90}, ${-deg90}, ${deg90}, 0, ${-deg90}, 0`}
                reflect-worker-joints
+               arm-motion-ui
       />
       <a-sky color="#ECECEC"></a-sky>
     </a-scene>
   );
 }
-
+// set-joints-directly={`${deg22}, ${deg30}, ${-deg45}, 0, ${-deg90}, 0`}
+// -0.7 0.1 -0.5
 export default App

@@ -66,7 +66,7 @@ function createCylinder(length, axis, radius, color) {
   const rotAxis = new THREE.Vector3(0,0,0);
   rotAxis.crossVectors(heightAxis, new THREE.Vector3(...axis));
   const height = length;
-  console.warn('offset: ',offset, 'rotAxis:', rotAxis);
+  // console.warn('offset: ',offset, 'rotAxis:', rotAxis);
   const cylinder = document.createElement('a-entity');
   // Configure the geometry for a cylinder
   cylinder.setAttribute('geometry', {
