@@ -30,6 +30,7 @@ AFRAME.registerComponent('rapier-hand1-motion-ui', {
     });
   },
   tick: function () {
+    if (!this.el?.shouldListenEvents) return;
     const ctrlEl = this.vrControllerEl;
     if (!ctrlEl) return;
     // controllerPosition = ctrlEl.object3D.position;

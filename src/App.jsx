@@ -75,7 +75,7 @@ function App() {
       <a-plane id="jaka-plane"
                robot-loader="model: jaka_zu_5"
                position="0 0.1 -1.25" rotation="-90 0 90"
-               width="2" height="2" color="lightskyblue"
+               width="2" height="2" color="lightcoral"
                material="opacity: 0.15; transparent: true; side: double;"
                ik-worker={`${deg22}, ${deg30}, ${-deg45}, 0, ${-deg90}, 0`}
                reflect-worker-joints
@@ -83,7 +83,7 @@ function App() {
       />
       <a-plane id="nova2-plane"
 	       position="-1.0 0.0 -1.0" rotation="-90 0 90"
-	       width="2" height="2" color="lightskyblue"
+	       width="2" height="2" color="beige"
 	       material="opacity: 0.15; transparent: true; side: double;"
                robot-loader="model: nova2_robot"
                ik-worker={`${deg90}, ${-deg90}, ${deg90}, 0, ${-deg90}, 0`}

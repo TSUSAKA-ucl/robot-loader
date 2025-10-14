@@ -12,7 +12,7 @@
     "postinstall": "node node_modules/@ucl-nuee/ik-cd-worker/scripts/copy-wasm.js"
   },
   "dependencies": {
-    "@ucl-nuee/ik-cd-worker": "https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2/ucl-nuee-ik-cd-worker-0.2.3.1.tgz",
+    "@ucl-nuee/ik-cd-worker": "https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2.4/ucl-nuee-ik-cd-worker-0.2.4.tgz",
     "@ucl-nuee/rapier-worker": "https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz",
     "aframe": "^1.7.1",
     "eslint-plugin-react": "^7.37.5",

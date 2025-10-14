@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@ucl-nuee/ik-cd-worker':
-        specifier: https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2/ucl-nuee-ik-cd-worker-0.2.3.1.tgz
-        version: https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2/ucl-nuee-ik-cd-worker-0.2.3.1.tgz(@msgpack/msgpack@3.1.2)(aframe@1.7.1)
+        specifier: file:../../ik_cd_worker/
+        version: file:../../ik_cd_worker(@msgpack/msgpack@3.1.2)(aframe@1.7.1)
       '@ucl-nuee/rapier-worker':
         specifier: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz
         version: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz(aframe@1.7.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -593,13 +593,12 @@ packages:
     resolution: {integrity: sha512-FrvMpAK+hTbFy7vH5j1+tMYHMSKLE6RzluFJlkFNKD0p9YsUT75JlBSmr5so3QRzvMwU5/bIEdeNrxm8du8l3Q==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@ucl-nuee/ik-cd-worker@https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2/ucl-nuee-ik-cd-worker-0.2.3.1.tgz':
-    resolution: {tarball: https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2/ucl-nuee-ik-cd-worker-0.2.3.1.tgz}
-    version: 0.2.3
+  '@ucl-nuee/ik-cd-worker@file:../../ik_cd_worker':
+    resolution: {directory: ../../ik_cd_worker, type: directory}
     hasBin: true
     peerDependencies:
       '@msgpack/msgpack': ^3.1.2
-      aframe: '1.6'
+      aframe: ^1.6
 
   '@ucl-nuee/rapier-worker@https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz':
     resolution: {tarball: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz}
@@ -2777,7 +2776,7 @@ snapshots:
       '@typescript-eslint/types': 8.46.0
       eslint-visitor-keys: 4.2.1
 
-  '@ucl-nuee/ik-cd-worker@https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2/ucl-nuee-ik-cd-worker-0.2.3.1.tgz(@msgpack/msgpack@3.1.2)(aframe@1.7.1)':
+  '@ucl-nuee/ik-cd-worker@file:../../ik_cd_worker(@msgpack/msgpack@3.1.2)(aframe@1.7.1)':
     dependencies:
       '@msgpack/msgpack': 3.1.2
       aframe: 1.7.1

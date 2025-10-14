@@ -28,12 +28,14 @@ AFRAME.registerComponent('robot-registry', {
     const entry = this.objects.get(id);
     if (entry) {
       entry.eventDelivery = true;
+      entry.data.el.shouldListenEvents = true;
     }
   },
   disableEventDelivery: function(id) {
     const entry = this.objects.get(id);
     if (entry) {
       entry.eventDelivery = false;
+      entry.data.el.shouldListenEvents = false;
     }
   },
   eventDeliveryEnabled: function(id) {
