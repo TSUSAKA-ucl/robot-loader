@@ -1,58 +1,26 @@
 // import React, { useEffect, useRef, useState } from 'react'
-import { useRef,useEffect } from 'react';
 import './App.css';
 import 'aframe';
-import './robotRegistry.js';// registers the robot-registry and event-distributor AFrame components
+import './robotRegistry.js';
 import VrControllerComponents from './VrControllerComponents.jsx';
-// VrControllerComponents also registers the vr-controller-right AFrame component
 import ButtonUI from './ButtonUI.jsx';
-import './rapierBoxController.js'; // registers the rapier-box-controller AFrame component
-import './rapierHand1MotionUI.js'; // registers the rapier-hand1-motion-ui AFrame component
-import './robotLoader.js'; // register 'robot-loader'&'ik-worker' AFrame comp.
-import './reflectWorkerJoints.js'; // register AFrame comp.
+import './rapierBoxController.js';
+import './rapierHand1MotionUI.js';
+import './robotLoader.js';
+import './reflectWorkerJoints.js';
 import './armMotionUI.js';
 
 // ****************
 // the entry point
 // :
 function App() {
-  const sceneRef = useRef(null);
-  const registryRef = useRef(null);
-  useEffect(() => {
-    const sceneEl = sceneRef.current;
-    if (sceneEl) {
-      const onSceneLoaded = () => {
-	console.log('### scene loaded');
-	// any additional setup after scene is loaded can go here
-        const robotRegistryComp = sceneEl.robotRegistryComp;
-        console.log('******** robotRegistryComp:', robotRegistryComp);
-        if (robotRegistryComp) {
-          // initialize event delivery for rapier-controller
-          robotRegistryComp.enableEventDelivery('rapier-controller');
-          console.log('rapier-controller event delivery enabled:',
-                      robotRegistryComp.eventDeliveryEnabled('rapier-controller'));
-          console.log('robotRegistry list:', robotRegistryComp.list());
-	}
-      };
-      if (sceneEl.hasLoaded) {
-	onSceneLoaded();
-      } else {
-	sceneEl.addEventListener('loaded', onSceneLoaded);
-      }
-      return () => {
-	sceneEl.removeEventListener('loaded', onSceneLoaded);
-      };
-    }
-  }, []);
-
   const deg30 = Math.PI / 6.0;
   const deg90 = Math.PI/2;
   const deg45 = Math.PI/4;
   const deg22 = Math.PI/8;
   return (
-    <a-scene ref={sceneRef} xr-mode-ui="XRMode: ar">
+    <a-scene xr-mode-ui="XRMode: ar">
       <a-entity id="robot-registry"
-                ref={registryRef}
                 robot-registry
                 event-distributor>
         <VrControllerComponents />
@@ -90,7 +58,7 @@ function App() {
                reflect-worker-joints
                arm-motion-ui
       />
-      <a-sky color="#ECECEC"></a-sky>
+      {/* <a-sky color="#ECECEC"></a-sky> */}
     </a-scene>
   );
 }

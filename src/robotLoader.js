@@ -1,9 +1,7 @@
 import AFRAME from 'aframe';
 // const THREE = window.AFRAME.THREE;
 import {urdfLoader2} from './urdfLoader2.js'; // async function
-import './reflectWorkerJoints.js'; // registers two AFrame components
 import IkWorkerManager from '@ucl-nuee/ik-cd-worker';
-import './armMotionUI.js'; // registers the arm-motion-ui AFrame component
 
 
 AFRAME.registerComponent('robot-loader', {

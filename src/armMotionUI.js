@@ -1,7 +1,6 @@
 import AFRAME from 'aframe';
 const THREE = window.AFRAME.THREE;
 import {isoInvert, isoMultiply} from './isometry3.js';
-import './armMotionUI.js';
 
 function workerPose(el) {
   const pose = el?.workerData?.current?.pose;
@@ -49,6 +48,7 @@ AFRAME.registerComponent('arm-motion-ui', {
       const ctrlEl = evt.detail?.originalTarget;
       this.vrControllerEl = ctrlEl;
       if (!this.vrControllerEl.laserVisible) {
+	if (this?.returnTimerId) clearTimeout(this.returnTimerId);
 	this.triggerdownState = true;
 	const iso3 = workerPose(this.el);
 	if (iso3 && ctrlEl) {
@@ -71,7 +71,7 @@ AFRAME.registerComponent('arm-motion-ui', {
 	  this.frameMarker.object3D.position.copy(iso3[0]);
 	  this.frameMarker.object3D.quaternion.copy(iso3[1]);
 	}
-	setTimeout(frameMarkerResetFunc, 2000);
+	this.returnTimerId = setTimeout(frameMarkerResetFunc, 2000);
       }
     });
     this.pptPrev = new THREE.Vector3();
