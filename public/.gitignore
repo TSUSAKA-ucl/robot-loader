@@ -5,5 +5,7 @@ wasm/cd_module.js
 wasm/cd_module.wasm
 wasm/slrm_module.js
 wasm/slrm_module.wasm
+jaka_zu_5/
+nova2_robot/
 !physicalObj.config.js
 !.gitignore

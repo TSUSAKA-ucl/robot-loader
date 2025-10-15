@@ -9,11 +9,13 @@
     "build": "vite build",
     "lint": "eslint .",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "node node_modules/@ucl-nuee/ik-cd-worker/scripts/copy-wasm.js"
+    "postinstall": "node node_modules/@ucl-nuee/ik-cd-worker/scripts/copy-wasm.js; node node_modules/@ucl-nuee/jaka-zu5/scripts/copy-assets.js; node node_modules/@ucl-nuee/nova2/scripts/copy-assets.js"
   },
   "dependencies": {
     "@ucl-nuee/ik-cd-worker": "https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2.4/ucl-nuee-ik-cd-worker-0.2.4.tgz",
     "@ucl-nuee/rapier-worker": "https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz",
+    "@ucl-nuee/jaka-zu5": "https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-jaka-zu5-1.0.0.tgz",
+    "@ucl-nuee/nova2": "https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz",
     "aframe": "^1.7.1",
     "eslint-plugin-react": "^7.37.5",
     "react": "^19.1.1",
@@ -29,7 +31,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
-    "madge": "^8.0.0",
+    "madge": "file:../../madge",
     "vite": "^7.1.2",
     "vite-plugin-static-copy": "^3.1.2"
   },

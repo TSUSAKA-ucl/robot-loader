@@ -9,8 +9,14 @@ importers:
   .:
     dependencies:
       '@ucl-nuee/ik-cd-worker':
-        specifier: file:../../ik_cd_worker/
-        version: file:../../ik_cd_worker(@msgpack/msgpack@3.1.2)(aframe@1.7.1)
+        specifier: https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2.4/ucl-nuee-ik-cd-worker-0.2.4.tgz
+        version: https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2.4/ucl-nuee-ik-cd-worker-0.2.4.tgz(@msgpack/msgpack@3.1.2)(aframe@1.7.1)
+      '@ucl-nuee/jaka-zu5':
+        specifier: https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-jaka-zu5-1.0.0.tgz
+        version: https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-jaka-zu5-1.0.0.tgz
+      '@ucl-nuee/nova2':
+        specifier: https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz
+        version: https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz
       '@ucl-nuee/rapier-worker':
         specifier: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz
         version: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz(aframe@1.7.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -55,8 +61,8 @@ importers:
         specifier: ^16.3.0
         version: 16.4.0
       madge:
-        specifier: ^8.0.0
-        version: 8.0.0(typescript@5.9.3)
+        specifier: file:../../madge
+        version: file:../../madge(typescript@5.9.3)
       vite:
         specifier: ^7.1.2
         version: 7.1.7(@types/node@24.6.0)
@@ -593,12 +599,23 @@ packages:
     resolution: {integrity: sha512-FrvMpAK+hTbFy7vH5j1+tMYHMSKLE6RzluFJlkFNKD0p9YsUT75JlBSmr5so3QRzvMwU5/bIEdeNrxm8du8l3Q==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
 
-  '@ucl-nuee/ik-cd-worker@file:../../ik_cd_worker':
-    resolution: {directory: ../../ik_cd_worker, type: directory}
+  '@ucl-nuee/ik-cd-worker@https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2.4/ucl-nuee-ik-cd-worker-0.2.4.tgz':
+    resolution: {tarball: https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2.4/ucl-nuee-ik-cd-worker-0.2.4.tgz}
+    version: 0.2.4
     hasBin: true
     peerDependencies:
       '@msgpack/msgpack': ^3.1.2
       aframe: ^1.6
+
+  '@ucl-nuee/jaka-zu5@https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-jaka-zu5-1.0.0.tgz':
+    resolution: {tarball: https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-jaka-zu5-1.0.0.tgz}
+    version: 1.0.0
+    hasBin: true
+
+  '@ucl-nuee/nova2@https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz':
+    resolution: {tarball: https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz}
+    version: 1.0.0
+    hasBin: true
 
   '@ucl-nuee/rapier-worker@https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz':
     resolution: {tarball: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz}
@@ -1585,8 +1602,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  madge@8.0.0:
-    resolution: {integrity: sha512-9sSsi3TBPhmkTCIpVQF0SPiChj1L7Rq9kU2KDG1o6v2XH9cCw086MopjVCD+vuoL5v8S77DTbVopTO8OUiQpIw==}
+  madge@file:../../madge:
+    resolution: {directory: ../../madge, type: directory}
     engines: {node: '>=18'}
     hasBin: true
     peerDependencies:
@@ -2776,10 +2793,14 @@ snapshots:
       '@typescript-eslint/types': 8.46.0
       eslint-visitor-keys: 4.2.1
 
-  '@ucl-nuee/ik-cd-worker@file:../../ik_cd_worker(@msgpack/msgpack@3.1.2)(aframe@1.7.1)':
+  '@ucl-nuee/ik-cd-worker@https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2.4/ucl-nuee-ik-cd-worker-0.2.4.tgz(@msgpack/msgpack@3.1.2)(aframe@1.7.1)':
     dependencies:
       '@msgpack/msgpack': 3.1.2
       aframe: 1.7.1
+
+  '@ucl-nuee/jaka-zu5@https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-jaka-zu5-1.0.0.tgz': {}
+
+  '@ucl-nuee/nova2@https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz': {}
 
   '@ucl-nuee/rapier-worker@https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz(aframe@1.7.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
@@ -3998,7 +4019,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  madge@8.0.0(typescript@5.9.3):
+  madge@file:../../madge(typescript@5.9.3):
     dependencies:
       chalk: 4.1.2
       commander: 7.2.0
