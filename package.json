@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -41,7 +41,6 @@
     "./reflectWorkerJoints.js": "src/reflectWorkerJoints.js",
     "./robotLoader.js": "src/robotLoader.js",
     "./robotRegistry.js": "src/robotRegistry.js",
-    "./targetSelector.js": "src/targetSelector.js",
     "./vrControllerThumbMenu.js": "src/vrControllerThumbMenu.js"
   },
   "keywords": [],

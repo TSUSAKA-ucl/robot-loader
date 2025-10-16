@@ -9,7 +9,10 @@ AFRAME.registerComponent('thumbstick-menu', {
   init: function () {
     this.el.thumbstick = [0,0];
     const menuText = this.data.items;
-    this.menuTexts = menuText.split(",");
+    this.menuTexts = menuText.split(",").map(str=>str.trim());
+    this.menuDisplayTexts = this.menuTexts.map(str => {
+      return str.split(/[^a-zA-Z0-9]/)[0];
+    });
     const numOfItems = this.menuTexts.length;
     this.menuColors = Array(numOfItems).fill('gray');
 
@@ -45,7 +48,7 @@ AFRAME.registerComponent('thumbstick-menu', {
       const angle = i * angleStep;
       const circle = document.createElement('a-circle');
       const label = document.createElement('a-text');
-      label.setAttribute('value', this.menuTexts[i]);
+      label.setAttribute('value', this.menuDisplayTexts[i]);
       label.setAttribute('align', 'center');
       label.setAttribute('color', 'black');
       label.setAttribute('width', 2);

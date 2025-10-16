@@ -91,3 +91,26 @@ AFRAME.registerComponent('event-distributor', {
     });
   }
 });
+
+AFRAME.registerComponent('target-selector', {
+  schema: {
+    event: { default: 'thumbmenu-select'}
+  },
+  init: function () {
+    this.el.addEventListener(this.data.event, (evt) => {
+      console.log('### target-selector: thumbmenu-select event:',
+		  evt.detail?.index);
+      const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
+      const menuText = evt.detail?.texts[evt.detail?.index];
+      if (robotRegistryComp && menuText) {
+	for (const id of robotRegistryComp.list()) {
+	  if (menuText === id) {
+	    robotRegistryComp.eventDeliveryOneLocation(id);
+	    console.log('### target-selector: enabled event delivery for id:', id);
+	    break;
+	  }
+	}
+      }
+    });
+  }
+});

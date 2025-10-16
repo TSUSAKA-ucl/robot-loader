@@ -1,15 +1,15 @@
 // ********
 // ********
-import AFRAME from 'aframe'
+import AFRAME from 'aframe';
 import './vrControllerThumbMenu.js'; // with thumbMenuEventHandler
-import './targetSelector.js';
+import './rapierSelector.js';
 import './axesFrame.js';
 
 
 export default VrControllerComponents;
 
 function VrControllerComponents() {
-  const menuItems = "nova,act,hand,deact,jaka,open,ray,close";
+  const menuItems = "nova2-plane,act,rapier,deact,jaka-plane,open,ray,close";
 
   return (
     <>
@@ -20,6 +20,7 @@ function VrControllerComponents() {
                 thumbstick-menu={`items: ${menuItems}`}
                 thumbmenu-event-handler
                 target-selector
+                rapier-selector
                 visible="true">
         <a-entity a-axes-frame />
       </a-entity>
