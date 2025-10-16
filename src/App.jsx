@@ -7,6 +7,7 @@ import ButtonUI from './ButtonUI.jsx';
 import './rapierBoxController.js';
 import './rapierHand1MotionUI.js';
 import './robotLoader.js';
+import './ikWorker.js';
 import './reflectWorkerJoints.js';
 import './armMotionUI.js';
 

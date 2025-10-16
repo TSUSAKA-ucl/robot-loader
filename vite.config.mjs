@@ -9,14 +9,16 @@ export default defineConfig({
     react(),
     viteStaticCopy({
       targets: [
-        {
-          src: RapierWorkerDist+'rapier-worker.mjs',
-          dest: '.',
-        },
-        {
-          src: RapierWorkerDist+'rapierObjectUtils.js',
-          dest: '.',
-        },
+        { src: 'node_modules/@ucl-nuee/ik-cd-worker/public/**',
+          dest: '.', },
+        { src: RapierWorkerDist+'rapier-worker.mjs',
+          dest: '.', },
+        { src: RapierWorkerDist+'rapierObjectUtils.js',
+          dest: '.', },
+        { src: 'node_modules/@ucl-nuee/jaka-zu5/public/**',
+          dest: '.', },
+        { src: 'node_modules/@ucl-nuee/nova2/public/**',
+          dest: '.', },
       ],
     }),
   ],

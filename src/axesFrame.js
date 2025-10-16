@@ -5,8 +5,8 @@ const THREE = AFRAME.THREE;
 // let controllerQuaternion = null;
 AFRAME.registerComponent('add-frameObject', {
   init: function () {
-    console.warn('#### parent:',this.el.parentNode,
-                 '#### this.el:', this.el);
+    // console.warn('#### parent:',this.el.parentNode,
+    //              '#### this.el:', this.el);
     const addToParent = () => {
       this.el.parentNode.frameObject = this.el;
     };

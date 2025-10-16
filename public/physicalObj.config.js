@@ -26,7 +26,7 @@ const rigidBodyArray = [
   },
   { name: 'box1',
     type: 'kinematicPosition',
-    position: {x: (-1.0)*mag, y: (2.5)*mag, z: (-3.0)*mag},
+    position: {x: (2.0)*mag, y: (2.5)*mag, z: (-3.0)*mag},
     orientation: {w: 0.991445, x:0.0, y:0.0, z:0.130526},
     collider: { shape: 'box',
 		size: {x: (0.4)*mag, y: (0.6)*mag, z: (0.2)*mag},
@@ -34,7 +34,7 @@ const rigidBodyArray = [
 	      },
   },
   { name: 'box2',
-    position: {x: (-1.0)*mag, y: (4.0)*mag, z: (-3.0)*mag},
+    position: {x: (2.0)*mag, y: (4.0)*mag, z: (-3.0)*mag},
     orientation: {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
     collider: { shape: 'box',
 		size: {x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag},
@@ -42,7 +42,7 @@ const rigidBodyArray = [
 	      },
   },
   { name: 'box3',
-    position: {x: (-1.0)*mag, y: (3.5)*mag, z: (-3.0)*mag},
+    position: {x: (2.0)*mag, y: (3.5)*mag, z: (-3.0)*mag},
     orientation: {w: 0.991445, x:0.0, y:0.0, z:-0.130526},
     collider: { shape: 'box',
 		size: {x: (0.25)*mag, y: (0.05)*mag, z: (0.6)*mag},
@@ -217,7 +217,7 @@ const functionArray = [
       const ot = object.time;
       const rigidbody = getRigidBody('box1');
       rigidbody
-        .setNextKinematicTranslation({x: -1.0*mag, y: 2.5*mag,
+        .setNextKinematicTranslation({x: 2.0*mag, y: 2.5*mag,
 				      z: (-3.0+0.5*Math.sin(2.0*Math.PI*ot))*mag
                                      });
       object.time += getStepTime();

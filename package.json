@@ -1,5 +1,5 @@
 {
-  "name": "rapier-worker-test",
+  "name": "@ucl-nuee/robot-loader",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -8,8 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "node node_modules/@ucl-nuee/ik-cd-worker/scripts/copy-wasm.js; node node_modules/@ucl-nuee/jaka-zu5/scripts/copy-assets.js; node node_modules/@ucl-nuee/nova2/scripts/copy-assets.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@ucl-nuee/ik-cd-worker": "https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2.4/ucl-nuee-ik-cd-worker-0.2.4.tgz",
@@ -34,6 +33,16 @@
     "madge": "file:../../madge",
     "vite": "^7.1.2",
     "vite-plugin-static-copy": "^3.1.2"
+  },
+  "exports": {
+    "./armMotionUI.js": "src/armMotionUI.js",
+    "./axesFrame.js": "src/axesFrame.js",
+    "./ikWorker.js": "src/ikWorker.js",
+    "./reflectWorkerJoints.js": "src/reflectWorkerJoints.js",
+    "./robotLoader.js": "src/robotLoader.js",
+    "./robotRegistry.js": "src/robotRegistry.js",
+    "./targetSelector.js": "src/targetSelector.js",
+    "./vrControllerThumbMenu.js": "src/vrControllerThumbMenu.js"
   },
   "keywords": [],
   "author": "",

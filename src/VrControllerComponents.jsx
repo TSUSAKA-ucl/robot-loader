@@ -21,9 +21,7 @@ function VrControllerComponents() {
                 thumbmenu-event-handler
                 target-selector
                 visible="true">
-        <a-entity a-axes-frame
-                  add-frameObject3D
-        />
+        <a-entity a-axes-frame />
       </a-entity>
       <a-entity cursor="rayOrigin: mouse"
                 mouse-cursor
