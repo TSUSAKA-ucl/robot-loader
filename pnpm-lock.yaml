@@ -17,9 +17,6 @@ importers:
       '@ucl-nuee/nova2':
         specifier: https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz
         version: https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz
-      '@ucl-nuee/rapier-worker':
-        specifier: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz
-        version: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz(aframe@1.7.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       aframe:
         specifier: ^1.7.1
         version: 1.7.1
@@ -616,14 +613,6 @@ packages:
     resolution: {tarball: https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz}
     version: 1.0.0
     hasBin: true
-
-  '@ucl-nuee/rapier-worker@https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz':
-    resolution: {tarball: https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz}
-    version: 0.1.1
-    peerDependencies:
-      aframe: '>=1.4.0'
-      react: '>=18'
-      react-dom: '>=18'
 
   '@vitejs/plugin-react@5.0.4':
     resolution: {integrity: sha512-La0KD0vGkVkSk6K+piWDKRUyg8Rl5iAIKRMH0vMJI0Eg47bq1eOxmoObAaQG37WMW9MSyk7Cs8EIWwJC1PtzKA==}
@@ -2801,12 +2790,6 @@ snapshots:
   '@ucl-nuee/jaka-zu5@https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-jaka-zu5-1.0.0.tgz': {}
 
   '@ucl-nuee/nova2@https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz': {}
-
-  '@ucl-nuee/rapier-worker@https://github.com/TSUSAKA-ucl/AFrameRapierWorker/releases/download/ver.0.1.0/ucl-nuee-rapier-worker-0.1.1.tgz(aframe@1.7.1)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
-    dependencies:
-      aframe: 1.7.1
-      react: 19.1.1
-      react-dom: 19.1.1(react@19.1.1)
 
   '@vitejs/plugin-react@5.0.4(vite@7.1.7(@types/node@24.6.0))':
     dependencies:
