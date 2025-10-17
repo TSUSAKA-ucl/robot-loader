@@ -19,14 +19,14 @@ function App() {
   return (
     <a-scene xr-mode-ui="XRMode: ar">
       <a-entity id="robot-registry"
-                robot-registry
-                event-distributor>
+                robot-registry>
         <a-entity right-controller
                   laser-controls="hand: right"
                   raycaster="objects: .clickable"
                   line="color: blue; opacity: 0.75"
                   thumbstick-menu={`items: ${menuItems}`}
                   thumbmenu-event-handler
+                  event-distributor
                   target-selector
                   visible="true">
           <a-entity a-axes-frame />

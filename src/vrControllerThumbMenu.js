@@ -34,7 +34,12 @@ AFRAME.registerComponent('thumbstick-menu', {
     // cylinder.setAttribute('rotation', '57 10.5 0');
     this.el.appendChild(cylinder);
     // this.frame = buildUpFrameAxes(this.el);
-
+    this.el.laserVisible = true;
+    this.el.addEventListener('loaded', () => {
+      flipRayOnOff(this.el);
+      // If the frameObject(a-axes-frame) is attached to this.el
+      // wait for it to appear, then turn off laser
+    });
 
     // flower-like menu entity
     this.menuRoot = new AFRAME.THREE.Group();
@@ -135,29 +140,9 @@ AFRAME.registerComponent('thumbmenu-event-handler', {
   init: function() {
     this.el.addEventListener('thumbmenu-select', (evt) => {
       console.log('### menu select event: ', evt.detail.index);
-      const cylinder = this.el.laserCylinder;
-      const cylinderHeight = this.el.laserCylinderHeight;
       switch (evt.detail.texts[evt.detail.index]) {
       case 'ray': { 
-        const ray = this.el.getAttribute('raycaster').direction;
-        const v = new THREE.Vector3(ray.x, ray.y, ray.z).normalize();
-        const q = new THREE.Quaternion()
-              .setFromUnitVectors(new THREE.Vector3(0,1,0), v);
-        const p = new THREE.Vector3(0.005, cylinderHeight*0.5, 0.015);
-        cylinder.object3D.quaternion.copy(q);
-        cylinder.object3D.position.copy(p.applyQuaternion(q));
-        // console.log('ray x,y,z: ', ray.x, ray.y, ray.z);
-      
-        this.el.laserVisible = !this.el.laserVisible;
-        this.el.setAttribute('line', 'visible', this.el.laserVisible);
-        this.el.setAttribute('raycaster', 'enabled', this.el.laserVisible);
-        cylinder.object3D.visible = this.el.laserVisible;
-	console.warn('#### frameObject exists?', this.el?.frameObject);
-        if (this.el?.frameObject) {
-	  this.el.frameObject.object3D.visible = ! this.el.laserVisible;
-	  console.warn('#### changeVisibility:',
-		       this.el.frameObject.object3D.visible);
-	}
+	flipRayOnOff(this.el);
 	evt.detail.colors[evt.detail.index] = this.el.laserVisible ?
 	  'orange' : 'lightSkyBlue';
       }	break;
@@ -165,3 +150,33 @@ AFRAME.registerComponent('thumbmenu-event-handler', {
     });
   }
 });
+
+function flipRayOnOff(thisEl) {
+  console.warn('### flip ray on/off. prev. laserVisible :', thisEl.laserVisible);
+  if (! ('laserVisible' in thisEl)) return;
+  thisEl.laserVisible = !thisEl.laserVisible;
+  thisEl.setAttribute('line', 'visible', thisEl.laserVisible);
+  thisEl.setAttribute('raycaster', 'enabled', thisEl.laserVisible);
+  if (thisEl?.laserCylinder) {
+    const cylinder = thisEl.laserCylinder;
+    cylinder.object3D.visible = thisEl.laserVisible;
+    if (thisEl.laserVisible) {
+      const cylinderHeight = thisEl.laserCylinderHeight;
+      const ray = thisEl.getAttribute('raycaster').direction;
+      const v = new THREE.Vector3(ray.x, ray.y, ray.z).normalize();
+      const q = new THREE.Quaternion()
+            .setFromUnitVectors(new THREE.Vector3(0,1,0), v);
+      const p = new THREE.Vector3(0.005, cylinderHeight*0.5, 0.015);
+      cylinder.object3D.quaternion.copy(q);
+      cylinder.object3D.position.copy(p.applyQuaternion(q));
+      // console.log('ray x,y,z: ', ray.x, ray.y, ray.z);
+    }
+  }
+  if (thisEl?.frameObject) {
+    thisEl.frameObject.object3D.visible = ! thisEl.laserVisible;
+    console.log('#### changeVisibility of frameObject :',
+		thisEl.frameObject.object3D.visible);
+  } else {
+    console.warn('#### frameObject exists?', thisEl?.frameObject);
+  }
+}

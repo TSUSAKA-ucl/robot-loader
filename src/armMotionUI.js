@@ -82,34 +82,36 @@ AFRAME.registerComponent('arm-motion-ui', {
   tick: function () {
     if (!this.el?.shouldListenEvents) return;
     const ctrlEl = this?.vrControllerEl;
-    if (!ctrlEl || !this.el.workerData || !this.el.workerRef) {
-      console.warn('workerData, workerRef or controller not ready yet.');
-      return;
-    }
-    if (this.triggerdownState && ~ctrlEl.laserVisible) {
-      const vrControllerPose = isoMultiply(this.baseToWorld,
-					   [ctrlEl.object3D.position,
-					    ctrlEl.object3D.quaternion]);
-      const vrControllerDelta = isoMultiply(this.vrCtrlStartingPoseInv,
-                                            vrControllerPose);
-      vrControllerDelta[0] = vrControllerDelta[0].multiplyScalar(1.0);
-      vrControllerDelta[1].normalize();
-      const vrCtrlToObj = [new THREE.Vector3(0, 0, 0),
-                           this.vrCtrlStartingPoseInv[1].clone()
-                           .multiply(this.objStartingPose[1])];
-      const ObjToVrCtrl = [new THREE.Vector3(0, 0, 0),
-                           vrCtrlToObj[1].clone().conjugate()];
-      const newObjPose = isoMultiply(isoMultiply(this.objStartingPose,
-                                                 isoMultiply(ObjToVrCtrl,
-                                                             vrControllerDelta)),
-                                     vrCtrlToObj);
-      this.frameMarker.object3D.position.copy(newObjPose[0]);
-      this.frameMarker.object3D.quaternion.copy(newObjPose[1]);
-      const m4 = new THREE.Matrix4();
-      m4.compose(newObjPose[0], newObjPose[1], new THREE.Vector3(1,1,1));
-      this.el.workerRef?.current?.postMessage({	type: 'destination',
-						endLinkPose: m4.elements
-					      });
+    if (ctrlEl && 'laserVisible' in ctrlEl && !ctrlEl.laserVisible) {
+      if (!this.el.workerData || !this.el.workerRef) {
+	console.warn('workerData or workerRef not ready yet.');
+	return;
+      }
+      if (this.triggerdownState && ~ctrlEl.laserVisible) {
+	const vrControllerPose = isoMultiply(this.baseToWorld,
+					     [ctrlEl.object3D.position,
+					      ctrlEl.object3D.quaternion]);
+	const vrControllerDelta = isoMultiply(this.vrCtrlStartingPoseInv,
+                                              vrControllerPose);
+	vrControllerDelta[0] = vrControllerDelta[0].multiplyScalar(1.0);
+	vrControllerDelta[1].normalize();
+	const vrCtrlToObj = [new THREE.Vector3(0, 0, 0),
+                             this.vrCtrlStartingPoseInv[1].clone()
+                             .multiply(this.objStartingPose[1])];
+	const ObjToVrCtrl = [new THREE.Vector3(0, 0, 0),
+                             vrCtrlToObj[1].clone().conjugate()];
+	const newObjPose = isoMultiply(isoMultiply(this.objStartingPose,
+                                                   isoMultiply(ObjToVrCtrl,
+                                                               vrControllerDelta)),
+                                       vrCtrlToObj);
+	this.frameMarker.object3D.position.copy(newObjPose[0]);
+	this.frameMarker.object3D.quaternion.copy(newObjPose[1]);
+	const m4 = new THREE.Matrix4();
+	m4.compose(newObjPose[0], newObjPose[1], new THREE.Vector3(1,1,1));
+	this.el.workerRef?.current?.postMessage({	type: 'destination',
+							endLinkPose: m4.elements
+						});
+      }
     }
   }
 });

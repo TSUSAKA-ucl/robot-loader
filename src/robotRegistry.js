@@ -64,19 +64,16 @@ AFRAME.registerComponent('robot-registry', {
 
 AFRAME.registerComponent('event-distributor', {
   init: function () {
-    const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
-    // const robotRegistry = document.getElementById('robot-registry');
-    // const robotRegistryComp = robotRegistry?.components['robot-registry'];
-    if (!robotRegistryComp) {
-      console.error('robot-registry component not found!');
-      return;
-    }
-    ['thumbmenu-select',
-     'triggerdown', 'triggerup', 'gripdown', 'gripup',
-     'abuttondown', 'abuttonup', 'bbuttondown', 'bbuttonup',
-     'thumbstickmoved', 'thumbstickdown', 'thumbstickup',
-    ].forEach(evtName => {
-      this.el.addEventListener(evtName, (evt) => {
+    const distributorSetup = () => {
+      const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
+      // const robotRegistry = document.getElementById('robot-registry');
+      // const robotRegistryComp = robotRegistry?.components['robot-registry'];
+      if (!robotRegistryComp) {
+	console.error('robot-registry component not found!');
+	return;
+      }
+      this.distributionFunc =  (evt) => {
+	// console.log('#***** event-distributor: catch event:', evt.detail);
 	const detail = evt.detail ? evt.detail : {};
 	robotRegistryComp.list().forEach(id => {
 	  // console.log('*** event distributor: ', evtName, ' to ', id, 
@@ -84,10 +81,40 @@ AFRAME.registerComponent('event-distributor', {
 	  const {data, eventDelivery} = robotRegistryComp.getWhole(id) || {};
 	  if (eventDelivery && data && data.el) {
 	    detail.originalTarget = evt.target;
-	    data.el.emit(evtName, detail, false);
+	    data.el.emit(evt.type, detail, false);
 	  }
 	});
+      };
+
+      ['thumbmenu-select',
+       'triggerdown', 'triggerup', 'gripdown', 'gripup',
+       'abuttondown', 'abuttonup', 'bbuttondown', 'bbuttonup',
+       'thumbstickmoved', 'thumbstickdown', 'thumbstickup',
+      ].forEach(evtName => {
+	this.el.addEventListener(evtName, this.distributionFunc);
       });
+    };
+    if (this.el.sceneEl.hasLoaded) {
+      distributorSetup();
+    } else {
+      const distributorSetupHandler = () => {
+	distributorSetup();
+	this.el.sceneEl.removeEventListener('loaded', distributorSetupHandler);
+      }
+      this.el.sceneEl.addEventListener('loaded', distributorSetupHandler);
+    }
+  },
+  remove: function () {
+    const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
+    if (!robotRegistryComp) {
+      return;
+    }
+    ['thumbmenu-select',
+     'triggerdown', 'triggerup', 'gripdown', 'gripup',
+     'abuttondown', 'abuttonup', 'bbuttondown', 'bbuttonup',
+     'thumbstickmoved', 'thumbstickdown', 'thumbstickup',
+    ].forEach(evtName => {
+      this.el.removeEventListener(evtName, this.distributionFunc);
     });
   }
 });
