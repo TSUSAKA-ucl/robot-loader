@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -16,6 +16,7 @@
     "@ucl-nuee/nova2": "https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz",
     "aframe": "^1.7.1",
     "eslint-plugin-react": "^7.37.5",
+    "madge": "^8.0.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
@@ -29,7 +30,6 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.3.0",
-    "madge": "file:../../madge",
     "vite": "^7.1.2",
     "vite-plugin-static-copy": "^3.1.2"
   },

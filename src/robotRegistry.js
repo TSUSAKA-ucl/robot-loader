@@ -1,12 +1,36 @@
 import AFRAME from 'aframe'
 
+function checkListenerList(listener, distributor) {
+  if (listener?.isEntity && distributor.hasLoaded) {
+    if (!listener?.shouldListenEvents) listener.shouldListenEvents = 0;
+    if (Object.prototype.toString.call(distributor?.listenersList)
+	=== '[object Object]') {
+      if (// listener.hasLoaded &&
+	Number.isInteger(listener.shouldListenEvents)) {
+	return true;
+      } else {
+	console.error('el.shoudListenEvents must be INTEGER. ',
+		      listener?.shouldListenEvents);
+	return false;
+      }
+    } else {
+      console.error('distributor.listenersList must be a plain boject. :',
+		    distributor?.listenersList);
+      return false;
+    }
+  } else {
+    return false;
+  }
+}
+
+
 AFRAME.registerComponent('robot-registry', {
   init: function () {
     this.el.sceneEl.robotRegistryComp = this;
     this.objects = new Map();
   },
   set: function(id, data) { // data: {el: robotEl, axes: [...axes]}
-    this.objects.set(id, {data: data, eventDelivery: false});
+    this.objects.set(id, {data: data});
   },
   get: function(id) {
     return this.objects.get(id)?.data;
@@ -24,35 +48,47 @@ AFRAME.registerComponent('robot-registry', {
   getWhole: function(id) {
     return this.objects.get(id);
   },
-  enableEventDelivery: function(id) {
-    const entry = this.objects.get(id);
-    if (entry) {
-      entry.eventDelivery = true;
-      entry.data.el.shouldListenEvents = true;
+  enableEventDelivery: function(id, distributor) {
+    const listenerEl = this.objects.get(id)?.data?.el;
+    if (checkListenerList(listenerEl, distributor)) {
+      distributor.listenersList[id] = listenerEl;
+      listenerEl.shouldListenEvents += 1;
+      console.log('enable listening event by', id);
     }
   },
-  disableEventDelivery: function(id) {
-    const entry = this.objects.get(id);
-    if (entry) {
-      entry.eventDelivery = false;
-      entry.data.el.shouldListenEvents = false;
+  disableEventDelivery: function(id, distributor) {
+    const listenerEl = this.objects.get(id)?.data?.el;
+    if (checkListenerList(listenerEl, distributor)) {
+      delete distributor.listenersList[id];
+      if (listenerEl.shouldListenEvents) {
+	listenerEl.shouldListenEvents -= 1;
+      }
+      console.log('disable listening event by', id);
     }
   },
-  eventDeliveryEnabled: function(id) {
-    const entry = this.objects.get(id);
-    return entry ? entry.eventDelivery : false;
+  eventDeliveryEnabled: function(id, distributor) {
+    const listenerEl = this.objects.get(id)?.data?.el;
+    if (checkListenerList(listenerEl, distributor)) {
+      if (distributor.listenersList[id]) {
+	return true;
+      }
+    }
+    return false;
   },
-  eventDeliveryOneLocation: function(id) {
+  eventDeliveryOneLocation: function(id, distributor) {
     const idList = this.list();
     if (!idList.includes(id)) {
       console.error('The specified id does not exist in the registry:', id);
       return;
     }
-    idList.forEach((otherId) => {
-      this.disableEventDelivery(otherId);
-    });
-    this.enableEventDelivery(id);
-    console.log('eventDeliveryOneLocation: enabled event delivery for id:', id);
+    // const data = this.objects.get(id);
+    // console.log('*#*# data:', data);
+    const listenerEl = this.objects.get(id)?.data?.el;
+    if (checkListenerList(listenerEl, distributor)) {
+      Object.keys(distributor.listenersList).forEach(key => 
+	this.disableEventDelivery(key, distributor));
+      this.enableEventDelivery(id, distributor);
+    }
   },
   list: function() {
     return Array.from(this.objects.keys());
@@ -64,6 +100,7 @@ AFRAME.registerComponent('robot-registry', {
 
 AFRAME.registerComponent('event-distributor', {
   init: function () {
+    this.el.listenersList = {}; // idString, el pair
     const distributorSetup = () => {
       const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
       // const robotRegistry = document.getElementById('robot-registry');
@@ -73,15 +110,14 @@ AFRAME.registerComponent('event-distributor', {
 	return;
       }
       this.distributionFunc =  (evt) => {
-	// console.log('#***** event-distributor: catch event:', evt.detail);
 	const detail = evt.detail ? evt.detail : {};
 	robotRegistryComp.list().forEach(id => {
 	  // console.log('*** event distributor: ', evtName, ' to ', id, 
 	  // 	      ' enabled=', robotRegistryComp.eventDeliveryEnabled(id));
-	  const {data, eventDelivery} = robotRegistryComp.getWhole(id) || {};
-	  if (eventDelivery && data && data.el) {
+	  const listenerEl = this.el?.listenersList[id];
+	  if (listenerEl) {
 	    detail.originalTarget = evt.target;
-	    data.el.emit(evt.type, detail, false);
+	    listenerEl.emit(evt.type, detail, false);
 	  }
 	});
       };
@@ -125,15 +161,19 @@ AFRAME.registerComponent('target-selector', {
   },
   init: function () {
     this.el.addEventListener(this.data.event, (evt) => {
-      console.log('### target-selector: thumbmenu-select event:',
-		  evt.detail?.index);
-      const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
+      let distributorEl = null;
+      if (this.el.getAttribute('event-distributor')) {
+	distributorEl = this.el;
+      } else if (this.el.sceneEl.getAttribute('event-distributor')) {
+	distributorEl = this.el.sceneEl;
+      }
+      const robotRegistryComp = this.el.sceneEl.hasLoaded &&
+	    this.el.sceneEl.robotRegistryComp;
       const menuText = evt.detail?.texts[evt.detail?.index];
-      if (robotRegistryComp && menuText) {
+      if (distributorEl && robotRegistryComp && menuText) {
 	for (const id of robotRegistryComp.list()) {
 	  if (menuText === id) {
-	    robotRegistryComp.eventDeliveryOneLocation(id);
-	    console.log('### target-selector: enabled event delivery for id:', id);
+	    robotRegistryComp.eventDeliveryOneLocation(id, distributorEl);
 	    break;
 	  }
 	}

@@ -31,6 +31,15 @@ function App() {
                   visible="true">
           <a-entity a-axes-frame />
         </a-entity>
+        <a-entity left-controller
+                  laser-controls="hand: left"
+                  thumbstick-menu={`items: ${menuItems}`}
+                  thumbmenu-event-handler
+                  event-distributor
+                  target-selector
+                  visible="true">
+          <a-entity a-axes-frame />
+        </a-entity>
         <a-entity cursor="rayOrigin: mouse"
                   mouse-cursor
                   raycaster="objects: .clickable"></a-entity>

@@ -80,7 +80,10 @@ AFRAME.registerComponent('arm-motion-ui', {
 
   // ********
   tick: function () {
-    if (!this.el?.shouldListenEvents) return;
+    if (!this.el?.shouldListenEvents) {
+      this.triggerdownState = false;
+      return;
+    }
     const ctrlEl = this?.vrControllerEl;
     if (ctrlEl && 'laserVisible' in ctrlEl && !ctrlEl.laserVisible) {
       if (!this.el.workerData || !this.el.workerRef) {
