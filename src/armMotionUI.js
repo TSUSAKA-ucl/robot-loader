@@ -38,6 +38,7 @@ AFRAME.registerComponent('arm-motion-ui', {
                             new THREE.Quaternion(0,0,0,1)];
     this.vrCtrlStartingPoseInv = [new THREE.Vector3(0,0,0),
 				  new THREE.Quaternion(0,0,0,1)];
+    this.ratio = 1;
     this.worldToBase = [this.el.object3D.position,
 			this.el.object3D.quaternion];
     this.baseToWorld = isoInvert(this.worldToBase);
@@ -50,13 +51,20 @@ AFRAME.registerComponent('arm-motion-ui', {
       if (!this.vrControllerEl.laserVisible) {
 	if (this?.returnTimerId) clearTimeout(this.returnTimerId);
 	this.triggerdownState = true;
+	const activeCamera = this.el.sceneEl?.camera;
+	const cameraPosition = new THREE.Vector3();
+	activeCamera.getWorldPosition(cameraPosition);
 	const iso3 = workerPose(this.el);
 	if (iso3 && ctrlEl) {
 	  this.objStartingPose = iso3;
+	  const vrCtrlPosition = ctrlEl.object3D.position;
 	  this.vrCtrlStartingPoseInv
-	    = isoMultiply(isoInvert([ctrlEl.object3D.position,
+	    = isoMultiply(isoInvert([vrCtrlPosition,
 				     ctrlEl.object3D.quaternion]),
 			  this.worldToBase);
+	  const distance1 = cameraPosition.distanceTo(iso3[0]);
+	  const distance2 = cameraPosition.distanceTo(vrCtrlPosition)
+	  this.ratio = distance1/distance2;
 	}
       }
     });

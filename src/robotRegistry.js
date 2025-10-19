@@ -1,29 +1,5 @@
 import AFRAME from 'aframe'
 
-function checkListenerList(listener, distributor) {
-  if (listener?.isEntity && distributor.hasLoaded) {
-    if (!listener?.shouldListenEvents) listener.shouldListenEvents = 0;
-    if (Object.prototype.toString.call(distributor?.listenersList)
-	=== '[object Object]') {
-      if (// listener.hasLoaded &&
-	Number.isInteger(listener.shouldListenEvents)) {
-	return true;
-      } else {
-	console.error('el.shoudListenEvents must be INTEGER. ',
-		      listener?.shouldListenEvents);
-	return false;
-      }
-    } else {
-      console.error('distributor.listenersList must be a plain boject. :',
-		    distributor?.listenersList);
-      return false;
-    }
-  } else {
-    return false;
-  }
-}
-
-
 AFRAME.registerComponent('robot-registry', {
   init: function () {
     this.el.sceneEl.robotRegistryComp = this;
@@ -181,3 +157,26 @@ AFRAME.registerComponent('target-selector', {
     });
   }
 });
+
+function checkListenerList(listener, distributor) {
+  if (listener?.isEntity && distributor.hasLoaded) {
+    if (!listener?.shouldListenEvents) listener.shouldListenEvents = 0;
+    if (Object.prototype.toString.call(distributor?.listenersList)
+	=== '[object Object]') {
+      if (// listener.hasLoaded &&
+	Number.isInteger(listener.shouldListenEvents)) {
+	return true;
+      } else {
+	console.error('el.shoudListenEvents must be INTEGER. ',
+		      listener?.shouldListenEvents);
+	return false;
+      }
+    } else {
+      console.error('distributor.listenersList must be a plain boject. :',
+		    distributor?.listenersList);
+      return false;
+    }
+  } else {
+    return false;
+  }
+}

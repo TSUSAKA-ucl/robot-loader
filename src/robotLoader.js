@@ -6,6 +6,8 @@ AFRAME.registerComponent('robot-loader', {
     model: {type: 'string', default: 'jaka_zu_5'},
   },
   init: function() {
+    console.warn('## CHECK robot-loader ver.1.0.4-A');
+    this.el.model = null;
     const onLoaded = async () => {
       if (await urdfLoader2(this.el, this.data.model)) {
 	this.el.model = this.data.model;
@@ -173,22 +175,26 @@ async function urdfLoader2(planeEl,
   const endLinkEl = parentEl;
   const axes = axesList;
   const registerRobotFunc = () => { // 
+    // console.warn('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',endLinkEl);
     const robotRegistryComp = planeEl.sceneEl.robotRegistryComp;
     if (robotRegistryComp.get(id)) {
       console.warn('robot:',id,'already registered');
     }
     robotRegistryComp.add(id,
 			  {el: planeEl, axes: axes, endLink: endLinkEl});
+    planeEl.axes = axes;
+    planeEl.endLink = endLinkEl;
+    console.warn('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
     // console.warn('el tag is:', planeEl.dataset.instanceTag);
     console.log('Robot ', id, ' registered with axes:', axes,
 		'endLink:', endLinkEl);
     planeEl.emit('robot-registered', {id, axes, endLinkEl});
   };
-  if (planeEl.sceneEl.hasLoaded) {
+  if (planeEl.model) {
     registerRobotFunc();
   } else {
-    planeEl.sceneEl.addEventListener('loaded', registerRobotFunc,
-				     {once: true});
+    planeEl.addEventListener('robot-dom-ready', registerRobotFunc,
+			     {once: true});
   }
   consoleChildLink(base);
   return true;
