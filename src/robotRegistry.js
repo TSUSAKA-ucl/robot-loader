@@ -12,13 +12,17 @@ AFRAME.registerComponent('robot-registry', {
     return this.objects.get(id)?.data;
   },
   add: function(id, data) {
-    console.warn('registry add id:', id);
-    if (this.get(id)) {
-      console.warn('registry add already exist id:', id);
-      Object.assign(this.get(id), data);
-      console.warn('registry add data:', this.get(id));
+    console.log('Registry: registry add id:', id);
+    if (id) {
+      if (this.get(id)) {
+	console.warn('registry add already exist id:', id);
+	Object.assign(this.get(id), data);
+	console.log('registry add data:', this.get(id));
+      } else {
+	this.set(id, data);
+      }
     } else {
-      this.set(id, data);
+      console.warn('registry add invalid id:', id, ' data:', data);
     }
   },
   getWhole: function(id) {

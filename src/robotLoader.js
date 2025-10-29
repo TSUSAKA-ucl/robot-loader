@@ -108,7 +108,8 @@ async function urdfLoader2(planeEl,
   // console.log("base link:", revolutes[0].parent.$.link);
   // const meshes = linkMap[revolutes[0].parent.$.link].visual.forEach(visual => 
   //   visual.geometry.mesh?.$.filename);
-  linkMap[revolutes[0].parent.$.link].visual.forEach(visual => {
+  // linkMap[revolutes[0].parent.$.link].visual.forEach(visual => {
+  for (const visual of linkMap[revolutes[0].parent.$.link].visual) {
     const origin = visual.origin;
     const filename = visual.geometry.mesh?.$.filename;
     console.log('Base visual geometry.mesh.$.filename:', filename,
@@ -118,8 +119,21 @@ async function urdfLoader2(planeEl,
     base.appendChild(el);
     setUrdfOrigin(el, origin);
     // console.log('Setting gltf-model to:', gltfDirPath + filename);
-    el.setAttribute('gltf-model', gltfDirPath + filename);
-  });
+    await new Promise((resolve)=>{
+      const cleanup = (success) => {
+	el.removeEventListener('model-loaded', onLoaded);
+	el.removeEventListener('model-error', onError);
+	console.log('LLLL loader success:', success,
+		    ' cleanup listeners for:', filename);
+      };
+      const onLoaded = () => { cleanup(true); resolve(true); };
+      const onError = () => { cleanup(false); resolve(false); };
+      el.addEventListener('model-loaded', onLoaded);
+      el.addEventListener('model-error', onError);
+      el.setAttribute('gltf-model', gltfDirPath + filename);
+      resolve(true);
+    });
+  }
   // base.object3D.position.set(0, 0.25, 0);
   // base.object3D.quaternion.set(-0.5, 0.5, 0.5, 0.5); // world to three.js
   base.object3D.position.set(0, 0, 0);
@@ -128,7 +142,8 @@ async function urdfLoader2(planeEl,
   let parentEl = base;
   // FINISH base link creation
 
-  revolutes.forEach(joint => {
+  // revolutes.forEach(joint => {
+  for (const joint of revolutes) {
     // *** joint origin
     const jEl = document.createElement('a-entity');
     jEl.setAttribute('class', 'link');
@@ -157,7 +172,8 @@ async function urdfLoader2(planeEl,
       console.log('Joint visual geometry.mesh.$.filename:',
 		  visual.geometry.mesh?.$.filename);
     });
-    linkMap[joint.child.$.link].visual.map(visual => {
+    // linkMap[joint.child.$.link].visual.map(visual => {
+    for (const visual of linkMap[joint.child.$.link].visual) {
       const origin = visual.origin;
       const filename = visual.geometry.mesh?.$.filename;
       // visual.geometry.mesh?.$.filename).filter(filename => filename);
@@ -166,10 +182,24 @@ async function urdfLoader2(planeEl,
       el.setAttribute('class', 'visual');
       axisEl.appendChild(el);
       setUrdfOrigin(el, origin);
-      el.setAttribute('gltf-model', gltfDirPath + filename);
-    });
-  });
-  console.log('Final: base link:', base, 'end link:', parentEl);
+      await new Promise((resolve)=>{
+	const cleanup = (success) => {
+	  el.removeEventListener('model-loaded', onLoaded);
+	  el.removeEventListener('model-error', onError);
+	  console.log('MMMM loader success:', success,
+		      ' cleanup listeners for:', filename);
+	};
+	const onLoaded = () => { cleanup(true); resolve(true); };
+	const onError = () => { cleanup(false); resolve(false); };
+	el.addEventListener('model-loaded', resolve, { once: true });
+	el.addEventListener('model-error', onError);
+	el.setAttribute('gltf-model', gltfDirPath + filename);
+	resolve(true);
+      });
+    }
+  }
+  console.log('######## Final: id:',planeEl.id,
+	      'base link:', base, 'end link:', parentEl);
 
   const id = planeEl.id;
   const endLinkEl = parentEl;
@@ -184,9 +214,8 @@ async function urdfLoader2(planeEl,
 			  {el: planeEl, axes: axes, endLink: endLinkEl});
     planeEl.axes = axes;
     planeEl.endLink = endLinkEl;
-    console.warn('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
-    // console.warn('el tag is:', planeEl.dataset.instanceTag);
-    console.log('Robot ', id, ' registered with axes:', axes,
+    // console.warn('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
+    console.log('######## ', id, ' registered with axes:', axes,
 		'endLink:', endLinkEl);
     planeEl.emit('robot-registered', {id, axes, endLinkEl});
   };

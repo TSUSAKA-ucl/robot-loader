@@ -3,29 +3,34 @@
 // instead of the THREE.js one.
 import AFRAME from 'aframe';
 
-// AFRAME.registerComponent('set-joints-directly-in-degree', {
-AFRAME.registerComponent('set-joints-directly-in-degree', {
-  schema: { type: 'array'},
-  init: function() {
-    const robotId = this.el.id;
-    // const jointValues = this.data.map((j)=>parseFloat(j)/180.0*Math.PI);
-    const jointValues = this.data.map((j)=>parseFloat(j));
-    this.el.addEventListener('robot-dom-ready', () => {
-      const robotRegistry = this.el.sceneEl?.robotRegistryComp;
-      if (robotRegistry) {
-	const axesList = robotRegistry.get(robotId)?.axes;
-	if (axesList) {
-	  axesList.map((axisEl, idx)=> {
-            const axis = axisEl.axis;
-            axisEl.object3D.setRotationFromAxisAngle(axis,
-						     jointValues[idx]);
-	  });
-	  return; // SUCCEED
+setJointDirectlyComponent({name: 'set-joints-directly-in-degree',
+			   unit:  Math.PI/180});
+setJointDirectlyComponent({name: 'set-joints-directly',
+			   unit:  1.0});
+
+function setJointDirectlyComponent({name, unit}) {
+  AFRAME.registerComponent(name, {
+    schema: { type: 'array'},
+    init: function() {
+      const robotId = this.el.id;
+      const jointValues = this.data.map((j)=>parseFloat(j)*unit);
+      this.el.addEventListener('robot-registered', () => {
+	const robotRegistry = this.el.sceneEl?.robotRegistryComp;
+	if (robotRegistry) {
+	  const axesList = robotRegistry.get(robotId)?.axes;
+	  if (axesList) {
+	    axesList.map((axisEl, idx)=> {
+              const axis = axisEl.axis;
+              axisEl.object3D.setRotationFromAxisAngle(axis,
+						       jointValues[idx]);
+	    });
+	    return; // SUCCEED
+	  }
 	}
-      }
-    }, {once: true});
-  }		       
-});
+      }, {once: true});
+    }
+  });
+}
 
 AFRAME.registerComponent('reflect-worker-joints', {
   init: function () {
