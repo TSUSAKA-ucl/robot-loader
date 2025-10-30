@@ -16,7 +16,33 @@ function workerPose(el) {
   return null;
 }
 
+// this component is indended to be attached to an robot-plane
 AFRAME.registerComponent('arm-motion-ui', {
+  setStartPoseAndRatio: function (objectPose) {
+    // Before enter this function, this.worldToBase must ALREADY be
+    // calculated and this.vrControllerEl must be set. In this
+    // function, this.objStartingPose, this.vrCtrlStartingPoseInv and
+    // this.ratio are set.
+    this.objStartingPose = objectPose;
+    this.vrCtrlStartingPose = [this.vrControllerEl.object3D.position,
+			       this.vrControllerEl.object3D.quaternion];
+    const vrCtrlPosition = this.vrCtrlStartingPose[0]
+    this.vrCtrlStartingPoseInv
+      = isoMultiply(isoInvert(this.vrCtrlStartingPose),
+		    this.worldToBase);
+    const activeCamera = this.el.sceneEl?.camera;
+    const cameraPosition = new THREE.Vector3();
+    activeCamera.getWorldPosition(cameraPosition);
+    const distance1 = cameraPosition.distanceTo(objectPose[0]);
+    const distance2 = cameraPosition.distanceTo(vrCtrlPosition)
+    this.ratio = distance1/distance2;
+    this.resetTimeDelta = 0;
+    // console.warn('MMMMM ctrlStartInv:',this.vrCtrlStartingPoseInv[0]
+    // 		 // , this.vrCtrlStartingPoseInv[1]
+    // 		 ,' objStart:',this.objStartingPose[0]
+    // 		 // ,this.objStartingPose[1]
+    // 		);
+  },
   init: function () {
     const myColor = this.el.getAttribute('material').color;
     const frameMarker = document.createElement('a-entity');
@@ -51,20 +77,13 @@ AFRAME.registerComponent('arm-motion-ui', {
       if (!this.vrControllerEl.laserVisible) {
 	if (this?.returnTimerId) clearTimeout(this.returnTimerId);
 	this.triggerdownState = true;
-	const activeCamera = this.el.sceneEl?.camera;
-	const cameraPosition = new THREE.Vector3();
-	activeCamera.getWorldPosition(cameraPosition);
-	const iso3 = workerPose(this.el);
-	if (iso3 && ctrlEl) {
-	  this.objStartingPose = iso3;
-	  const vrCtrlPosition = ctrlEl.object3D.position;
-	  this.vrCtrlStartingPoseInv
-	    = isoMultiply(isoInvert([vrCtrlPosition,
-				     ctrlEl.object3D.quaternion]),
-			  this.worldToBase);
-	  const distance1 = cameraPosition.distanceTo(iso3[0]);
-	  const distance2 = cameraPosition.distanceTo(vrCtrlPosition)
-	  this.ratio = distance1/distance2;
+ 	const iso3 = workerPose(this.el);
+	if (iso3) {
+	  this.frameMarker.object3D.position.copy(iso3[0]);
+	  this.frameMarker.object3D.quaternion.copy(iso3[1]);
+	  if (ctrlEl) {
+	    this.setStartPoseAndRatio(iso3);
+	  }
 	}
       }
     });
@@ -87,7 +106,8 @@ AFRAME.registerComponent('arm-motion-ui', {
   },
 
   // ********
-  tick: function () {
+  tick: function (time, timeDelta) {
+    this.resetTimeDelta += timeDelta;
     if (!this.el?.shouldListenEvents) {
       this.triggerdownState = false;
       return;
@@ -115,6 +135,7 @@ AFRAME.registerComponent('arm-motion-ui', {
                                                    isoMultiply(ObjToVrCtrl,
                                                                vrControllerDelta)),
                                        vrCtrlToObj);
+	newObjPose[1].normalize();
 	this.frameMarker.object3D.position.copy(newObjPose[0]);
 	this.frameMarker.object3D.quaternion.copy(newObjPose[1]);
 	const m4 = new THREE.Matrix4();
@@ -122,6 +143,9 @@ AFRAME.registerComponent('arm-motion-ui', {
 	this.el.workerRef?.current?.postMessage({	type: 'destination',
 							endLinkPose: m4.elements
 						});
+	if (this.resetTimeDelta > 100.0) {
+	  this.setStartPoseAndRatio(newObjPose)
+	}
       }
     }
   }
