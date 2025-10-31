@@ -34,7 +34,7 @@ AFRAME.registerComponent('a-axes-frame', {
   },
   init: function () {
     if (this.el.parentNode.getAttribute('thumbmenu-event-handler')) {
-      console.warn('**** parent has thumbmenu-event-handler ');
+      console.log("** a-axes-frame: parent has 'thumbmenu-event-handler', attach myself to parent's 'frameObject'");
       this.el.parentNode.frameObject = this.el;
     }
     this.el.setAttribute('geometry', {

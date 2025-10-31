@@ -6,7 +6,7 @@ AFRAME.registerComponent('robot-loader', {
     model: {type: 'string', default: 'jaka_zu_5'},
   },
   init: function() {
-    console.warn('## CHECK robot-loader ver.1.0.4-A');
+    console.log('### START robot-loader for:',this.data.model);
     this.el.model = null;
     const onLoaded = async () => {
       if (await urdfLoader2(this.el, this.data.model)) {
@@ -103,7 +103,7 @@ async function urdfLoader2(planeEl,
   const revolutes = urdf.filter(obj => obj.$.type === 'revolute');
   // console.log('1: type of base:', typeof base, base);
   base = document.createElement('a-entity');
-  console.log('2: type of base:', typeof base, base);
+  // console.log('2: type of base:', typeof base, base);
   base.setAttribute('class', 'link');
   // console.log("base link:", revolutes[0].parent.$.link);
   // const meshes = linkMap[revolutes[0].parent.$.link].visual.forEach(visual => 
@@ -205,7 +205,7 @@ async function urdfLoader2(planeEl,
   const endLinkEl = parentEl;
   const axes = axesList;
   const registerRobotFunc = () => { // 
-    // console.warn('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',endLinkEl);
+    console.log('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',endLinkEl);
     const robotRegistryComp = planeEl.sceneEl.robotRegistryComp;
     if (robotRegistryComp.get(id)) {
       console.warn('robot:',id,'already registered');
@@ -225,7 +225,7 @@ async function urdfLoader2(planeEl,
     planeEl.addEventListener('robot-dom-ready', registerRobotFunc,
 			     {once: true});
   }
-  consoleChildLink(base);
+  // consoleChildLink(base);
   return true;
 }
 

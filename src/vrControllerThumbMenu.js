@@ -36,7 +36,7 @@ AFRAME.registerComponent('thumbstick-menu', {
     // this.frame = buildUpFrameAxes(this.el);
     this.el.laserVisible = true;
     this.el.addEventListener('loaded', () => {
-      flipRayOnOff(this.el);
+      flipRayOnOff(this.el, 1);
       // If the frameObject(a-axes-frame) is attached to this.el
       // wait for it to appear, then turn off laser
     });
@@ -45,14 +45,18 @@ AFRAME.registerComponent('thumbstick-menu', {
     this.menuRoot = new AFRAME.THREE.Group();
     // this.menuRoot.object3D.position('0, -0.02, -0.04');
     this.el.object3D.add(this.menuRoot);
-
-    Object.freeze(this.menuTexts);
+    // Object.freeze(this.menuTexts);
     const angleStepHalf = Math.PI/numOfItems;
     const angleStep = 2*angleStepHalf;
+
+    this.menuCircles = [];
+    this.menuLabels = [];
     for (let i = 0; i < numOfItems; i++) {
       const angle = i * angleStep;
       const circle = document.createElement('a-circle');
       const label = document.createElement('a-text');
+      this.menuCircles.push(circle);
+      this.menuLabels.push(label);
       label.setAttribute('value', this.menuDisplayTexts[i]);
       label.setAttribute('align', 'center');
       label.setAttribute('color', 'black');
@@ -73,7 +77,6 @@ AFRAME.registerComponent('thumbstick-menu', {
       this.menuEls.push(circle);
       this.menuRoot.add(circle.object3D);
     }
-
     const menuSelector = (evt) => {
       if (!this.menuVisible) return;
       // console.log('evt.detail: ', evt.detail);
@@ -116,11 +119,13 @@ AFRAME.registerComponent('thumbstick-menu', {
         // dispatch custom event with chosen index
         // console.log('emit menu number :', this.currentIndex);
         this.el.emit('thumbmenu-select', { index: this.currentIndex,
+					   texts: this.menuTexts,
 					   colors: this.menuColors,
-					   texts: this.menuTexts
+					   label: this.menuLabels[this.currentIndex],
 					 });
       }
       this.currentIndex = -1;
+      // console.log('### thumbstick UP menuColors reset:', this.menuColors);
       this.menuEls.forEach((el,i)=>{el.setAttribute('color',
 						    this.menuColors[i]);});
     });
@@ -139,22 +144,42 @@ AFRAME.registerComponent('thumbstick-menu', {
 AFRAME.registerComponent('thumbmenu-event-handler', {
   init: function() {
     this.el.addEventListener('thumbmenu-select', (evt) => {
-      console.log('### menu select event: ', evt.detail.index);
-      switch (evt.detail.texts[evt.detail.index]) {
-      case 'ray': { 
-	flipRayOnOff(this.el);
-	evt.detail.colors[evt.detail.index] = this.el.laserVisible ?
-	  'orange' : 'lightSkyBlue';
-      }	break;
+      // console.log('### menu select event:', evt.detail.index);
+      // console.log('### menu index:', evt.detail.index);
+      // console.log('### menu texts:', evt.detail.texts);
+      console.log('### menu text[i]:', evt.detail.texts[evt.detail.index]);
+      // console.log('### this.el.laserCylinder:', this.el.laserCylinder);
+      if (evt.detail.texts[evt.detail.index] === 'ray' ||
+	  evt.detail.texts[evt.detail.index] === 'motion') {
+	if (this.el?.laserVisible) {
+	  evt.detail.label.setAttribute('value', 'ray');
+	  evt.detail.colors[evt.detail.index] = 'orange';
+	  flipRayOnOff(this.el, false);
+	} else {
+	  evt.detail.label.setAttribute('value', 'motion');
+	  evt.detail.colors[evt.detail.index] = 'blue';
+	  flipRayOnOff(this.el, true);
+	}
       }
     });
   }
 });
 
-function flipRayOnOff(thisEl) {
-  console.warn('### flip ray on/off. prev. laserVisible :', thisEl.laserVisible);
+function flipRayOnOff(thisEl, tf) {
+  console.log('### flip ray on/off. prev. laserVisible :', thisEl.laserVisible,
+	     ' arg tf:', tf);
   if (! ('laserVisible' in thisEl)) return;
-  thisEl.laserVisible = !thisEl.laserVisible;
+  switch (tf) {
+  case false:
+    thisEl.laserVisible = false;
+    break;
+  case true:
+    thisEl.laserVisible = true;
+    break;
+  default:
+    thisEl.laserVisible = !thisEl.laserVisible;
+    break;
+  }
   thisEl.setAttribute('line', 'visible', thisEl.laserVisible);
   thisEl.setAttribute('raycaster', 'enabled', thisEl.laserVisible);
   if (thisEl?.laserCylinder) {
@@ -174,8 +199,8 @@ function flipRayOnOff(thisEl) {
   }
   if (thisEl?.frameObject) {
     thisEl.frameObject.object3D.visible = ! thisEl.laserVisible;
-    console.log('#### changeVisibility of frameObject :',
-		thisEl.frameObject.object3D.visible);
+    // console.log('#### changeVisibility of frameObject :',
+    // 		thisEl.frameObject.object3D.visible);
   } else {
     console.warn('#### frameObject exists?', thisEl?.frameObject);
   }

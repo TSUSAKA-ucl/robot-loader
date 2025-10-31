@@ -71,7 +71,7 @@ AFRAME.registerComponent('reflect-worker-joints', {
 	setTimeout(checkWorkerJoints, 500);
       };
       checkWorkerJoints();
-      console.warn('workerDataJointsReady:', this.workerDataJointsReady);
+      // console.warn('workerDataJointsReady:', this.workerDataJointsReady);
     }, {once: true});
   },
 
