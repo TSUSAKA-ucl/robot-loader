@@ -36,7 +36,7 @@ AFRAME.registerComponent('thumbstick-menu', {
     // this.frame = buildUpFrameAxes(this.el);
     this.el.laserVisible = true;
     this.el.addEventListener('loaded', () => {
-      flipRayOnOff(this.el, 1);
+      flipRayOnOff(this.el, true);
       // If the frameObject(a-axes-frame) is attached to this.el
       // wait for it to appear, then turn off laser
     });

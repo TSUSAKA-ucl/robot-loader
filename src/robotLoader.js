@@ -78,7 +78,12 @@ async function urdfLoader2(planeEl,
   let linkMap = null;
   let modifiers = null;
   try {
-    urdf = await response1.json();
+    const urdfRaw = await response1.json();
+    if (Array.isArray(urdfRaw)) {
+      urdf = {...urdfRaw};
+    } else {
+      urdf = urdfRaw;
+    }
   } catch (error) {
     console.error('Error parsing urdf file:', error);
     return null; // DO NOTHING
@@ -100,7 +105,7 @@ async function urdfLoader2(planeEl,
     }
   }
   //
-  const revolutes = urdf.filter(obj => obj.$.type === 'revolute');
+  const revolutes = Object.values(urdf).filter(obj => obj.$.type === 'revolute');
   // console.log('1: type of base:', typeof base, base);
   base = document.createElement('a-entity');
   // console.log('2: type of base:', typeof base, base);
