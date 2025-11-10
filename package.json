@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -11,9 +11,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@ucl-nuee/ik-cd-worker": "https://github.com/TSUSAKA-ucl/ik-cd-worker/releases/download/ver.0.2.4/ucl-nuee-ik-cd-worker-0.2.4.tgz",
-    "@ucl-nuee/jaka-zu5": "https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-jaka-zu5-1.0.0.tgz",
-    "@ucl-nuee/nova2": "https://github.com/TSUSAKA-ucl/robot-assets/releases/download/ver.0.0.1/ucl-nuee-nova2-1.0.0.tgz",
+    "@ucl-nuee/ik-cd-worker": "file:../ik-cd-worker",
+    "@ucl-nuee/jaka-zu5": "file:../robot-assets/jaka-zu5",
+    "@ucl-nuee/nova2": "file:../robot-assets/nova2",
     "aframe": "^1.7.1",
     "eslint-plugin-react": "^7.37.5",
     "madge": "^8.0.0",

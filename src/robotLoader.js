@@ -75,12 +75,14 @@ async function urdfLoader2(planeEl,
     console.warn('cannot find URDF modifier:', modifierPath);
   }
   let urdf = null;
+  let urdfIsSorted = false;
   let linkMap = null;
   let modifiers = null;
   try {
     const urdfRaw = await response1.json();
     if (Array.isArray(urdfRaw)) {
       urdf = {...urdfRaw};
+      urdfIsSorted = true;
     } else {
       urdf = urdfRaw;
     }
@@ -105,7 +107,12 @@ async function urdfLoader2(planeEl,
     }
   }
   //
-  const revolutes = Object.values(urdf).filter(obj => obj.$.type === 'revolute');
+  console.log('updated urdf:',urdf);
+  let urdfArray = Object.values(urdf);
+  if (!urdfIsSorted) {
+    urdfArray = sortJointsByHierarchy(urdfArray);
+  }
+  const revolutes = urdfArray.filter(obj => obj.$.type === 'revolute');
   // console.log('1: type of base:', typeof base, base);
   base = document.createElement('a-entity');
   // console.log('2: type of base:', typeof base, base);
@@ -283,4 +290,40 @@ function consoleChildLink(el) {
       console.log('No child link found in:', el);
     }
   }
+}
+
+function sortJointsByHierarchy(urdfData) {
+  const graph = new Map(); // parent -> list of joints
+  const inDegree = new Map(); // child link name -> number of parents
+  const linkToJoint = new Map(); // child link -> joint object (for ordered result)
+  urdfData.forEach(joint => {
+    const parent = joint.parent.$.link;
+    const child = joint.child.$.link;
+    if (!graph.has(parent)) { graph.set(parent, []); }
+    graph.get(parent).push(joint);
+    inDegree.set(child, (inDegree.get(child) || 0) + 1);
+    if (!inDegree.has(parent)) { inDegree.set(parent, 0); }
+    linkToJoint.set(child, joint);
+  });
+  const queue = [];
+  for (const [link, degree] of inDegree.entries()) {
+    if (degree === 0) { queue.push(link); }
+  }
+  const orderedJoints = [];
+  while (queue.length > 0) {
+    const parentLink = queue.shift();
+    const children = graph.get(parentLink) || [];
+    for (const joint of children) {
+      const childLink = joint.child.$.link;
+      orderedJoints.push(joint);
+      inDegree.set(childLink, inDegree.get(childLink) - 1);
+      if (inDegree.get(childLink) === 0) {
+	queue.push(childLink);
+      }
+    }
+  }
+  if (orderedJoints.length !== urdfData.length) {
+    console.warn('Cycle detected or disconnected components in URDF joints');
+  }
+  return orderedJoints;
 }
