@@ -121,7 +121,15 @@ async function urdfLoader2(planeEl,
   // const meshes = linkMap[revolutes[0].parent.$.link].visual.forEach(visual => 
   //   visual.geometry.mesh?.$.filename);
   // linkMap[revolutes[0].parent.$.link].visual.forEach(visual => {
-  for (const visual of linkMap[revolutes[0].parent.$.link].visual) {
+  let visuals = linkMap[revolutes[0].parent.$.link].visual;
+  if (visuals) {
+    if (!Array.isArray(visuals)) {
+      visuals = [visuals];
+    }
+  } else {
+    visuals = [];
+  }
+  for (const visual of visuals) {
     const origin = visual.origin;
     const filename = visual.geometry.mesh?.$.filename;
     console.log('Base visual geometry.mesh.$.filename:', filename,
@@ -180,12 +188,20 @@ async function urdfLoader2(planeEl,
     // *** visuals
     // console.log("Processing joint:", joint.$.name,
     // 		"child link:", joint.child.$.link);
-    linkMap[joint.child.$.link].visual.forEach(visual => {
+    let visuals = linkMap[joint.child.$.link].visual;
+    if (visuals) {
+      if (!Array.isArray(visuals)) {
+	visuals = [visuals];
+      }
+    } else {
+      visuals = [];
+    }
+    visuals.forEach(visual => {
       console.log('Joint visual geometry.mesh.$.filename:',
 		  visual.geometry.mesh?.$.filename);
     });
     // linkMap[joint.child.$.link].visual.map(visual => {
-    for (const visual of linkMap[joint.child.$.link].visual) {
+    for (const visual of visuals) {
       const origin = visual.origin;
       const filename = visual.geometry.mesh?.$.filename;
       // visual.geometry.mesh?.$.filename).filter(filename => filename);
