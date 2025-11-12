@@ -97,7 +97,7 @@ AFRAME.registerComponent('event-distributor', {
 	  const listenerEl = this.el?.listenersList[id];
 	  if (listenerEl) {
 	    detail.originalTarget = evt.target;
-	    listenerEl.emit(evt.type, detail, false);
+	    listenerEl.emit(evt.type, detail, true);
 	  }
 	});
       };

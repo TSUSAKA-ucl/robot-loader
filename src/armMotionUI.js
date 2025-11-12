@@ -65,8 +65,12 @@ AFRAME.registerComponent('arm-motion-ui', {
     this.vrCtrlStartingPoseInv = [new THREE.Vector3(0,0,0),
 				  new THREE.Quaternion(0,0,0,1)];
     this.ratio = 1;
-    this.worldToBase = [this.el.object3D.position,
-			this.el.object3D.quaternion];
+    this.obj = this.el.object3D;
+    this.obj.updateMatrixWorld(true);
+    const m = this.obj.matrixWorld;
+    const pos = new THREE.Vector3().setFromMatrixPosition(m);
+    const quat = new THREE.Quaternion().setFromRotationMatrix(m);
+    this.worldToBase = [ pos, quat ];
     this.baseToWorld = isoInvert(this.worldToBase);
 
     this.el.addEventListener('triggerdown', (evt) => {
@@ -82,6 +86,12 @@ AFRAME.registerComponent('arm-motion-ui', {
 	  this.frameMarker.object3D.position.copy(iso3[0]);
 	  this.frameMarker.object3D.quaternion.copy(iso3[1]);
 	  if (ctrlEl) {
+	    this.obj.updateMatrixWorld(true);
+	    const m = this.obj.matrixWorld;
+	    const pos = new THREE.Vector3().setFromMatrixPosition(m);
+	    const quat = new THREE.Quaternion().setFromRotationMatrix(m);
+	    this.worldToBase = [ pos, quat ];
+	    this.baseToWorld = isoInvert(this.worldToBase);
 	    this.setStartPoseAndRatio(iso3);
 	  }
 	}
@@ -144,6 +154,11 @@ AFRAME.registerComponent('arm-motion-ui', {
 							endLinkPose: m4.elements
 						});
 	if (this.resetTimeDelta > 100.0) {
+	  const m = this.obj.matrixWorld;
+	  const pos = new THREE.Vector3().setFromMatrixPosition(m);
+	  const quat = new THREE.Quaternion().setFromRotationMatrix(m);
+	  this.worldToBase = [ pos, quat ];
+	  this.baseToWorld = isoInvert(this.worldToBase);
 	  this.setStartPoseAndRatio(newObjPose)
 	}
       }

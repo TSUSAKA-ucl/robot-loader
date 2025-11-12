@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -35,6 +35,7 @@
   },
   "exports": {
     "./armMotionUI.js": "src/armMotionUI.js",
+    "./baseMover.js": "src/baseMover.js",
     "./axesFrame.js": "src/axesFrame.js",
     "./ikWorker.js": "src/ikWorker.js",
     "./reflectWorkerJoints.js": "src/reflectWorkerJoints.js",
