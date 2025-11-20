@@ -11,7 +11,8 @@ AFRAME.registerComponent('robot-loader', {
     const onLoaded = async () => {
       if (await urdfLoader2(this.el, this.data.model)) {
 	this.el.model = this.data.model;
-	this.el.emit('robot-dom-ready');
+	// robot-loaderは入れ子になっているケースがあるのでbubblingすると不具合を起こす
+	this.el.emit('robot-dom-ready', {}, false);
       } else {
 	console.error('urdfLoader causes error.',
 		      'next event is not emitted.');
@@ -245,7 +246,7 @@ async function urdfLoader2(planeEl,
     // console.warn('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
     console.log('######## ', id, ' registered with axes:', axes,
 		'endLink:', endLinkEl);
-    planeEl.emit('robot-registered', {id, axes, endLinkEl});
+    planeEl.emit('robot-registered', {id, axes, endLinkEl}, false);
   };
   if (planeEl.model) {
     registerRobotFunc();
