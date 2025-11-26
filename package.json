@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.9",
+  "version": "1.0.11",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -31,9 +31,11 @@
     "vite-plugin-static-copy": "^3.1.2"
   },
   "exports": {
+    "./addFrameToJoints.js": "src/addFrameToJoints.js",
     "./armMotionUI.js": "src/armMotionUI.js",
-    "./baseMover.js": "src/baseMover.js",
+    "./attachToAnother.js": "src/attachToAnother.js",
     "./axesFrame.js": "src/axesFrame.js",
+    "./baseMover.js": "src/baseMover.js",
     "./ikWorker.js": "src/ikWorker.js",
     "./reflectWorkerJoints.js": "src/reflectWorkerJoints.js",
     "./robotLoader.js": "src/robotLoader.js",
