@@ -5,6 +5,7 @@ AFRAME.registerComponent('thumbstick-menu', {
   schema: { radius: {default: 0.2},
 	    items: {default: 'P,Q,R,S,T,U,V,W'},
 	    cylinderHeight: { default: 0.25},
+	    laser: {type: 'boolean', default: true},
 	  },
   init: function () {
     this.el.thumbstick = [0,0];
@@ -36,7 +37,7 @@ AFRAME.registerComponent('thumbstick-menu', {
     // this.frame = buildUpFrameAxes(this.el);
     this.el.laserVisible = true;
     this.el.addEventListener('loaded', () => {
-      flipRayOnOff(this.el, true);
+      flipRayOnOff(this.el, this.data.laser);
       // If the frameObject(a-axes-frame) is attached to this.el
       // wait for it to appear, then turn off laser
     });

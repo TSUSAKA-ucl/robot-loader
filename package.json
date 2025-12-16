@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.11",
+  "version": "1.0.13",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -43,7 +43,7 @@
     "./vrControllerThumbMenu.js": "src/vrControllerThumbMenu.js"
   },
   "keywords": [],
-  "author": "",
+  "author": "Yuji Tsusaka",
   "license": "ISC",
-  "packageManager": "pnpm@10.11.1"
+  "packageManager": "pnpm@10.15.1"
 }

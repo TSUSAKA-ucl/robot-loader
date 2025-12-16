@@ -3,7 +3,10 @@ import AFRAME from 'aframe';
 import IkWorkerManager from '@ucl-nuee/ik-cd-worker';
 
 AFRAME.registerComponent('ik-worker', {
-  schema: { type: 'array'}, // intial joint value
+  schema: {
+    type: 'array', // intial joint values in radian
+    topicBridgePort: { type: 'number', default: 0 },
+  },
   init: function() {
     this.el.addEventListener('robot-dom-ready', () => {
       // ****************
@@ -16,15 +19,15 @@ AFRAME.registerComponent('ik-worker', {
       const initialJoints = this.data.map(parseFloat);
       // *** controller offset subscribe
       const bridgeProtocol = location.protocol==='https:' ? 'wss:':'ws:';
-      const bridgePort = 9090;
+      const bridgePort = this.data.topicBridgePort;
       const topicBridgeWebSocketURL =
-	    // `${bridgeProtocol}//${location.hostname}:${bridgePort}`;
-	    null;
-      this.remove = IkWorkerManager({robotName: this.el.model,
-                                     initialJoints,
-		                     workerRef,
-		                     workerData,
-				     topicBridgeWebSocketURL});
+	    bridgePort!==0 ? null :
+	    `${bridgeProtocol}//${location.hostname}:${bridgePort}`;
+      this.removeWorker = IkWorkerManager({robotName: this.el.model,
+					   initialJoints,
+					   workerRef,
+					   workerData,
+					   topicBridgeWebSocketURL});
       // This robot may be or may NOT be REGISTERED in 'robot-registry'
       // before the emission of 'robot-dom-ready' by urdfLoader2
       // Here, use the add function to register it in the registry.
@@ -48,6 +51,6 @@ AFRAME.registerComponent('ik-worker', {
     }, {once: true});
   },
   remove:function() {
-    if (this?.remove) this.remove();
+    if (this?.removeWorker) this.removeWorker();
   }
 });

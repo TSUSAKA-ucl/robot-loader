@@ -73,6 +73,13 @@ AFRAME.registerComponent('reflect-worker-joints', {
       checkWorkerJoints();
       // console.warn('workerDataJointsReady:', this.workerDataJointsReady);
     }, {once: true});
+    if (!(this.el.resetTargets && Array.isArray(this.el.resetTargets))) {
+      this.el.resetTargets = [];
+    }
+    this.el.resetTargets.push({
+      name: 'reflect-worker-joints',
+      defaultValue: {enabled: true}
+    });
   },
 
   // **** tick ****

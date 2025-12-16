@@ -19,6 +19,16 @@ AFRAME.registerComponent('base-mover', {
       this.vrControllerEl = evt.detail?.originalTarget;
       console.log('base-mover gripup', this.vrControllerEl);
     });
+    if (!(this.el.resetTargets && Array.isArray(this.el.resetTargets))) {
+      this.el.resetTargets = [];
+    }
+    this.el.resetTargets.push({
+      name: 'base-mover',
+      defaultValue: {
+	velocityMax: this.data.velocityMax,
+	angularVelocityMax: this.data.angularVelocityMax
+      }
+    });
   },
   tick: function (time, timeDelta) {
     if (!this.canMove) return;

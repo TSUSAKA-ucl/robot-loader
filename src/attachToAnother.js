@@ -3,6 +3,7 @@ import AFRAME from 'aframe'
 AFRAME.registerComponent('attach-to-another', {
   schema: {
     to: {type: 'string'},
+    axis: {type: 'number', default: Number.MAX_SAFE_INTEGER},
   },
   init: function() {
     const onSceneLoaded = () => {
@@ -14,17 +15,45 @@ AFRAME.registerComponent('attach-to-another', {
 	  console.warn(`Robot ${robot.id} has no endLink to attach to.`);
 	  return;
 	}
+	if (robot?.axes == null || !Array.isArray(robot.axes)) {
+	  console.warn(`Robot ${robot.id} has no axes array to attach to.`);
+	  return;
+	}
 	// console.warn('QQQQQ endLink.hasLoaded?',endLink.hasLoaded);
+	console.log('QQQQQ Attaching this.data.axis:',this.data.axis,
+		    'to robot:',robot.id,
+		    'with axes:',robot.axes.length,
+		    'endLink:',endLink.id);
 	try {
-	  endLink.appendChild(this.el);
-	  console.log(`QQQQQ Attached ${this.el.id} to ${robot.id}'s endLink:`,endLink);
+	  const targetAxisNum = this.data.axis-1;
+	  let targetLink;
+	  if (targetAxisNum < 0 || robot.axes.length <= targetAxisNum) {
+	    targetLink = endLink;
+	  } else {
+	    targetLink = robot.axes[targetAxisNum];
+	  }
+	  targetLink.appendChild(this.el);
+	  console.log(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
+		      this.data.axis>=robot.axes.length
+		      ? `endLink :${endLink.id}`
+		      : `axis ${this.data.axis}`);
 	  this.el.removeAttribute('position');
 	  this.el.removeAttribute('rotation');
 	  this.el.removeAttribute('scale');
 	  this.el.object3D.position.set(0, 0, 0);
 	  this.el.object3D.quaternion.set(0, 0, 0, 1);
+	  if (this.el.resetTargets && Array.isArray(this.el.resetTargets)) {
+	    this.el.resetTargets.forEach( (target) => {
+	      this.el.removeAttribute(target.name);
+	      this.el.setAttribute(target.name, target.defaultValue);
+	    });
+	  }
+	  // if (this.el.getAttribute('reflect-worker-joints')!==null) {
+	  //   this.el.removeAttribute('reflect-worker-joints');
+	  //   this.el.setAttribute('reflect-worker-joints', {enabled: true});
+	  // }
 	  robot.emit('attached', {child: this.el}, false);
-	  this.el.emit('attached', {parent: robot, endLink: endLink}, false);
+	  this.el.emit('attached', {parent: robot, endLink: targetLink}, false);
 	  // forwardABbuttonEvent(robot, this.el);
 	} catch (e) {
 	  console.error('appendChild failed:',e);

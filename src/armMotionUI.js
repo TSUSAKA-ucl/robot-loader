@@ -74,6 +74,7 @@ AFRAME.registerComponent('arm-motion-ui', {
     this.baseToWorld = isoInvert(this.worldToBase);
 
     this.el.addEventListener('triggerdown', (evt) => {
+      evt.stopPropagation();
       console.log('### trigger down event. laserVisible: ',
 		  evt.detail?.originalTarget.laserVisible);
       const ctrlEl = evt.detail?.originalTarget;
@@ -113,6 +114,13 @@ AFRAME.registerComponent('arm-motion-ui', {
     });
     this.pptPrev = new THREE.Vector3();
     this.qqtPrev = new THREE.Quaternion();
+    if (!(this.el.resetTargets && Array.isArray(this.el.resetTargets))) {
+      this.el.resetTargets = [];
+    }
+    this.el.resetTargets.push({
+      name: 'arm-motion-ui',
+      defaultValue: {enabled: true}
+    });
   },
 
   // ********
