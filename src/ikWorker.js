@@ -20,6 +20,7 @@ AFRAME.registerComponent('ik-worker', {
       const topicBridgeWebSocketURL =
 	    // `${bridgeProtocol}//${location.hostname}:${bridgePort}`;
 	    null;
+      console.warn('UUUUUUU call IkWorkerManager with model',this.el.model);
       this.remove = IkWorkerManager({robotName: this.el.model,
                                      initialJoints,
 		                     workerRef,
@@ -48,6 +49,6 @@ AFRAME.registerComponent('ik-worker', {
     }, {once: true});
   },
   remove:function() {
-    if (this?.remove) this.remove();
+    // if (this?.remove) this.remove();
   }
 });

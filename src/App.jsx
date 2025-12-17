@@ -3,7 +3,6 @@ import './App.css';
 import 'aframe';
 import '@ucl-nuee/robot-loader/armMotionUI.js';
 import '@ucl-nuee/robot-loader/axesFrame.js';
-import '@ucl-nuee/robot-loader/ikWorker.js';
 import '@ucl-nuee/robot-loader/reflectWorkerJoints.js';
 import '@ucl-nuee/robot-loader/robotLoader.js';
 import '@ucl-nuee/robot-loader/robotRegistry.js';
@@ -52,7 +51,6 @@ function App() {
                position="0 0.1 -1.25" rotation="-90 0 90"
                width="2" height="2" color="lightcoral"
                material="opacity: 0.15; transparent: true; side: double;"
-               ik-worker={`${deg22}, ${deg30}, ${-deg45}, 0, ${-deg90}, 0`}
                reflect-worker-joints
                arm-motion-ui
       />
@@ -61,7 +59,6 @@ function App() {
 	       width="2" height="2" color="beige"
 	       material="opacity: 0.15; transparent: true; side: double;"
                robot-loader="model: nova2_robot"
-               ik-worker={`${deg90}, ${-deg90}, ${deg90}, 0, ${-deg90}, 0`}
                reflect-worker-joints
                arm-motion-ui
       />

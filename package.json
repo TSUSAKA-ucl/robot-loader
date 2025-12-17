@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "",
   "main": "index.js",
   "type": "module",
@@ -36,7 +36,6 @@
     "./attachToAnother.js": "src/attachToAnother.js",
     "./axesFrame.js": "src/axesFrame.js",
     "./baseMover.js": "src/baseMover.js",
-    "./ikWorker.js": "src/ikWorker.js",
     "./reflectWorkerJoints.js": "src/reflectWorkerJoints.js",
     "./robotLoader.js": "src/robotLoader.js",
     "./robotRegistry.js": "src/robotRegistry.js",
