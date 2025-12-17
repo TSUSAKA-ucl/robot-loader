@@ -42,6 +42,16 @@ AFRAME.registerComponent('attach-to-another', {
 	  this.el.removeAttribute('scale');
 	  this.el.object3D.position.set(0, 0, 0);
 	  this.el.object3D.quaternion.set(0, 0, 0, 1);
+	  if (this.el.resetTargets && Array.isArray(this.el.resetTargets)) {
+	    this.el.resetTargets.forEach( (target) => {
+	      this.el.removeAttribute(target.name);
+	      this.el.setAttribute(target.name, target.defaultValue);
+	    });
+	  }
+	  // if (this.el.getAttribute('reflect-worker-joints')!==null) {
+	  //   this.el.removeAttribute('reflect-worker-joints');
+	  //   this.el.setAttribute('reflect-worker-joints', {enabled: true});
+	  // }
 	  robot.emit('attached', {child: this.el}, false);
 	  this.el.emit('attached', {parent: robot, endLink: targetLink}, false);
 	  // forwardABbuttonEvent(robot, this.el);
