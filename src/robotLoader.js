@@ -241,11 +241,11 @@ async function urdfLoader2(planeEl,
     }
     robotRegistryComp.add(id,
 			  {el: planeEl, axes: axes, endLink: endLinkEl});
-    planeEl.axes = axes;
-    planeEl.endLink = endLinkEl;
     // console.warn('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
     console.log('######## ', id, ' registered with axes:', axes,
 		'endLink:', endLinkEl);
+    planeEl.axes = axes;
+    planeEl.endLink = endLinkEl;
     planeEl.emit('robot-registered', {id, axes, endLinkEl}, false);
   };
   if (planeEl.model) {

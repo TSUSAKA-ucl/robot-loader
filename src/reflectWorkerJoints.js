@@ -2,6 +2,7 @@
 // Please use the AFRAME.THREE to setRotationFromAxisAngle
 // instead of the THREE.js one.
 import AFRAME from 'aframe';
+import { withObjReady } from './withObjReady.js';
 
 setJointDirectlyComponent({name: 'set-joints-directly-in-degree',
 			   unit:  Math.PI/180});
@@ -35,7 +36,7 @@ function setJointDirectlyComponent({name, unit}) {
 AFRAME.registerComponent('reflect-worker-joints', {
   init: function () {
     this.workerDataJointsReady = false;
-    this.el.addEventListener('ik-worker-start', () => {
+    const registerCheckWorkerJoints = () => {
       const robotId = this.el.id;
       let checkCount = 0;
       const checkWorkerJoints = () => {
@@ -72,7 +73,17 @@ AFRAME.registerComponent('reflect-worker-joints', {
       };
       checkWorkerJoints();
       // console.warn('workerDataJointsReady:', this.workerDataJointsReady);
-    }, {once: true});
+    };
+    // if (this.el.workerData?.current?.joints) {
+    //   registerCheckWorkerJoints();
+    // } else {
+    //   this.el.addEventListener('ik-worker-ready', registerCheckWorkerJoints,
+    // 			       {once: true});
+    // }
+    withObjReady(this.el,
+		 `ik-worker-start`,
+		 this.el.workerData?.current?.joints,
+		 registerCheckWorkerJoints);
     if (!(this.el.resetTargets && Array.isArray(this.el.resetTargets))) {
       this.el.resetTargets = [];
     }
