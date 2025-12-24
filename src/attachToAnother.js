@@ -33,6 +33,7 @@ AFRAME.registerComponent('attach-to-another', {
 	    targetLink = robot.axes[targetAxisNum];
 	  }
 	  targetLink.appendChild(this.el);
+	  // this.el.play();
 	  console.log(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
 		      this.data.axis>=robot.axes.length
 		      ? `endLink :${endLink.id}`
@@ -48,13 +49,8 @@ AFRAME.registerComponent('attach-to-another', {
 	      this.el.setAttribute(target.name, target.defaultValue);
 	    });
 	  }
-	  // if (this.el.getAttribute('reflect-worker-joints')!==null) {
-	  //   this.el.removeAttribute('reflect-worker-joints');
-	  //   this.el.setAttribute('reflect-worker-joints', {enabled: true});
-	  // }
 	  robot.emit('attached', {child: this.el}, false);
 	  this.el.emit('attached', {parent: robot, endLink: targetLink}, false);
-	  // forwardABbuttonEvent(robot, this.el);
 	} catch (e) {
 	  console.error('appendChild failed:',e);
 	}
@@ -108,7 +104,7 @@ AFRAME.registerComponent('attach-event-broadcaster', {
   init: function() {
     this.el.addEventListener('attached', (evt) => {
       const child = evt.detail.child;
-      console.warn('###### event broadcaster: attached event received:', evt);
+      console.log('###### event broadcaster: attached event received:', evt);
       forwardABbuttonEvent(this.el, 'a', 'b', child);
       forwardABbuttonEvent(this.el, 'x', 'y', child);
     });
