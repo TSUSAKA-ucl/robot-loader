@@ -1,6 +1,7 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.13",
+  "version": "1.0.14",
+  "repository": "https://github.com/TSUSAKA-ucl/robot-loader.git",
   "description": "",
   "main": "index.js",
   "type": "module",
