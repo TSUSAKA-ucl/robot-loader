@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "repository": "https://github.com/TSUSAKA-ucl/robot-loader.git",
   "description": "",
   "main": "index.js",
@@ -12,6 +12,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@ucl-nuee/ik-cd-worker": "workspace:*",
     "aframe": "^1.7.1",
     "eslint-plugin-react": "^7.37.5",
     "madge": "^8.0.0",
@@ -26,7 +27,7 @@
     "dependency-cruiser": "^17.0.2",
     "eslint": "^9.33.0",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
+    "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^16.3.0",
     "vite": "^7.1.2",
     "vite-plugin-static-copy": "^3.1.2"
@@ -37,10 +38,14 @@
     "./attachToAnother.js": "src/attachToAnother.js",
     "./axesFrame.js": "src/axesFrame.js",
     "./baseMover.js": "src/baseMover.js",
+    "./ikWorker.js": "src/ikWorker.js",
     "./reflectWorkerJoints.js": "src/reflectWorkerJoints.js",
     "./robotLoader.js": "src/robotLoader.js",
     "./robotRegistry.js": "src/robotRegistry.js",
     "./vrControllerThumbMenu.js": "src/vrControllerThumbMenu.js"
+  },
+  "bin": {
+    "copy-assets": "./scripts/copy-assets.mjs"
   },
   "keywords": [],
   "author": "Yuji Tsusaka",
