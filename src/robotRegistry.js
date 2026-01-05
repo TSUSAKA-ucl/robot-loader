@@ -17,7 +17,7 @@ AFRAME.registerComponent('robot-registry', {
       if (this.get(id)) {
 	console.warn('registry add already exist id:', id);
 	Object.assign(this.get(id), data);
-	console.log('registry add data:', this.get(id));
+	console.log('registry add data(type):', typeof this.get(id));
       } else {
 	this.set(id, data);
       }
