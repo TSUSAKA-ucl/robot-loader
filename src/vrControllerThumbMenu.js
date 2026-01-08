@@ -200,9 +200,9 @@ function flipRayOnOff(thisEl, tf) {
   }
   if (thisEl?.frameObject) {
     thisEl.frameObject.object3D.visible = ! thisEl.laserVisible;
-    // console.log('#### changeVisibility of frameObject :',
-    // 		thisEl.frameObject.object3D.visible);
+    console.debug('#### changeVisibility of frameObject :',
+		thisEl.frameObject.object3D.visible);
   } else {
-    console.warn('#### frameObject exists?', thisEl?.frameObject);
+    console.debug("#### vrController's frame doesn't exist yet.");
   }
 }

@@ -17,7 +17,7 @@ AFRAME.registerComponent('robot-registry', {
       if (this.get(id)) {
 	console.warn('registry add already exist id:', id);
 	Object.assign(this.get(id), data);
-	console.log('registry add data(type):', typeof this.get(id));
+	console.debug('registry add data(type):', typeof this.get(id));
       } else {
 	this.set(id, data);
       }
@@ -138,10 +138,12 @@ AFRAME.registerComponent('event-distributor', {
 
 AFRAME.registerComponent('target-selector', {
   schema: {
-    event: { default: 'thumbmenu-select'}
+    event: { default: 'thumbmenu-select'},
+    id: { type: 'string', default: '' },
   },
   init: function () {
-    this.el.addEventListener(this.data.event, (evt) => {
+    const selectFunc = (selectedId) => {
+      console.debug('target-selector: selectFunc selectedId=', selectedId);
       let distributorEl = null;
       if (this.el.getAttribute('event-distributor')) {
 	distributorEl = this.el;
@@ -150,17 +152,42 @@ AFRAME.registerComponent('target-selector', {
       }
       const robotRegistryComp = this.el.sceneEl.hasLoaded &&
 	    this.el.sceneEl.robotRegistryComp;
-      const menuText = evt.detail?.texts[evt.detail?.index];
-      if (distributorEl && robotRegistryComp && menuText) {
+      if (distributorEl && robotRegistryComp && selectedId) {
 	for (const id of robotRegistryComp.list()) {
-	  if (menuText === id) {
+	  if (selectedId === id) {
+	    console.debug('target-selector: select id=', id);
 	    robotRegistryComp.eventDeliveryOneLocation(id, distributorEl);
 	    break;
 	  }
 	}
       }
-    });
-  }
+    };
+
+    if (!this.data.id) {
+      this.el.addEventListener(this.data.event, (evt) => {
+	const menuText = evt.detail?.texts[evt.detail?.index];
+	selectFunc(menuText);
+      });
+    } else if (this.data.id) {
+      const onLoaded = () => {
+	const selectedId = this.data.id;
+	const robotEl = document.getElementById(selectedId);
+	console.debug('target-selector: select id=', selectedId,'robotEl=', robotEl);
+	if (robotEl?.endLink) {
+	  selectFunc(selectedId);
+	} else {
+	  robotEl.addEventListener('robot-registered', () => {
+	    selectFunc(selectedId);
+	  } , {once: true});
+	}
+      };
+      if (this.el.sceneEl.hasLoaded) {
+	onLoaded();
+      } else {
+	this.el.sceneEl.addEventListener('loaded', onLoaded, {once: true});
+      }
+    }
+  }    
 });
 
 function checkListenerList(listener, distributor) {

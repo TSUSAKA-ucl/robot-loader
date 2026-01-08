@@ -6,7 +6,7 @@ AFRAME.registerComponent('robot-loader', {
     model: {type: 'string', default: 'jaka_zu_5'},
   },
   init: function() {
-    console.log('### START robot-loader for:',this.data.model);
+    console.debug('### START robot-loader for:',this.data.model);
     this.el.model = null;
     const onLoaded = async () => {
       if (await urdfLoader2(this.el, this.data.model)) {
@@ -133,8 +133,8 @@ async function urdfLoader2(planeEl,
   for (const visual of visuals) {
     const origin = visual.origin;
     const filename = visual.geometry.mesh?.$.filename;
-    console.log('Base visual geometry.mesh.$.filename:', filename,
-		'origin:', origin);
+    console.debug('Base visual geometry.mesh.$.filename:', filename,
+		  'origin:', origin);
     const el = document.createElement('a-entity');
     el.setAttribute('class', 'visual');
     base.appendChild(el);
@@ -144,8 +144,8 @@ async function urdfLoader2(planeEl,
       const cleanup = (success) => {
 	el.removeEventListener('model-loaded', onLoaded);
 	el.removeEventListener('model-error', onError);
-	console.log('LLLL loader success:', success,
-		    ' cleanup listeners for:', filename);
+	console.debug('LLLL loader success:', success,
+		      ' cleanup listeners for:', filename);
       };
       const onLoaded = () => { cleanup(true); resolve(true); };
       const onError = () => { cleanup(false); resolve(false); };
@@ -198,15 +198,15 @@ async function urdfLoader2(planeEl,
       visuals = [];
     }
     visuals.forEach(visual => {
-      console.log('Joint visual geometry.mesh.$.filename:',
-		  visual.geometry.mesh?.$.filename);
+      console.debug('Joint visual geometry.mesh.$.filename:',
+		    visual.geometry.mesh?.$.filename);
     });
     // linkMap[joint.child.$.link].visual.map(visual => {
     for (const visual of visuals) {
       const origin = visual.origin;
       const filename = visual.geometry.mesh?.$.filename;
       // visual.geometry.mesh?.$.filename).filter(filename => filename);
-      console.log('Joint meshes:', filename, 'origin:', origin);
+      console.debug('Joint meshes:', filename, 'origin:', origin);
       const el = document.createElement('a-entity');
       el.setAttribute('class', 'visual');
       axisEl.appendChild(el);
@@ -234,7 +234,7 @@ async function urdfLoader2(planeEl,
   const endLinkEl = parentEl;
   const axes = axesList;
   const registerRobotFunc = () => { // 
-    console.log('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',endLinkEl);
+    console.debug('#>registerRobotFunc<# planeEl.id:',planeEl?.id, 'endLinkEl:',endLinkEl);
     const robotRegistryComp = planeEl.sceneEl.robotRegistryComp;
     if (robotRegistryComp.get(id)) {
       console.warn('robot:',id,'already registered');
