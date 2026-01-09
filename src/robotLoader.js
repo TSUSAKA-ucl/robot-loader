@@ -139,6 +139,9 @@ async function urdfLoader2(planeEl,
     el.setAttribute('class', 'visual');
     base.appendChild(el);
     setUrdfOrigin(el, origin);
+    if (visual.geometry.mesh.$.scale) {
+      el.setAttribute('scale', visual.geometry.mesh.$.scale);
+    }
     // console.log('Setting gltf-model to:', gltfDirPath + filename);
     await new Promise((resolve)=>{
       const cleanup = (success) => {
@@ -211,6 +214,9 @@ async function urdfLoader2(planeEl,
       el.setAttribute('class', 'visual');
       axisEl.appendChild(el);
       setUrdfOrigin(el, origin);
+      if (visual.geometry.mesh.$.scale) {
+	el.setAttribute('scale', visual.geometry.mesh.$.scale);
+      }
       await new Promise((resolve)=>{
 	const cleanup = (success) => {
 	  el.removeEventListener('model-loaded', onLoaded);
