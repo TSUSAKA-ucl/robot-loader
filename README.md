@@ -30,15 +30,28 @@ The components in the table below are defined in this repository
 
 | A-Frame components | file name |
 |--------------------|-----------|
-|`arm-motion-ui`        |       `armMotionUI.js`|
-|`add-frameObject`      |       `axesFrame.js`|
-|`a-axes-frame` |       `axesFrame.js`|
-|`ik-worker`    |       `ikWorker.js`|
-|`set-joints-directly-in-degree`        |       `reflectWorkerJoints.js`|
-|`reflect-worker-joints`        |       `reflectWorkerJoints.js`|
-|`robot-loader` |       `robotLoader.js`|
-|`robot-registry`       |       `robotRegistry.js`|
-|`event-distributor`    |       `robotRegistry.js`|
-|`target-selector`      |       `robotRegistry.js`|
-|`thumbstick-menu`      |       `vrControllerThumbMenu.js`|
-|`thumbmenu-event-handler`      |       `vrControllerThumbMenu.js`|
+|`a-axes-frame` | `axesFrame.js`|
+|`add-frame-to-joints` | `addFrameToJoints.js`|
+|`add-frameObject` | `axesFrame.js`|
+|`arm-motion-ui` | `armMotionUI.js`|
+|`attach-color-recursively` | `ChangeOpacity.js`|
+|`attach-event-broadcaster` | `attachToAnother.js`|
+|`attach-opacity-recursively` | `ChangeOpacity.js`|
+|`attach-to-another` | `attachToAnother.js`|
+|`base-mover` | `baseMover.js`|
+|`change-color` | `ChangeOpacity.js`|
+|`change-opacity` | `ChangeOpacity.js`|
+|`event-distributor` | `robotRegistry.js`|
+|`ik-worker` | `ikWorker.js`|
+|`joint-desirable` | `ikWorker.js`|
+|`joint-weight` | `ikWorker.js`|
+|`reflect-collision` | `reflectCollision.js`|
+|`reflect-worker-joints` | `reflectWorkerJoints.js`|
+|`reflectWorkerJoints.js:  AFRAME.registerComponent(name, {`|
+|`robot-loader` | `robotLoader.js`|
+|`robot-registry` | `robotRegistry.js`|
+|`set-joints-directly-in-degree` | `reflectWorkerJoints.js`|
+|`set-joints-directly` | `reflectWorkerJoints.js`|
+|`target-selector` | `robotRegistry.js`|
+|`thumbmenu-event-handler` | `vrControllerThumbMenu.js`|
+|`thumbstick-menu` | `vrControllerThumbMenu.js`|
