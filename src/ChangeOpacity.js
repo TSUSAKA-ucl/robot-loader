@@ -1,4 +1,5 @@
 import AFRAME from 'aframe'
+import {updateColor, updateOpacity} from './colorUtils.js';
 
 AFRAME.registerComponent('change-opacity', {
   schema: {
@@ -6,33 +7,14 @@ AFRAME.registerComponent('change-opacity', {
   },
   init: function () {
     this.el.addEventListener('model-loaded', () => {
-      this.updateOpacity(this.data.opacity);
+      updateOpacity(this.el, this.data.opacity);
     });
   },
 
   update: function () {
-    this.updateOpacity(this.data.opacity);
+    updateOpacity(this.el, this.data.opacity);
   },
 
-  updateOpacity: function (opacity) {
-    if (opacity > 1.0) return; // 何もしない
-    const onLoaded = () => {
-      const obj = this.el.getObject3D('mesh');
-      if (!obj) return;
-      obj.traverse((node) => {
-	if (node.isMesh && node.material) {
-          node.material.transparent = opacity < 1.0; // 透明度必要
-          node.material.opacity = opacity;
-          node.material.needsUpdate = true;
-	}
-      });
-    };
-    if (this.el.getObject3D('mesh')) {
-      onLoaded();
-    } else {
-      this.el.addEventListener('model-loaded', onLoaded);
-    }
-  }
 });
 
 AFRAME.registerComponent('attach-opacity-recursively', {
@@ -86,40 +68,12 @@ AFRAME.registerComponent('change-color', {
   },
   init: function () {
     this.el.addEventListener('model-loaded', () => {
-      this.updateColor(this.data.color);
+      updateColor(this.el, this.data.color);
     });
   },
   update: function () {
-    this.updateColor(this.data.color);
+    updateColor(this.el, this.data.color);
   },
-  updateColor: function (color) {
-    const onLoaded = () => {
-      const obj = this.el.getObject3D('mesh');
-      if (!obj) return;
-      obj.traverse((node) => {
-	if (node.isMesh && node.material) {
-	  if (!node.userData.originalColor) {
-            node.userData.originalColor = node.material.color.clone();
-	  } else {
-	    if (color === 'original') {
-	      node.material.color.copy(node.userData.originalColor);
-	    } else {
-	      node.material.metalness = 0; // 金属光沢をゼロにする
-	      node.material.roughness = 1; // 反射を抑えてマットにする
-	      // node.material.vertexColors = false;
-	      node.material.color.set(color); //  = new THREE.Color(color);
-	      node.material.needsUpdate = true;
-	    }
-	  }
-	}
-      });
-    };
-    if (this.el.getObject3D('mesh')) {
-      onLoaded();
-    } else {
-      this.el.addEventListener('model-loaded', onLoaded);
-    }
-  }
 });
 
 AFRAME.registerComponent('attach-color-recursively', {

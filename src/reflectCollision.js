@@ -1,4 +1,5 @@
 import AFRAME from 'aframe';
+import {updateColor} from './colorUtils.js';
 
 AFRAME.registerComponent('reflect-collision', {
   schema: {
@@ -65,61 +66,52 @@ AFRAME.registerComponent('reflect-collision', {
     });
   },
 
-  updateColor: function (el, color) {
-    const onLoaded = () => {
-      const obj = el.getObject3D('mesh');
-      if (!obj) return;
-      obj.traverse((node) => {
-	if (node.isMesh && node.material) {
-	  if (!node.userData.originalColor) {
-            node.userData.originalColor = node.material.color.clone();
-	  } else {
-	    if (color === 'original') {
-	      node.material.color.copy(node.userData.originalColor);
-	    } else {
-	      node.material.metalness = 0; // 金属光沢をゼロにする
-	      node.material.roughness = 1; // 反射を抑えてマットにする
-	      // node.material.vertexColors = false;
-	      node.material.color.set(color); //  = new THREE.Color(color);
-	      node.material.needsUpdate = true;
-	    }
-	  }
-	}
-      });
-    };
-    if (el.getObject3D('mesh')) {
-      onLoaded();
-    } else {
-      el.addEventListener('model-loaded', onLoaded);
-    }
-  },
   // **** tick ****
   tick: function() {
     if (this?.workerDataStatusReady) { 
+      const numberToEl = (num) => {
+	if (num > 0) { return this.axesList[num - 1]; }
+	else if (num === 0) {
+	  // const childLinks = Array.from(this.el.children).filter(child=>
+	  // child.classList.contains('link'));
+	  // if (childLinks.length === 1) {
+	  //   return childLinks[0];
+	  // }
+	  for (let i = 0; i < this.el.children.length; i++) {
+	    const child = this.el.children[i];
+	    if (child.classList.contains('link')) {
+	      return child;
+	    }
+	  }
+	}
+	return null;
+      };
       // console.debug('Status: workerData.current.status:',
       // 		    this.el.workerData.current.status);
       const collisionPairs = this.el.workerData.current?.status?.collisions;
-      if (collisionPairs && collisionPairs.length !== 0) {
-	const uniqueFlat = [...new Set(collisionPairs.flat(Infinity))];
-	console.log('Status: collisionPairs:', collisionPairs,
-		     ' uniqueFlat:', uniqueFlat);
-	const numberToEl = (num) => {
-	  if (num > 0) { return this.axesList[num - 1]; }
-	  else if (num === 0) {
-	    // const childLinks = Array.from(this.el.children).filter(child=>
-	    // child.classList.contains('link'));
-	    // if (childLinks.length === 1) {
-	    //   return childLinks[0];
-	    // }
-	    for (let i = 0; i < this.el.children.length; i++) {
-	      const child = this.el.children[i];
-	      if (child.classList.contains('link')) {
-		return child;
+      if (collisionPairs.length === 0) {
+	if (this.colored) {
+	  // restore original colors
+	  for (let i = 0; i < this.axesList.length + 1; i++) {
+	    const linkEl = numberToEl(i);
+	    // console.log('Status: Processing link index:', i,
+	    // 	      'link:', linkEl);
+	    for (let j = 0; j < linkEl?.children?.length; j++) {
+	      const visualEl = linkEl.children[j];
+	      console.debug('Status: Restoring original color of visualEl:',
+			    visualEl);
+	      if (visualEl.classList.contains('visual') &&
+		  visualEl.hasAttribute('gltf-model')) {
+		updateColor(visualEl, 'original');
 	      }
 	    }
 	  }
-	  return null;
-	};
+	  this.colored = false;
+	}
+      } else if (collisionPairs.length > 0) {
+	const uniqueFlat = [...new Set(collisionPairs.flat(Infinity))];
+	console.log('Status: collisionPairs:', collisionPairs,
+		     ' uniqueFlat:', uniqueFlat);
 	for (let i = 0; i < this.axesList.length + 1; i++) {
 	  const linkEl = numberToEl(i);
 	  // console.log('Status: Processing link index:', i,
@@ -127,7 +119,7 @@ AFRAME.registerComponent('reflect-collision', {
 	  if (!uniqueFlat.includes(i)) {
 	    // non-collision: original color
 	    console.debug('Status: No collision on link index:', i,
-			  'children:', linkEl?.children,
+			  // 'children:', linkEl?.children,
 			  'linkEl:', linkEl);
 	    for (let j = 0; j < linkEl?.children?.length; j++) {
 	      const visualEl = linkEl.children[j];
@@ -135,13 +127,13 @@ AFRAME.registerComponent('reflect-collision', {
 			    visualEl);
 	      if (visualEl.classList.contains('visual') &&
 		  visualEl.hasAttribute('gltf-model')) {
-		this.updateColor(visualEl, 'original');
+		updateColor(visualEl, 'original');
 	      }
 	    }
 	  } else {
 	    // collision
 	    console.debug('Status: Collision detected on link index:', i,
-			  'children:', linkEl?.children,
+			  // 'children:', linkEl?.children,
 			  ' linkEl:', linkEl);
 	    for (let j = 0; j < linkEl?.children?.length; j++) {
 	      const visualEl = linkEl.children[j];
@@ -149,7 +141,8 @@ AFRAME.registerComponent('reflect-collision', {
 			    visualEl);
 	      if (visualEl.classList.contains('visual') &&
 	          visualEl.hasAttribute('gltf-model')) {
-		this.updateColor(visualEl, this.data.color);
+		updateColor(visualEl, this.data.color);
+		this.colored = true;
 	      }
 	    }
 	  }
