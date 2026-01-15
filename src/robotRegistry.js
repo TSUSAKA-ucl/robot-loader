@@ -163,12 +163,11 @@ AFRAME.registerComponent('target-selector', {
       }
     };
 
-    if (!this.data.id) {
-      this.el.addEventListener(this.data.event, (evt) => {
-	const menuText = evt.detail?.texts[evt.detail?.index];
-	selectFunc(menuText);
-      });
-    } else if (this.data.id) {
+    this.el.addEventListener(this.data.event, (evt) => {
+      const menuText = evt.detail?.texts[evt.detail?.index];
+      selectFunc(menuText);
+    });
+    if (this.data.id) {
       const onLoaded = () => {
 	const selectedId = this.data.id;
 	const robotEl = document.getElementById(selectedId);

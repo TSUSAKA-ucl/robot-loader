@@ -102,3 +102,26 @@ AFRAME.registerComponent('reflect-worker-joints', {
     }
   }
 });
+
+AFRAME.registerComponent('exact_solution', {
+  schema: {
+    exact: { type: 'boolean', default: false }
+  },
+  // postMessage { type: 'set_exact_solution', exactSolution: boolean }
+  update: function () {
+    const send_exact_solution = () => {
+      if (this.el.workerRef?.current) {
+	this.el.workerRef.current.postMessage({
+	  type: 'set_exact_solution',
+	  exactSolution: this.data.exact
+	});
+      }
+    };
+    if (this.el.ikWorkerReady) {
+      send_exact_solution();
+    } else {
+      this.el.addEventListener('ik-worker-ready', send_exact_solution,
+			       {once: true});
+    }
+  }
+});
