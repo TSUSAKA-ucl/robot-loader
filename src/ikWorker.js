@@ -65,18 +65,19 @@ AFRAME.registerComponent('joint-weight', {
   },
   parseAndSetMap: function() {
     this.map = {};
-    this.data.override.split(',').forEach( pairStr => {
-      const [jointName, weightStr] = pairStr.split(':');
-      const weight = parseFloat(weightStr);
-      if (jointName && !isNaN(weight)) {
-	if (typeof parseInt(jointName) === 'number'
-	    && !isNaN(parseInt(jointName))) {
-	  this.map[jointName] = weight;
-	} else {
-	  console.warn(`Invalid joint name for joint-weight: ${jointName}`);
-	}
-      }
-    });
+    parseJointMap(this.map, this.data.override);
+  //   this.data.override.split(',').forEach( pairStr => {
+  //     const [jointName, weightStr] = pairStr.split(':');
+  //     const weight = parseFloat(weightStr);
+  //     if (jointName && !isNaN(weight)) {
+  // 	if (typeof parseInt(jointName) === 'number'
+  // 	    && !isNaN(parseInt(jointName))) {
+  // 	  this.map[jointName] = weight;
+  // 	} else {
+  // 	  console.warn(`Invalid joint name for joint-weight: ${jointName}`);
+  // 	}
+  //     }
+  //   });
   },
   init: function() {
     this.parseAndSetMap();
@@ -101,31 +102,33 @@ AFRAME.registerComponent('joint-weight', {
   }
 });
 
+function parseJointMap (map, dataStr) {
+  dataStr.split(',').forEach( pairStr => {
+    const [name, value] = pairStr.split(':');
+    const valNum = parseFloat(value);
+    if (name && !isNaN(valNum)) {
+      map[name] = valNum;
+    } else {
+      console.error(`Invalid joint desirable setting: ${pairStr}`);
+    }
+  });
+}
+
 AFRAME.registerComponent('joint-desirable', {
   schema: {
     upper: { type: 'string', default: ''},
     lower: { type: 'string', default: ''},
     gain: { type: 'string', default: ''},
   },
-  parseJointMap: function (map, dataStr) {
-    dataStr.split(',').forEach( pairStr => {
-      const [name, value] = pairStr.split(':');
-      const valNum = parseFloat(value);
-      if (name && !isNaN(valNum)) {
-	map[name] = valNum;
-      } else {
-	console.error(`Invalid joint desirable setting: ${pairStr}`);
-      }
-    });
-  },
   parseAndSetDesirable: function() {
     this.desirable = {};
     const upperMap = {};
     const lowerMap = {};
     const gainMap = {};
-    this.parseJointMap(upperMap, this.data.upper);
-    this.parseJointMap(lowerMap, this.data.lower);
-    this.parseJointMap(gainMap, this.data.gain);
+    console.debug('Parsing joint-desirable:', this.data);
+    parseJointMap(upperMap, this.data.upper);
+    parseJointMap(lowerMap, this.data.lower);
+    parseJointMap(gainMap, this.data.gain);
     Object.entries(gainMap).forEach( ([jointName, gain]) => {
       const upper = upperMap[jointName] ? upperMap[jointName] : 2*Math.PI;
       const lower = lowerMap[jointName] ? lowerMap[jointName] : -2*Math.PI;
@@ -168,5 +171,49 @@ AFRAME.registerComponent('joint-desirable', {
   update: function() {
     this.parseAndSetDesirable();
     this.setJointDesirable(this.desirable);
+  }
+});
+
+AFRAME.registerComponent('joint-desirable-vlimit', {
+  schema: {
+    all: { type: 'number', default: 0.5 },
+    each: { type: 'string', default: '' },
+  },
+  parseAndSetDesirableVlimit: function() {
+    this.desirableVlimit = {};
+    if (this.data.all) {
+      this.desirableVlimit = { velocityLimit: this.data.all };
+    } else {
+      console.debug('Parsing joint-desirable-vlimit:', this.data.each);
+      parseJointMap(this.desirableVlimit, this.data.each);
+    }
+  },
+  init: function() {
+    this.parseAndSetDesirableVlimit();
+    this.setDesirableVlimit = (desirableVlimit) => {
+      if (this.el.workerRef?.current) {
+	if (this.data.all) {
+	  const msg = { type: 'set_all_joint_desirable_vlimit',
+			velocityLimit: this.data.all };
+	  this.el.workerRef.current.postMessage(msg);
+	  return;
+	} else {
+	  Object.entries(desirableVlimit).forEach( ([jointName, velocityLimit]) => {
+	    const msg = { type: 'set_joint_desirable_vlimit',
+			  jointNumber: parseInt(jointName),
+			  velocityLimit };
+	    this.el.workerRef.current.postMessage(msg);
+	  });
+	}
+      }
+    };
+    withObjReady(this.el, 'ik-worker-ready',
+		 this.el.ikWorkerReady,
+		 this.setDesirableVlimit,
+		 this.desirableVlimit);
+  },
+  update: function() {
+    this.parseAndSetDesirableVlimit();
+    this.setDesirableVlimit(this.desirableVlimit);
   }
 });
