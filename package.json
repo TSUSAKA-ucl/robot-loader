@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "repository": "https://github.com/TSUSAKA-ucl/robot-loader.git",
   "description": "",
   "main": "index.js",
@@ -44,7 +44,8 @@
     "./robotRegistry.js": "src/robotRegistry.js",
     "./vrControllerThumbMenu.js": "src/vrControllerThumbMenu.js",
     "./ChangeOpacity.js": "src/ChangeOpacity.js",
-    "./reflectCollision.js": "src/reflectCollision.js"
+    "./reflectCollision.js": "src/reflectCollision.js",
+    "./reflectJointLimits.js": "src/reflectJointLimits.js"
   },
   "bin": {
     "copy-assets": "./scripts/copy-assets.mjs"

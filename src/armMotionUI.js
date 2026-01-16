@@ -1,6 +1,7 @@
 import AFRAME from 'aframe';
 const THREE = window.AFRAME.THREE;
 import {isoInvert, isoMultiply} from './isometry3.js';
+import {registerResetTarget} from './attachToAnother.js';
 
 function workerPose(el) {
   const pose = el?.workerData?.current?.pose;
@@ -114,13 +115,7 @@ AFRAME.registerComponent('arm-motion-ui', {
     });
     this.pptPrev = new THREE.Vector3();
     this.qqtPrev = new THREE.Quaternion();
-    if (!(this.el.resetTargets && Array.isArray(this.el.resetTargets))) {
-      this.el.resetTargets = [];
-    }
-    this.el.resetTargets.push({
-      name: 'arm-motion-ui',
-      defaultValue: {enabled: true}
-    });
+    registerResetTarget(this);
   },
 
   // ********

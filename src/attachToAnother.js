@@ -1,5 +1,15 @@
 import AFRAME from 'aframe'
 
+export function registerResetTarget(component) {
+  if (!(component.el.resetTargets && Array.isArray(component.el.resetTargets))) {
+    component.el.resetTargets = [];
+  }
+  component.el.resetTargets.push({
+    name: component.name,
+    defaultValue: component.data
+  });
+}
+
 AFRAME.registerComponent('attach-to-another', {
   schema: {
     to: {type: 'string'},

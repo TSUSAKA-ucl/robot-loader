@@ -1,99 +1,45 @@
 import AFRAME from 'aframe';
 import {updateColor} from './colorUtils.js';
+import {registerResetTarget} from './attachToAnother.js';
+
+export function numberToEl(num, el) {
+  if (num > 0) { return el.axes[num - 1]; }
+  else if (num === 0) {
+    // const childLinks = Array.from(el.children).filter(child=>
+    // child.classList.contains('link'));
+    // if (childLinks.length === 1) {
+    //   return childLinks[0];
+    // }
+    for (let i = 0; i < el.children.length; i++) {
+      const child = el.children[i];
+      if (child.classList.contains('link')) {
+	return child;
+      }
+    }
+  }
+  return null;
+}
 
 AFRAME.registerComponent('reflect-collision', {
   schema: {
     color: {type: 'string', default: 'red'},
   },
   init: function () {
-    this.workerDataStatusReady = false;
-    const registerCheckWorkerStatus = () => {
-      const robotId = this.el.id;
-      console.debug('Status: Checking workerData status for', robotId);
-      let checkCount = 0;
-      const checkWorkerJoints = () => {
-	const jointData = this.el.workerData.current.joints;
-	if (jointData) { // not equal NULL?
-	  const robotRegistry = this.el.sceneEl.robotRegistryComp;
-	  this.axesList = robotRegistry.get(robotId)?.axes;
-	  if (this.axesList) { // exists?
-	    if (this.axesList.length === jointData.length) {
-	      console.debug('Status: axesList and jointData length match.',
-			    'axesList length:', this.axesList.length,
-			    ' jointData length:', jointData.length);
-	      // SUCCEED
-	      if (this.el.workerData.current.status) {
-		this.workerDataStatusReady = true;
-		return;
-	      }
-	    } else {
-              console.warn('length mismatch. axesList:', this.axesList,
-			   ' jointData:', jointData);
-	    }
-	  } else {
-	    console.warn('axesList cannot be found.',
-			 'it may not have been registered yet.');
-	  }
-	} else {
-	  // The worker hasn't started working yet
-	}
-	checkCount++;
-	if (checkCount > 20) {
-	  console.error('Failed to confirm workerData status ready state for',
-			robotId,'after',checkCount,'tries.');
-	  return;
-	}
-	console.debug('Status: Retrying to check workerData status for',robotId,
-		      '... try #',checkCount);
-	setTimeout(checkWorkerJoints, 500);
-      };
-      checkWorkerJoints();
-      console.debug('workerDataStatusReady:', this.workerDataStatusReady);
-    };
-    if (this.el.workerData?.current?.status) {
-      registerCheckWorkerStatus();
-    } else {
-      this.el.addEventListener('ik-worker-ready',
-			       registerCheckWorkerStatus,
-			       {once: true});
-    }
-    if (!(this.el.resetTargets && Array.isArray(this.el.resetTargets))) {
-      this.el.resetTargets = [];
-    }
-    this.el.resetTargets.push({
-      name: 'reflect-collision',
-      defaultValue: {color: this.data.color},
-    });
+    registerResetTarget(this);
   },
 
   // **** tick ****
   tick: function() {
-    if (this?.workerDataStatusReady) { 
-      const numberToEl = (num) => {
-	if (num > 0) { return this.axesList[num - 1]; }
-	else if (num === 0) {
-	  // const childLinks = Array.from(this.el.children).filter(child=>
-	  // child.classList.contains('link'));
-	  // if (childLinks.length === 1) {
-	  //   return childLinks[0];
-	  // }
-	  for (let i = 0; i < this.el.children.length; i++) {
-	    const child = this.el.children[i];
-	    if (child.classList.contains('link')) {
-	      return child;
-	    }
-	  }
-	}
-	return null;
-      };
+    if (this.el.workerData?.current?.status) {
       // console.debug('Status: workerData.current.status:',
       // 		    this.el.workerData.current.status);
       const collisionPairs = this.el.workerData.current?.status?.collisions;
+      if (collisionPairs) {
       if (collisionPairs.length === 0) {
 	if (this.colored) {
 	  // restore original colors
-	  for (let i = 0; i < this.axesList.length + 1; i++) {
-	    const linkEl = numberToEl(i);
+	  for (let i = 0; i < this.el.axes.length + 1; i++) {
+	    const linkEl = numberToEl(i, this.el);
 	    // console.log('Status: Processing link index:', i,
 	    // 	      'link:', linkEl);
 	    for (let j = 0; j < linkEl?.children?.length; j++) {
@@ -112,8 +58,8 @@ AFRAME.registerComponent('reflect-collision', {
 	const uniqueFlat = [...new Set(collisionPairs.flat(Infinity))];
 	console.log('Status: collisionPairs:', collisionPairs,
 		     ' uniqueFlat:', uniqueFlat);
-	for (let i = 0; i < this.axesList.length + 1; i++) {
-	  const linkEl = numberToEl(i);
+	for (let i = 0; i < this.el.axes.length + 1; i++) {
+	  const linkEl = numberToEl(i, this.el);
 	  // console.log('Status: Processing link index:', i,
 	  // 	      'link:', linkEl);
 	  if (!uniqueFlat.includes(i)) {
@@ -147,6 +93,7 @@ AFRAME.registerComponent('reflect-collision', {
 	    }
 	  }
 	}
+      }
       }
     }
   }
