@@ -56,8 +56,8 @@ AFRAME.registerComponent('reflect-collision', {
 	}
       } else if (collisionPairs.length > 0) {
 	const uniqueFlat = [...new Set(collisionPairs.flat(Infinity))];
-	console.log('Status: collisionPairs:', collisionPairs,
-		     ' uniqueFlat:', uniqueFlat);
+	console.debug('Status: collisionPairs:', collisionPairs,
+		      ' uniqueFlat:', uniqueFlat);
 	for (let i = 0; i < this.el.axes.length + 1; i++) {
 	  const linkEl = numberToEl(i, this.el);
 	  // console.log('Status: Processing link index:', i,

@@ -150,7 +150,7 @@ AFRAME.registerComponent('joint-desirable', {
     this.setJointDesirable = (desirable) => {
       if (this.el.workerRef?.current) {
 	const loglevel = { type: 'set_slrm_loglevel',
-			   logLevel: 4 };
+			   logLevel: 3 };
 	this.el.workerRef.current.postMessage(loglevel);
 	Object.entries(desirable).forEach( ([jointName, descObj]) => {
 	  const msg = { type: 'set_joint_desirable',
