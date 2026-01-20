@@ -19,24 +19,14 @@ AFRAME.registerComponent('joint-move-to', {
   update: function() {
     this.jointTargets = this.data.map(parseFloat);
     this.done = false;
-    this.time = 0;
+    if (this.el.workerData.current?.status?.status === 'END') {
+      this.setJointTarget(this.jointTargets);
+      this.done = true;
+    } else {
+      this.el.addEventListener('ik-worker-arrival', () => {
+	this.setJointTarget(this.jointTargets);
+	this.done = true;
+      }, { once: true });
+    }
   },
-  tick: function(step) {
-    this.time += step;
-    if (this.time > 1000000) {
-      console.log('joint-move-to joints:',
-		  this.el.workerData?.current?.joints);
-      console.log('joint-move-to tick status:',
-		  this.el.workerData.current?.status?.status);
-      this.time = 0;
-    }
-    if (!this.done) {
-      if (this.el.workerData?.current?.joints) {
-	if (this.el.workerData.current?.status?.status === 'END') {
-	  this.setJointTarget(this.jointTargets);
-	  this.done = true;
-	}
-      }
-    }
-  }
 });
