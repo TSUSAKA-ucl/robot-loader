@@ -19,7 +19,7 @@ AFRAME.registerComponent('joint-move-to', {
   update: function() {
     this.jointTargets = this.data.map(parseFloat);
     this.done = false;
-    if (this.el.workerData.current?.status?.status === 'END') {
+    if (this.el.workerData?.current?.status?.status === 'END') {
       this.setJointTarget(this.jointTargets);
       this.done = true;
     } else {
