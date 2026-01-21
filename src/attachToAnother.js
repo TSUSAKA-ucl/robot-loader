@@ -1,12 +1,25 @@
 import AFRAME from 'aframe'
 
 export function registerResetTarget(component) {
+  console.log('event-forwarder: register component:',component.name,'of el',component.el.id);
+  if (component.id) {
+    console.log('event-forwarder: register reset: component has id:',component.id);
+  }
+  const newData = { ... component.data };
+  // if passing the same object reference, setAttribute may not work properly
+  // and it use default value of the schema instead.
+  if (newData) {
+    console.log('event-forwarder: register reset: component data:',newData);
+  }
+    
   if (!(component.el.resetTargets && Array.isArray(component.el.resetTargets))) {
     component.el.resetTargets = [];
   }
+  const componentStr = component?.id ? component.name + '__' + component.id : component.name;
+  console.log('event-forwarder: componentStr:',componentStr);
   component.el.resetTargets.push({
-    name: component.name,
-    defaultValue: component.data
+    name: componentStr,
+    defaultValue: newData
   });
 }
 
@@ -55,7 +68,9 @@ AFRAME.registerComponent('attach-to-another', {
 	  this.el.object3D.quaternion.set(0, 0, 0, 1);
 	  if (this.el.resetTargets && Array.isArray(this.el.resetTargets)) {
 	    this.el.resetTargets.forEach( (target) => {
+	      console.log('event-forwarder: reset component:',target.name,'of el',this.el.id);
 	      this.el.removeAttribute(target.name);
+	      console.log('event-forwarder:',target.name,target.defaultValue,'set to el',this.el.id);
 	      this.el.setAttribute(target.name, target.defaultValue);
 	    });
 	  }
@@ -93,30 +108,38 @@ AFRAME.registerComponent('attach-to-another', {
 //    const forwardABbuttonEvent = (from,a,b, to) => {
 function forwardABbuttonEvent(from,a,b, to) {
   from.addEventListener(a+'buttondown', (evt) => {
-    console.warn('forwarding abuttondown event to attached child:', to);
-    to.emit('abuttondown', evt, false);
+    console.warn('forwarding '+a+'buttondown event to attached child:', to.id);
+    to.emit(a+'buttondown', evt, false);
   });
   from.addEventListener(a+'buttonup', (evt) => {
-    console.warn('forwarding abuttonup event to attached child:', to);
-    to.emit('abuttonup', evt, false);
+    console.warn('forwarding '+a+'buttonup event to attached child:', to.id);
+    to.emit(a+'buttonup', evt, false);
   });
   from.addEventListener(b+'buttondown', (evt) => {
-    console.warn('forwarding bbuttondown event to attached child:', to);
-    to.emit('bbuttondown', evt, false);
+    console.warn('forwarding '+b+'buttondown event to attached child:', to.id);
+    to.emit(b+'buttondown', evt, false);
   });
   from.addEventListener(b+'buttonup', (evt) => {
-    console.warn('forwarding bbuttonup event to attached child:', to);
-    to.emit('bbuttonup', evt, false);
+    console.warn('forwarding '+b+'buttonup event to attached child:', to.id);
+    to.emit(b+'buttonup', evt, false);
   });
 }
 
 AFRAME.registerComponent('attach-event-broadcaster', {
+  multiple: true,
+  schema: {
+    target: {type: 'string'}
+  },
   init: function() {
     this.el.addEventListener('attached', (evt) => {
-      const child = evt.detail.child;
       console.log('###### event broadcaster: attached event received:', evt);
-      forwardABbuttonEvent(this.el, 'a', 'b', child);
-      forwardABbuttonEvent(this.el, 'x', 'y', child);
+      // const child = this.data.target;
+      const child = evt.detail.child;
+      console.log('###### event broadcaster: child:', child?.id);
+      if (child) {
+	forwardABbuttonEvent(this.el, 'a', 'b', child);
+	forwardABbuttonEvent(this.el, 'x', 'y', child);
+      }
     });
   }
 });
