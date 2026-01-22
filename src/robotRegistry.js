@@ -62,7 +62,7 @@ AFRAME.registerComponent('robot-registry', {
       return;
     }
     // const data = this.objects.get(id);
-    // console.log('*#*# data:', data);
+    // console.debug('*#*# data:', data);
     const listenerEl = this.objects.get(id)?.data?.el;
     if (checkListenerList(listenerEl, distributor)) {
       Object.keys(distributor.listenersList).forEach(key => 
@@ -92,7 +92,7 @@ AFRAME.registerComponent('event-distributor', {
       this.distributionFunc =  (evt) => {
 	const detail = evt.detail ? evt.detail : {};
 	robotRegistryComp.list().forEach(id => {
-	  // console.log('*** event distributor: ', evtName, ' to ', id, 
+	  // console.debug('*** event distributor: ', evtName, ' to ', id, 
 	  // 	      ' enabled=', robotRegistryComp.eventDeliveryEnabled(id));
 	  const listenerEl = this.el?.listenersList[id];
 	  if (listenerEl) {

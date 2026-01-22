@@ -58,7 +58,7 @@ AFRAME.registerComponent('attach-opacity-recursively', {
       traverse(root);
     } else {
       this.el.addEventListener('robot-registered', () => {
-	console.warn('CCCCC add-event el:', this.el);
+	console.debug('CCCCC add-event el:', this.el);
 	traverse(root);
       });
     }

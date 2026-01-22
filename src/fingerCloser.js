@@ -1,5 +1,5 @@
 import AFRAME from 'aframe';
-import {registerResetTarget} from '@ucl-nuee/robot-loader/attachToAnother.js';
+import {registerResetTarget} from './attachToAnother.js';
 
 AFRAME.registerComponent('finger-closer', {
   schema: {
@@ -15,7 +15,7 @@ AFRAME.registerComponent('finger-closer', {
     interval: {type: 'number', default: 0.1}, // seconds
   },
   init: function() {
-    console.log('event-forwarder: finger-close init component.data:',this.data);
+    console.debug('event-forwarder: finger-close init component.data:',this.data);
     const onLoading = () => {
       this.start = Date.now();
       this.interval = this.data.interval;
@@ -31,26 +31,26 @@ AFRAME.registerComponent('finger-closer', {
 	this.openDirection = -1;
       }
       this.el.addEventListener(this.data.openEvent, () => {
-	console.log('open event received by:', this.el.id);
-	console.log('schema:', this.data);
+	console.debug('open event received by:', this.el.id);
+	console.debug('schema:', this.data);
 	this.opening = true;
 	this.closing = false;
       });
       this.el.addEventListener(this.data.openStopEvent, () => {
-	console.log('open stop event received by:', this.el.id);
-	console.log('schema:', this.data);
+	console.debug('open stop event received by:', this.el.id);
+	console.debug('schema:', this.data);
 	this.opening = false;
       });
       this.el.addEventListener(this.data.closeEvent, () => {
-	console.log('close event received by:', this.el.id);
+	console.debug('close event received by:', this.el.id);
 	this.closing = true;
 	this.opening = false;
       });
       this.el.addEventListener(this.data.closeStopEvent, () => {
-	console.log('close stop event received by:', this.el.id);
+	console.debug('close stop event received by:', this.el.id);
 	this.closing = false;
       });
-      console.log('event-forwarder: before register component.data:',this.data);
+      console.debug('event-forwarder: before register component.data:',this.data);
       registerResetTarget(this);
     };
     if (this.el.hasLoaded) {
@@ -78,11 +78,11 @@ AFRAME.registerComponent('finger-closer', {
   remove: function() {
   },
   tick: function(time, timeDelta) {
-    // console.warn('finger-closer loop:',this?.el?.id,' in axesUpdate', Date.now()-this?.start);
+    // console.debug('finger-closer loop:',this?.el?.id,' in axesUpdate', Date.now()-this?.start);
     if (this.el?.axes) {
       if (this?.jointValues === undefined) {
 	this.jointValues = Array(this.el.axes.length).fill(0);
-	console.log('finger-closer: Initialized jointValues for',this.el.id, this.jointValues);
+	console.debug('finger-closer: Initialized jointValues for',this.el.id, this.jointValues);
       } else {
 	if (this.opening || this.closing) {
 	  const jointValues = this.jointValues;
@@ -90,9 +90,9 @@ AFRAME.registerComponent('finger-closer', {
 	  const deltaRadianClose = (this.data.closeSpeed * this.interval);
 	  for (let i = 0; i < jointValues.length; i++) {
 	    if (!this.stationaryJoints.includes(i)) {
-	      // console.log(`joint ${i} value before: ${jointValues[i]}`);
+	      // console.debug(`joint ${i} value before: ${jointValues[i]}`);
 	      if (this.closing) {
-		// console.log('finger-closer:',this.el.id,Date.now()-this.start,
+		// console.debug('finger-closer:',this.el.id,Date.now()-this.start,
 		// 	      ' closing joint',i, 'value:', jointValues[i]);
 		if (this.openDirection * (jointValues[i] - this.closeMaxRadian) < 0) {
 		  jointValues[i] += this.openDirection * deltaRadianClose;
@@ -101,7 +101,7 @@ AFRAME.registerComponent('finger-closer', {
 		}
 	      }
 	      if (this.opening) {
-		// console.log('finger-closer:',this.el.id,Date.now()-this.start,
+		// console.debug('finger-closer:',this.el.id,Date.now()-this.start,
 		// 	      ' opening joint',i, 'value:', jointValues[i]);
 		if (this.openDirection * (jointValues[i] - this.openMaxRadian) > 0) {
 		  jointValues[i] -= this.openDirection * deltaRadianOpen;

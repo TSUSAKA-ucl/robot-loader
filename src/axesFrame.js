@@ -5,7 +5,7 @@ const THREE = AFRAME.THREE;
 // let controllerQuaternion = null;
 AFRAME.registerComponent('add-frameObject', {
   init: function () {
-    // console.warn('#### parent:',this.el.parentNode,
+    // console.debug('#### parent:',this.el.parentNode,
     //              '#### this.el:', this.el);
     const addToParent = () => {
       this.el.parentNode.frameObject = this.el;
@@ -34,7 +34,7 @@ AFRAME.registerComponent('a-axes-frame', {
   },
   init: function () {
     if (this.el.parentNode.getAttribute('thumbmenu-event-handler')) {
-      console.log("** a-axes-frame: parent has 'thumbmenu-event-handler', attach myself to parent's 'frameObject'");
+      console.debug("** a-axes-frame: parent has 'thumbmenu-event-handler', attach myself to parent's 'frameObject'");
       this.el.parentNode.frameObject = this.el;
     }
     this.el.setAttribute('geometry', {
@@ -66,7 +66,7 @@ function createCylinder(length, axis, radius, color) {
   const rotAxis = new THREE.Vector3(0,0,0);
   rotAxis.crossVectors(heightAxis, new THREE.Vector3(...axis));
   const height = length;
-  // console.warn('offset: ',offset, 'rotAxis:', rotAxis);
+  // console.debug('offset: ',offset, 'rotAxis:', rotAxis);
   const cylinder = document.createElement('a-entity');
   // Configure the geometry for a cylinder
   cylinder.setAttribute('geometry', {

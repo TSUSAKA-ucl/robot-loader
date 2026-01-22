@@ -22,7 +22,7 @@ AFRAME.registerComponent('ik-worker', {
       const topicBridgeWebSocketURL =
 	    // `${bridgeProtocol}//${location.hostname}:${bridgePort}`;
 	    null;
-      console.log('UUUUUUU call IkWorkerManager with model',this.el.model);
+      console.debug('UUUUUUU call IkWorkerManager with model',this.el.model);
       this.robotRegistryFunc = null;
       this.el.addEventListener('ik-worker-ready', () => {
 	this.robotRegistryFunc = () => {
@@ -30,7 +30,7 @@ AFRAME.registerComponent('ik-worker', {
 	  const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
 	  robotRegistryComp.add(id, {worker: this.el.workerRef,
 				     workerData: this.el.workerData});
-	  console.log('Robot ', id, ' worker added:', this.el.workerRef);
+	  console.debug('Robot ', id, ' worker added:', this.el.workerRef);
 	  this.el.emit('ik-worker-start'); // what do i do next?
 	};
 	this.robotRegistryFunc();
@@ -158,7 +158,7 @@ AFRAME.registerComponent('joint-desirable', {
 			upper: descObj.upper,
 			lower: descObj.lower,
 			gain: descObj.gain };
-	  console.log('in AF component desirable postMessage:',msg);
+	  console.debug('in AF component desirable postMessage:',msg);
 	  this.el.workerRef.current.postMessage(msg);
 	});
       }

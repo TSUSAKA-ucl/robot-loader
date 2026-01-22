@@ -8,7 +8,7 @@ AFRAME.registerComponent('add-frame-to-joints', {
     length: {type: 'number', default: 0.3}
   },
   init: function() {
-    // console.warn('AAA enter add-frame-to-joints');
+    // console.debug('AAA enter add-frame-to-joints');
     const addAxesFrame = () => {
       const axesList = this.el.axes;
       axesList.slice(this.data.from, this.data.to >= 0 ? this.data.to + 1 : undefined)
@@ -16,7 +16,7 @@ AFRAME.registerComponent('add-frame-to-joints', {
 	  const frame = document.createElement('a-entity');
 	  frame.setAttribute('a-axes-frame', {length: this.data.length});
 	  axis.appendChild(frame);
-	  // console.warn('AAA add frame to axis:', axis);
+	  // console.debug('AAA add frame to axis:', axis);
 	});
     }
     if (this.el.axes) {

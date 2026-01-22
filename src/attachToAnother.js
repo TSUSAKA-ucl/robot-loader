@@ -1,22 +1,22 @@
 import AFRAME from 'aframe'
 
 export function registerResetTarget(component) {
-  console.log('event-forwarder: register component:',component.name,'of el',component.el.id);
+  console.debug('event-forwarder: register component:',component.name,'of el',component.el.id);
   if (component.id) {
-    console.log('event-forwarder: register reset: component has id:',component.id);
+    console.debug('event-forwarder: register reset: component has id:',component.id);
   }
   const newData = { ... component.data };
   // if passing the same object reference, setAttribute may not work properly
   // and it use default value of the schema instead.
   if (newData) {
-    console.log('event-forwarder: register reset: component data:',newData);
+    console.debug('event-forwarder: register reset: component data:',newData);
   }
     
   if (!(component.el.resetTargets && Array.isArray(component.el.resetTargets))) {
     component.el.resetTargets = [];
   }
   const componentStr = component?.id ? component.name + '__' + component.id : component.name;
-  console.log('event-forwarder: componentStr:',componentStr);
+  console.debug('event-forwarder: componentStr:',componentStr);
   component.el.resetTargets.push({
     name: componentStr,
     defaultValue: newData
@@ -42,8 +42,8 @@ AFRAME.registerComponent('attach-to-another', {
 	  console.warn(`Robot ${robot.id} has no axes array to attach to.`);
 	  return;
 	}
-	// console.warn('QQQQQ endLink.hasLoaded?',endLink.hasLoaded);
-	console.log('QQQQQ Attaching this.data.axis:',this.data.axis,
+	// console.debug('QQQQQ endLink.hasLoaded?',endLink.hasLoaded);
+	console.debug('QQQQQ Attaching this.data.axis:',this.data.axis,
 		    'to robot:',robot.id,
 		    'with axes:',robot.axes.length,
 		    'endLink:',endLink.id);
@@ -57,7 +57,7 @@ AFRAME.registerComponent('attach-to-another', {
 	  }
 	  targetLink.appendChild(this.el);
 	  // this.el.play();
-	  console.log(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
+	  console.debug(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
 		      this.data.axis>=robot.axes.length
 		      ? `endLink :${endLink.id}`
 		      : `axis ${this.data.axis}`);
@@ -68,9 +68,9 @@ AFRAME.registerComponent('attach-to-another', {
 	  this.el.object3D.quaternion.set(0, 0, 0, 1);
 	  if (this.el.resetTargets && Array.isArray(this.el.resetTargets)) {
 	    this.el.resetTargets.forEach( (target) => {
-	      console.log('event-forwarder: reset component:',target.name,'of el',this.el.id);
+	      console.debug('event-forwarder: reset component:',target.name,'of el',this.el.id);
 	      this.el.removeAttribute(target.name);
-	      console.log('event-forwarder:',target.name,target.defaultValue,'set to el',this.el.id);
+	      console.debug('event-forwarder:',target.name,target.defaultValue,'set to el',this.el.id);
 	      this.el.setAttribute(target.name, target.defaultValue);
 	    });
 	  }
@@ -81,12 +81,12 @@ AFRAME.registerComponent('attach-to-another', {
 	}
       };
       const robotEl = document.getElementById(this.data.to);
-      // console.warn('QQQQQ attach-to-another: found robotEl.id:', robotEl.id);
+      // console.debug('QQQQQ attach-to-another: found robotEl.id:', robotEl.id);
       if (robotEl?.endLink && Array.isArray(robotEl?.axes) ) { // robot has been registered
 	attachToRobot(robotEl);
       } else if (typeof robotEl?.addEventListener === 'function') {
 	robotEl.addEventListener('robot-registered', () => {
-	  // console.warn(`QQQQQ Received robot-registered event from ${this.data.to}`,
+	  // console.debug(`QQQQQ Received robot-registered event from ${this.data.to}`,
 	  // 	     'and attaching now.');
 	  // // You can also check the id, axes, and endLinkEl in the event detail.
 	  attachToRobot(robotEl);
@@ -108,19 +108,19 @@ AFRAME.registerComponent('attach-to-another', {
 //    const forwardABbuttonEvent = (from,a,b, to) => {
 function forwardABbuttonEvent(from,a,b, to) {
   from.addEventListener(a+'buttondown', (evt) => {
-    console.warn('forwarding '+a+'buttondown event to attached child:', to.id);
+    console.debug('forwarding '+a+'buttondown event to attached child:', to.id);
     to.emit(a+'buttondown', evt, false);
   });
   from.addEventListener(a+'buttonup', (evt) => {
-    console.warn('forwarding '+a+'buttonup event to attached child:', to.id);
+    console.debug('forwarding '+a+'buttonup event to attached child:', to.id);
     to.emit(a+'buttonup', evt, false);
   });
   from.addEventListener(b+'buttondown', (evt) => {
-    console.warn('forwarding '+b+'buttondown event to attached child:', to.id);
+    console.debug('forwarding '+b+'buttondown event to attached child:', to.id);
     to.emit(b+'buttondown', evt, false);
   });
   from.addEventListener(b+'buttonup', (evt) => {
-    console.warn('forwarding '+b+'buttonup event to attached child:', to.id);
+    console.debug('forwarding '+b+'buttonup event to attached child:', to.id);
     to.emit(b+'buttonup', evt, false);
   });
 }
@@ -132,10 +132,10 @@ AFRAME.registerComponent('attach-event-broadcaster', {
   },
   init: function() {
     this.el.addEventListener('attached', (evt) => {
-      console.log('###### event broadcaster: attached event received:', evt);
+      console.debug('###### event broadcaster: attached event received:', evt);
       // const child = this.data.target;
       const child = evt.detail.child;
-      console.log('###### event broadcaster: child:', child?.id);
+      console.debug('###### event broadcaster: child:', child?.id);
       if (child) {
 	forwardABbuttonEvent(this.el, 'a', 'b', child);
 	forwardABbuttonEvent(this.el, 'x', 'y', child);

@@ -114,11 +114,11 @@ async function urdfLoader2(planeEl,
     urdfArray = sortJointsByHierarchy(urdfArray);
   }
   const revolutes = urdfArray.filter(obj => obj.$.type === 'revolute');
-  // console.log('1: type of base:', typeof base, base);
+  // console.debug('1: type of base:', typeof base, base);
   base = document.createElement('a-entity');
-  // console.log('2: type of base:', typeof base, base);
+  // console.debug('2: type of base:', typeof base, base);
   base.setAttribute('class', 'link');
-  // console.log("base link:", revolutes[0].parent.$.link);
+  // console.debug("base link:", revolutes[0].parent.$.link);
   // const meshes = linkMap[revolutes[0].parent.$.link].visual.forEach(visual => 
   //   visual.geometry.mesh?.$.filename);
   // linkMap[revolutes[0].parent.$.link].visual.forEach(visual => {
@@ -142,7 +142,7 @@ async function urdfLoader2(planeEl,
     if (visual.geometry.mesh.$.scale) {
       el.setAttribute('scale', visual.geometry.mesh.$.scale);
     }
-    // console.log('Setting gltf-model to:', gltfDirPath + filename);
+    // console.debug('Setting gltf-model to:', gltfDirPath + filename);
     await new Promise((resolve)=>{
       const cleanup = (success) => {
 	el.removeEventListener('model-loaded', onLoaded);
@@ -190,7 +190,7 @@ async function urdfLoader2(planeEl,
     // next
     parentEl = axisEl;
     // *** visuals
-    // console.log("Processing joint:", joint.$.name,
+    // console.debug("Processing joint:", joint.$.name,
     // 		"child link:", joint.child.$.link);
     let visuals = linkMap[joint.child.$.link].visual;
     if (visuals) {
@@ -221,7 +221,7 @@ async function urdfLoader2(planeEl,
 	const cleanup = (success) => {
 	  el.removeEventListener('model-loaded', onLoaded);
 	  el.removeEventListener('model-error', onError);
-	  console.log('MMMM loader success:', success,
+	  console.debug('MMMM loader success:', success,
 		      ' cleanup listeners for:', filename);
 	};
 	const onLoaded = () => { cleanup(true); resolve(true); };
@@ -247,8 +247,8 @@ async function urdfLoader2(planeEl,
     }
     robotRegistryComp.add(id,
 			  {el: planeEl, axes: axes, endLink: endLinkEl});
-    // console.warn('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
-    console.log('######## ', id, ' registered with axes(length):',
+    // console.debug('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
+    console.debug('######## ', id, ' registered with axes(length):',
 		Object.keys(axes).length,
 		'endLink(id):', endLinkEl.id);
     planeEl.axes = axes;

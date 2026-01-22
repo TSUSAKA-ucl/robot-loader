@@ -110,15 +110,15 @@ AFRAME.registerComponent('thumbstick-menu', {
 			    });
 
     this.el.addEventListener('thumbstickup', () => {
-      // console.log('### thumbstick UP event');
-      // console.log('current index: ', this.currentIndex);
-      // console.log('menuVisible: ', this.menuVisible);
+      // console.debug('### thumbstick UP event');
+      // console.debug('current index: ', this.currentIndex);
+      // console.debug('menuVisible: ', this.menuVisible);
       if (!this.menuVisible) return;
       this.menuVisible = false;
       this.menuEls.forEach(el => { el.object3D.visible = false; });
       if (this.currentIndex >= 0) {
         // dispatch custom event with chosen index
-        // console.log('emit menu number :', this.currentIndex);
+        // console.debug('emit menu number :', this.currentIndex);
         this.el.emit('thumbmenu-select', { index: this.currentIndex,
 					   texts: this.menuTexts,
 					   colors: this.menuColors,
@@ -126,7 +126,7 @@ AFRAME.registerComponent('thumbstick-menu', {
 					 });
       }
       this.currentIndex = -1;
-      // console.log('### thumbstick UP menuColors reset:', this.menuColors);
+      // console.debug('### thumbstick UP menuColors reset:', this.menuColors);
       this.menuEls.forEach((el,i)=>{el.setAttribute('color',
 						    this.menuColors[i]);});
     });
@@ -137,7 +137,7 @@ AFRAME.registerComponent('thumbstick-menu', {
     this.currentIndex = index;
     this.menuEls.forEach((el, i) => {
       el.setAttribute('color', i === index ? 'yellow' : this.menuColors[i]);
-      // console.log('## HIGHLIGHT ',i);
+      // console.debug('## HIGHLIGHT ',i);
     });
   }
 });
@@ -145,11 +145,11 @@ AFRAME.registerComponent('thumbstick-menu', {
 AFRAME.registerComponent('thumbmenu-event-handler', {
   init: function() {
     this.el.addEventListener('thumbmenu-select', (evt) => {
-      // console.log('### menu select event:', evt.detail.index);
-      // console.log('### menu index:', evt.detail.index);
-      // console.log('### menu texts:', evt.detail.texts);
-      console.log('### menu text[i]:', evt.detail.texts[evt.detail.index]);
-      // console.log('### this.el.laserCylinder:', this.el.laserCylinder);
+      // console.debug('### menu select event:', evt.detail.index);
+      // console.debug('### menu index:', evt.detail.index);
+      // console.debug('### menu texts:', evt.detail.texts);
+      console.debug('### menu text[i]:', evt.detail.texts[evt.detail.index]);
+      // console.debug('### this.el.laserCylinder:', this.el.laserCylinder);
       if (evt.detail.texts[evt.detail.index] === 'ray' ||
 	  evt.detail.texts[evt.detail.index] === 'motion') {
 	if (this.el?.laserVisible) {
@@ -167,7 +167,7 @@ AFRAME.registerComponent('thumbmenu-event-handler', {
 });
 
 function flipRayOnOff(thisEl, tf) {
-  console.log('### flip ray on/off. prev. laserVisible :', thisEl.laserVisible,
+  console.debug('### flip ray on/off. prev. laserVisible :', thisEl.laserVisible,
 	     ' arg tf:', tf);
   if (! ('laserVisible' in thisEl)) return;
   switch (tf) {
@@ -195,7 +195,7 @@ function flipRayOnOff(thisEl, tf) {
       const p = new THREE.Vector3(0.005, cylinderHeight*0.5, 0.015);
       cylinder.object3D.quaternion.copy(q);
       cylinder.object3D.position.copy(p.applyQuaternion(q));
-      // console.log('ray x,y,z: ', ray.x, ray.y, ray.z);
+      // console.debug('ray x,y,z: ', ray.x, ray.y, ray.z);
     }
   }
   if (thisEl?.frameObject) {

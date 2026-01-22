@@ -38,7 +38,7 @@ AFRAME.registerComponent('arm-motion-ui', {
     const distance2 = cameraPosition.distanceTo(vrCtrlPosition)
     this.ratio = distance1/distance2;
     this.resetTimeDelta = 0;
-    // console.warn('MMMMM ctrlStartInv:',this.vrCtrlStartingPoseInv[0]
+    // console.debug('MMMMM ctrlStartInv:',this.vrCtrlStartingPoseInv[0]
     // 		 // , this.vrCtrlStartingPoseInv[1]
     // 		 ,' objStart:',this.objStartingPose[0]
     // 		 // ,this.objStartingPose[1]

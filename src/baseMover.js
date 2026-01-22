@@ -24,7 +24,7 @@ AFRAME.registerComponent('base-mover', {
   },
   tick: function (time, timeDelta) {
     if (!this.canMove) return;
-    console.log('base-mover tick', this.vrControllerEl.thumbstick);
+    console.debug('base-mover tick', this.vrControllerEl.thumbstick);
     const velocityRatio = -this.vrControllerEl.thumbstick[1] || 0;
     const angularVelocityRatio = -this.vrControllerEl.thumbstick[0] || 0;
     const distance = (velocityRatio * this.data.velocityMax) * (timeDelta / 1000);

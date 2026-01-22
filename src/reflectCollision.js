@@ -40,7 +40,7 @@ AFRAME.registerComponent('reflect-collision', {
 	  // restore original colors
 	  for (let i = 0; i < this.el.axes.length + 1; i++) {
 	    const linkEl = numberToEl(i, this.el);
-	    // console.log('Status: Processing link index:', i,
+	    // console.debug('Status: Processing link index:', i,
 	    // 	      'link:', linkEl);
 	    for (let j = 0; j < linkEl?.children?.length; j++) {
 	      const visualEl = linkEl.children[j];
@@ -60,7 +60,7 @@ AFRAME.registerComponent('reflect-collision', {
 		      ' uniqueFlat:', uniqueFlat);
 	for (let i = 0; i < this.el.axes.length + 1; i++) {
 	  const linkEl = numberToEl(i, this.el);
-	  // console.log('Status: Processing link index:', i,
+	  // console.debug('Status: Processing link index:', i,
 	  // 	      'link:', linkEl);
 	  if (!uniqueFlat.includes(i)) {
 	    // non-collision: original color
