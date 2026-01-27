@@ -23,13 +23,47 @@ export function registerResetTarget(component) {
   });
 }
 
+function resetComponents(el) {
+  if (el.resetTargets && Array.isArray(el.resetTargets)) {
+    el.resetTargets.forEach( (target) => {
+      // console.debug('event-forwarder: reset component:',target.name,'of el',el.id);
+      el.removeAttribute(target.name);
+      // console.debug('event-forwarder:',target.name,target.defaultValue,'set to el',el.id);
+      el.setAttribute(target.name, target.defaultValue);
+    });
+  }
+  if (el.attached && Array.isArray(el.attached)) {
+    el.attached.forEach( (childEl) => {
+      resetComponents(childEl);
+    });
+  }
+}
+
 AFRAME.registerComponent('attach-to-another', {
   schema: {
     to: {type: 'string'},
     axis: {type: 'number', default: Number.MAX_SAFE_INTEGER},
+    event: {type: 'string', default: ''},
   },
   init: function() {
-    const onSceneLoaded = () => {
+    const evtArgs = this.data.event.split(',').map(e => e.trim()).filter(e => e.length > 0);
+    const events = [];
+    evtArgs.forEach( (evtName) => {
+      if (evtName === 'a' || evtName === 'b' || evtName === 'x' || evtName === 'y') {
+	events.push(evtName + 'buttondown');
+	events.push(evtName + 'buttonup');
+      } else if (evtName === 'trigger' || evtName === 'grip') {
+	events.push(evtName + 'down');
+	events.push(evtName + 'up');
+      } else if (evtName === 'thumbstick') {
+	events.push('thumbstickmoved');
+	events.push('thumbstickdown');
+	events.push('thumbstickup');
+      } else {
+	events.push(evtName);
+      }
+    });
+    this.onSceneLoaded = () => {
       const attachToRobot = (robot) => {
 	// attach this.el to robot's endLink
 	const endLink = robot?.endLink;
@@ -56,6 +90,12 @@ AFRAME.registerComponent('attach-to-another', {
 	    targetLink = robot.axes[targetAxisNum];
 	  }
 	  targetLink.appendChild(this.el);
+	  events.forEach( (evtName) => {
+	    robot.addEventListener(evtName, (evt) => {
+	      // console.debug(`Forwarding event ${evtName} from robot ${robot.id} to attached child ${this.el.id}`);
+	      this.el.emit(evtName, evt, false);
+	    });
+	  });
 	  // this.el.play();
 	  console.debug(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
 		      this.data.axis>=robot.axes.length
@@ -66,16 +106,13 @@ AFRAME.registerComponent('attach-to-another', {
 	  this.el.removeAttribute('scale');
 	  this.el.object3D.position.set(0, 0, 0);
 	  this.el.object3D.quaternion.set(0, 0, 0, 1);
-	  if (this.el.resetTargets && Array.isArray(this.el.resetTargets)) {
-	    this.el.resetTargets.forEach( (target) => {
-	      console.debug('event-forwarder: reset component:',target.name,'of el',this.el.id);
-	      this.el.removeAttribute(target.name);
-	      console.debug('event-forwarder:',target.name,target.defaultValue,'set to el',this.el.id);
-	      this.el.setAttribute(target.name, target.defaultValue);
-	    });
+	  resetComponents(this.el);
+	  if (!(robot.attached && Array.isArray(robot.attached))) {
+	    robot.attached = [];
 	  }
+	  robot.attached.push(this.el);
 	  robot.emit('attached', {child: this.el}, false);
-	  this.el.emit('attached', {parent: robot, endLink: targetLink}, false);
+	  this.el.emit('attach', {parent: robot, endLink: targetLink}, false);
 	} catch (e) {
 	  console.error('appendChild failed:',e);
 	}
@@ -94,52 +131,72 @@ AFRAME.registerComponent('attach-to-another', {
       } else {
 	console.warn(`Cannot attach to ${this.data.to}: not found or invalid robot entity.`);
       }
-    }
+    };
+  },
+  update: function() {
     // **** Wait for scene to load
     if (this.el.sceneEl.hasLoaded) {
-      onSceneLoaded();
+      this.onSceneLoaded();
     } else {
-      this.el.sceneEl.addEventListener('loaded', onSceneLoaded);
+      this.el.sceneEl.addEventListener('loaded', this.onSceneLoaded);
     }
-  }
-});
-
-
-//    const forwardABbuttonEvent = (from,a,b, to) => {
-function forwardABbuttonEvent(from,a,b, to) {
-  from.addEventListener(a+'buttondown', (evt) => {
-    console.debug('forwarding '+a+'buttondown event to attached child:', to.id);
-    to.emit(a+'buttondown', evt, false);
-  });
-  from.addEventListener(a+'buttonup', (evt) => {
-    console.debug('forwarding '+a+'buttonup event to attached child:', to.id);
-    to.emit(a+'buttonup', evt, false);
-  });
-  from.addEventListener(b+'buttondown', (evt) => {
-    console.debug('forwarding '+b+'buttondown event to attached child:', to.id);
-    to.emit(b+'buttondown', evt, false);
-  });
-  from.addEventListener(b+'buttonup', (evt) => {
-    console.debug('forwarding '+b+'buttonup event to attached child:', to.id);
-    to.emit(b+'buttonup', evt, false);
-  });
-}
-
-AFRAME.registerComponent('attach-event-broadcaster', {
-  multiple: true,
-  schema: {
-    target: {type: 'string'}
   },
-  init: function() {
-    this.el.addEventListener('attached', (evt) => {
-      console.debug('###### event broadcaster: attached event received:', evt);
-      // const child = this.data.target;
-      const child = evt.detail.child;
-      console.debug('###### event broadcaster: child:', child?.id);
-      if (child) {
-	forwardABbuttonEvent(this.el, 'a', 'b', child);
-	forwardABbuttonEvent(this.el, 'x', 'y', child);
-      }
-    });
+  pause: function() {
+    // console.debug('attach-to-another: pause called for', this.el.id);
   }
 });
+
+
+// //    const forwardABbuttonEvent = (from,a,b, to) => {
+// function forwardABbuttonEvent(from,a,b, to) {
+//   from.addEventListener(a+'buttondown', (evt) => {
+//     console.warn('forwarding '+a+'buttondown event to attached child:', to.id);
+//     to.emit(a+'buttondown', evt, false);
+//   });
+//   from.addEventListener(a+'buttonup', (evt) => {
+//     console.warn('forwarding '+a+'buttonup event to attached child:', to.id);
+//     to.emit(a+'buttonup', evt, false);
+//   });
+//   from.addEventListener(b+'buttondown', (evt) => {
+//     console.warn('forwarding '+b+'buttondown event to attached child:', to.id);
+//     to.emit(b+'buttondown', evt, false);
+//   });
+//   from.addEventListener(b+'buttonup', (evt) => {
+//     console.warn('forwarding '+b+'buttonup event to attached child:', to.id);
+//     to.emit(b+'buttonup', evt, false);
+//   });
+// }
+
+// AFRAME.registerComponent('attach-event-broadcaster', {
+//   multiple: true,
+//   schema: {
+//     target: {type: 'string'}
+//   },
+//   init: function() {
+//     const setEventForwarding = (child) => {
+//       console.warn('###### event broadcaster',this.id,': setting event forwarding to child:', child?.id);
+//       if (child) {
+// 	forwardABbuttonEvent(this.el, 'a', 'b', child);
+// 	forwardABbuttonEvent(this.el, 'x', 'y', child);
+//       }
+//       registerResetTarget(this);
+//     };
+//     const targetEl = document.getElementById(this.data.target);
+//     if (this.el.attached && Array.isArray(this.el.attached) &&
+// 	this.el.attached.includes(targetEl)) {
+//       setEventForwarding(targetEl);
+//     } else {
+//       this.evtListener = (evt) => {
+// 	console.warn('###### event broadcaster',this.id,': listen event received:', evt);
+// 	console.warn('###### child.id:', evt.detail.child.id, ' target:', this.data.target);
+// 	if (evt.detail.child.id === this.data.target) {
+// 	  const child = evt.detail.child;
+// 	  console.warn('###### event broadcaster',this.id,': child:', child?.id);
+// 	  setEventForwarding(child);
+// 	  this.el.removeEventListener('attached', this.evtListener);
+// 	}
+//       };
+//       this.el.addEventListener('attached', this.evtListener);
+//     }
+//   }
+// });

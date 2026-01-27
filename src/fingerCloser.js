@@ -58,22 +58,6 @@ AFRAME.registerComponent('finger-closer', {
     } else {
       this.el.addEventListener('loaded', onLoading, {once: true});
     }
-    // if (!(this.el.resetTargets && Array.isArray(this.el.resetTargets))) {
-    //   this.el.resetTargets = [];
-    // }
-    // this.el.resetTargets.push({
-    //   name: 'finger-closer',
-    //   defaultValue: {openEvent: this.data.openEvent,
-    // 		     openStopEvent: this.data.openStopEvent,
-    // 		     openSpeed: this.data.openSpeed,
-    // 		     openMax: this.data.openMax,
-    // 		     closeEvent: this.data.closeEvent,
-    // 		     closeStopEvent: this.data.closeStopEvent,
-    // 		     closeSpeed: this.data.closeSpeed,
-    // 		     closeMax: this.data.closeMax,
-    // 		     stationaryJoints: this.data.stationaryJoints,
-    // 		     interval: this.data.interval}
-    // });
   },
   remove: function() {
   },
