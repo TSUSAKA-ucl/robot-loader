@@ -63,10 +63,15 @@ AFRAME.registerComponent('finger-closer', {
   },
   tick: function(time, timeDelta) {
     // console.debug('finger-closer loop:',this?.el?.id,' in axesUpdate', Date.now()-this?.start);
-    if (this.el?.axes) {
+    if (this.el?.realAxes) {
+      if (this.debugTime < 3000) {
+	this.debugTime += timeDelta;
+      } else {
+	this.debugTime = 0;
+      }
       if (this?.jointValues === undefined) {
-	this.jointValues = Array(this.el.axes.length).fill(0);
-	console.debug('finger-closer: Initialized jointValues for',this.el.id, this.jointValues);
+	this.jointValues = Array(this.el.realAxes.length).fill(0);
+	console.warn('finger-closer: Initialized jointValues for',this.el.id, this.jointValues);
       } else {
 	if (this.opening || this.closing) {
 	  const jointValues = this.jointValues;
@@ -95,10 +100,27 @@ AFRAME.registerComponent('finger-closer', {
 	      }
 	    }
 	  }
-	  this.el.axes.map((axisEl, idx) => {
-	    const axis = axisEl.axis;
-	    axisEl.object3D.setRotationFromAxisAngle(axis,
-						     jointValues[idx]);
+	  this.el.realAxes.map((realAxis, idx) => {
+	    if (this.debugTime < 16) {
+	      console.debug('finger-closer:',realAxis.type,'joint',idx);
+	    }
+	    if (realAxis.type === 'revolute') {
+	      const axisEl = realAxis.el;
+	      const axis = axisEl.axis;
+	      axisEl.object3D.setRotationFromAxisAngle(axis,
+						       jointValues[idx]);
+	    } else if (realAxis.type === 'prismatic') {
+	      if (this.debugTime < 16) {
+		console.debug('finger-closer:',this.el.id,Date.now()-this.start,
+			      ' prismatic joint',idx, 'value:', jointValues[idx],
+			      'axis:', realAxis.el.axis);
+	      }
+	      const axisEl = realAxis.el;
+	      const axis = realAxis.el.axis;
+	      axisEl.object3D.position.set(axis.x * jointValues[idx],
+					   axis.y * jointValues[idx],
+					   axis.z * jointValues[idx]);
+	    }
 	  });
 	}
       }

@@ -53,6 +53,7 @@ async function urdfLoader2(planeEl,
   }
 
   const axesList = [];
+  const realAxes = [];
   let base = null;
 
   const urdfPath = robotModel + '/' + urdfFile;
@@ -113,7 +114,9 @@ async function urdfLoader2(planeEl,
   if (!urdfIsSorted) {
     urdfArray = sortJointsByHierarchy(urdfArray);
   }
-  const revolutes = urdfArray.filter(obj => obj.$.type === 'revolute');
+  const revolutes = urdfArray.filter(obj => (obj.$.type === 'revolute' ||
+					     obj.$.type === 'prismatic' ||
+					     obj.$.type === 'fixed'));
   // console.debug('1: type of base:', typeof base, base);
   base = document.createElement('a-entity');
   // console.debug('2: type of base:', typeof base, base);
@@ -186,7 +189,8 @@ async function urdfLoader2(planeEl,
       axisEl.axis = axis.normalize();
     }
     jEl.appendChild(axisEl);
-    axesList.push(axisEl);
+    if (joint.$.type === 'revolute') axesList.push(axisEl);
+    realAxes.push({el: axisEl, type: joint.$.type});
     // next
     parentEl = axisEl;
     // *** visuals
@@ -252,6 +256,7 @@ async function urdfLoader2(planeEl,
 		Object.keys(axes).length,
 		'endLink(id):', endLinkEl.id);
     planeEl.axes = axes;
+    planeEl.realAxes = realAxes;
     planeEl.endLink = endLinkEl;
     planeEl.emit('robot-registered', {id, axes, endLinkEl}, false);
   };
