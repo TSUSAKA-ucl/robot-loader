@@ -13,6 +13,7 @@ AFRAME.registerComponent('finger-closer', {
     closeMax: {type: 'number', default: 44}, // in degrees
     stationaryJoints: {type: 'array', default: []}, // indices of joints that do not move
     interval: {type: 'number', default: 0.1}, // seconds
+    debugTick: {type: 'boolean', default: false},
   },
   init: function() {
     console.debug('event-forwarder: finger-close init component.data:',this.data);
@@ -49,6 +50,7 @@ AFRAME.registerComponent('finger-closer', {
       this.el.addEventListener(this.data.closeStopEvent, () => {
 	console.debug('close stop event received by:', this.el.id);
 	this.closing = false;
+	if (this.data?.debugTick) this.data.debugTick = false;
       });
       console.debug('event-forwarder: before register component.data:',this.data);
       registerResetTarget(this);
@@ -71,7 +73,8 @@ AFRAME.registerComponent('finger-closer', {
       }
       if (this?.jointValues === undefined) {
 	this.jointValues = Array(this.el.realAxes.length).fill(0);
-	console.warn('finger-closer: Initialized jointValues for',this.el.id, this.jointValues);
+	// console.debug('finger-closer: Initialized jointValues for',
+	// 	     this.el.id, this.jointValues);
       } else {
 	if (this.opening || this.closing) {
 	  const jointValues = this.jointValues;
@@ -100,26 +103,35 @@ AFRAME.registerComponent('finger-closer', {
 	      }
 	    }
 	  }
+	  this.jointValues = jointValues;
+	}
+	if (this.jointValues) {
 	  this.el.realAxes.map((realAxis, idx) => {
 	    if (this.debugTime < 16) {
 	      console.debug('finger-closer:',realAxis.type,'joint',idx);
+	    }
+	    let thisJointValue = this.jointValues[idx];
+	    if (this.data?.debugTick) {
+	      thisJointValue = thisJointValue
+		+ 0.1*(this.openMaxRadian - this.closeMaxRadian)
+		*Math.sin(Date.now()/100);
 	    }
 	    if (realAxis.type === 'revolute') {
 	      const axisEl = realAxis.el;
 	      const axis = axisEl.axis;
 	      axisEl.object3D.setRotationFromAxisAngle(axis,
-						       jointValues[idx]);
+						     thisJointValue);
 	    } else if (realAxis.type === 'prismatic') {
 	      if (this.debugTime < 16) {
 		console.debug('finger-closer:',this.el.id,Date.now()-this.start,
-			      ' prismatic joint',idx, 'value:', jointValues[idx],
+			      ' prismatic joint',idx, 'value:', thisJointValue,
 			      'axis:', realAxis.el.axis);
 	      }
 	      const axisEl = realAxis.el;
 	      const axis = realAxis.el.axis;
-	      axisEl.object3D.position.set(axis.x * jointValues[idx],
-					   axis.y * jointValues[idx],
-					   axis.z * jointValues[idx]);
+	      axisEl.object3D.position.set(axis.x * thisJointValue,
+					   axis.y * thisJointValue,
+					   axis.z * thisJointValue);
 	    }
 	  });
 	}

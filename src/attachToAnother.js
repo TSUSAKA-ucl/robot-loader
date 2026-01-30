@@ -8,9 +8,11 @@ export function registerResetTarget(component) {
   const newData = { ... component.data };
   // if passing the same object reference, setAttribute may not work properly
   // and it use default value of the schema instead.
-  if (newData) {
-    console.debug('event-forwarder: register reset: component data:',newData);
-  }
+  // console.warn('event-forwarder: register reset: component data:',newData);
+  // if (newData) {
+  //   console.log('event-forwarder: register reset: component data:',newData);
+  //   console.debug('event-forwarder: register reset: component data:',newData);
+  // }
     
   if (!(component.el.resetTargets && Array.isArray(component.el.resetTargets))) {
     component.el.resetTargets = [];
@@ -30,6 +32,7 @@ function resetComponents(el) {
       el.removeAttribute(target.name);
       // console.debug('event-forwarder:',target.name,target.defaultValue,'set to el',el.id);
       el.setAttribute(target.name, target.defaultValue);
+      el.components[target.name]?.play();
     });
   }
   if (el.attached && Array.isArray(el.attached)) {
@@ -39,6 +42,28 @@ function resetComponents(el) {
   }
 }
 
+function parseSchemaEvents(eventNames) {
+  const evtArgs = eventNames.split(',')
+	.map(e => e.trim()).filter(e => e.length > 0);
+  const events = [];
+  evtArgs.forEach( (evtName) => {
+    if (evtName === 'a' || evtName === 'b' || evtName === 'x' || evtName === 'y') {
+      events.push(evtName + 'buttondown');
+      events.push(evtName + 'buttonup');
+    } else if (evtName === 'trigger' || evtName === 'grip') {
+      events.push(evtName + 'down');
+      events.push(evtName + 'up');
+    } else if (evtName === 'thumbstick') {
+      events.push('thumbstickmoved');
+      events.push('thumbstickdown');
+      events.push('thumbstickup');
+    } else {
+      events.push(evtName);
+    }
+  });
+  return events;
+}
+
 AFRAME.registerComponent('attach-to-another', {
   schema: {
     to: {type: 'string'},
@@ -46,23 +71,8 @@ AFRAME.registerComponent('attach-to-another', {
     event: {type: 'string', default: ''},
   },
   init: function() {
-    const evtArgs = this.data.event.split(',').map(e => e.trim()).filter(e => e.length > 0);
-    const events = [];
-    evtArgs.forEach( (evtName) => {
-      if (evtName === 'a' || evtName === 'b' || evtName === 'x' || evtName === 'y') {
-	events.push(evtName + 'buttondown');
-	events.push(evtName + 'buttonup');
-      } else if (evtName === 'trigger' || evtName === 'grip') {
-	events.push(evtName + 'down');
-	events.push(evtName + 'up');
-      } else if (evtName === 'thumbstick') {
-	events.push('thumbstickmoved');
-	events.push('thumbstickdown');
-	events.push('thumbstickup');
-      } else {
-	events.push(evtName);
-      }
-    });
+    // const events = parseSchemaEvents(this.data.event);
+    // this.evtHandlers = [];
     this.onSceneLoaded = () => {
       const attachToRobot = (robot) => {
 	// attach this.el to robot's endLink
@@ -89,30 +99,38 @@ AFRAME.registerComponent('attach-to-another', {
 	  } else {
 	    targetLink = robot.axes[targetAxisNum];
 	  }
+	  const tmpResetTargets = this.el.resetTargets;
+	  const tmpAttached = this.el.attached;
 	  targetLink.appendChild(this.el);
-	  events.forEach( (evtName) => {
-	    robot.addEventListener(evtName, (evt) => {
-	      // console.debug(`Forwarding event ${evtName} from robot ${robot.id} to attached child ${this.el.id}`);
-	      this.el.emit(evtName, evt, false);
-	    });
-	  });
-	  // this.el.play();
-	  console.debug(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
-		      this.data.axis>=robot.axes.length
-		      ? `endLink :${endLink.id}`
-		      : `axis ${this.data.axis}`);
-	  this.el.removeAttribute('position');
-	  this.el.removeAttribute('rotation');
-	  this.el.removeAttribute('scale');
-	  this.el.object3D.position.set(0, 0, 0);
-	  this.el.object3D.quaternion.set(0, 0, 0, 1);
-	  resetComponents(this.el);
-	  if (!(robot.attached && Array.isArray(robot.attached))) {
-	    robot.attached = [];
+	  this.el.resetTargets = tmpResetTargets;
+	  this.el.attached = tmpAttached;
+	  const onLoaded = () => {
+	    robot.setAttribute('event-forwarder__'+this.el.id,
+			       { target: this.el.id,
+				 event: this.data.event });
+	    // this.el.play();
+	    console.debug(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
+			  this.data.axis>=robot.axes.length
+			  ? `endLink :${endLink.id}`
+			  : `axis ${this.data.axis}`);
+	    this.el.removeAttribute('position');
+	    this.el.removeAttribute('rotation');
+	    this.el.removeAttribute('scale');
+	    this.el.object3D.position.set(0, 0, 0);
+	    this.el.object3D.quaternion.set(0, 0, 0, 1);
+	    resetComponents(this.el);
+	    if (!(robot.attached && Array.isArray(robot.attached))) {
+	      robot.attached = [];
+	    }
+	    robot.attached.push(this.el);
+	    robot.emit('attached', {child: this.el}, false);
+	    this.el.emit('attach', {parent: robot, endLink: targetLink}, false);
+	  };
+	  if (targetLink.hasLoaded) {
+	    onLoaded();
+	  } else {
+	    this.el.addEventListener('loaded', onLoaded, {once: true});
 	  }
-	  robot.attached.push(this.el);
-	  robot.emit('attached', {child: this.el}, false);
-	  this.el.emit('attach', {parent: robot, endLink: targetLink}, false);
 	} catch (e) {
 	  console.error('appendChild failed:',e);
 	}
@@ -127,6 +145,7 @@ AFRAME.registerComponent('attach-to-another', {
 	  // 	     'and attaching now.');
 	  // // You can also check the id, axes, and endLinkEl in the event detail.
 	  attachToRobot(robotEl);
+	  this.parentRobotEl = robotEl;
 	});
       } else {
 	console.warn(`Cannot attach to ${this.data.to}: not found or invalid robot entity.`);
@@ -143,60 +162,48 @@ AFRAME.registerComponent('attach-to-another', {
   },
   pause: function() {
     // console.debug('attach-to-another: pause called for', this.el.id);
+  },
+  remove: function() {
+    if (this.parentRobotEl) {
+      // if parentRobotEl has event-forwarder component, remove it
+      this.parentRobotEl.removeAttribute('event-forwarder__'+this.el.id);
+    }
+    // Remove event listeners
+    // this.evtHandlers.forEach( (evtObj) => {
+    //   this.el.removeEventListener(evtObj.name, evtObj.handler);
+    // });
+    // this.evtHandlers = [];
   }
 });
 
-
-// //    const forwardABbuttonEvent = (from,a,b, to) => {
-// function forwardABbuttonEvent(from,a,b, to) {
-//   from.addEventListener(a+'buttondown', (evt) => {
-//     console.warn('forwarding '+a+'buttondown event to attached child:', to.id);
-//     to.emit(a+'buttondown', evt, false);
-//   });
-//   from.addEventListener(a+'buttonup', (evt) => {
-//     console.warn('forwarding '+a+'buttonup event to attached child:', to.id);
-//     to.emit(a+'buttonup', evt, false);
-//   });
-//   from.addEventListener(b+'buttondown', (evt) => {
-//     console.warn('forwarding '+b+'buttondown event to attached child:', to.id);
-//     to.emit(b+'buttondown', evt, false);
-//   });
-//   from.addEventListener(b+'buttonup', (evt) => {
-//     console.warn('forwarding '+b+'buttonup event to attached child:', to.id);
-//     to.emit(b+'buttonup', evt, false);
-//   });
-// }
-
-// AFRAME.registerComponent('attach-event-broadcaster', {
-//   multiple: true,
-//   schema: {
-//     target: {type: 'string'}
-//   },
-//   init: function() {
-//     const setEventForwarding = (child) => {
-//       console.warn('###### event broadcaster',this.id,': setting event forwarding to child:', child?.id);
-//       if (child) {
-// 	forwardABbuttonEvent(this.el, 'a', 'b', child);
-// 	forwardABbuttonEvent(this.el, 'x', 'y', child);
-//       }
-//       registerResetTarget(this);
-//     };
-//     const targetEl = document.getElementById(this.data.target);
-//     if (this.el.attached && Array.isArray(this.el.attached) &&
-// 	this.el.attached.includes(targetEl)) {
-//       setEventForwarding(targetEl);
-//     } else {
-//       this.evtListener = (evt) => {
-// 	console.warn('###### event broadcaster',this.id,': listen event received:', evt);
-// 	console.warn('###### child.id:', evt.detail.child.id, ' target:', this.data.target);
-// 	if (evt.detail.child.id === this.data.target) {
-// 	  const child = evt.detail.child;
-// 	  console.warn('###### event broadcaster',this.id,': child:', child?.id);
-// 	  setEventForwarding(child);
-// 	  this.el.removeEventListener('attached', this.evtListener);
-// 	}
-//       };
-//       this.el.addEventListener('attached', this.evtListener);
-//     }
-//   }
-// });
+AFRAME.registerComponent('event-forwarder', {
+  multiple: true,
+  schema: {
+    target: {type: 'string'},
+    event: {type: 'string'}
+  },
+  init: function() {
+    const events = parseSchemaEvents(this.data.event);
+    const targetEl = document.getElementById(this.data.target);
+    this.eventForwarders = [];
+    // if (this.data.target.tagNam=== 'A-ENTITY') {
+      events.forEach( (evtName) => {
+	const forwardEvent = (evt) => {
+	    targetEl.emit(evtName, evt.detail,false);
+	};
+	this.el.addEventListener(evtName, forwardEvent);
+	this.eventForwarders.push({name: evtName, handler: forwardEvent});
+      });
+    // } else {
+    //   console.warn('event-forwarder: target is not an a-entity:',
+    // 		   this.data.target);
+    // }
+    registerResetTarget(this);
+  },
+  remove: function() {
+    this.eventForwarders.forEach( (evtObj) => {
+      this.el.removeEventListener(evtObj.name, evtObj.handler);
+    });
+    this.eventForwarders = [];
+  }
+});
