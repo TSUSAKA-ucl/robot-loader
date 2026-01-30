@@ -125,7 +125,7 @@ async function urdfLoader2(planeEl,
   // const meshes = linkMap[revolutes[0].parent.$.link].visual.forEach(visual => 
   //   visual.geometry.mesh?.$.filename);
   // linkMap[revolutes[0].parent.$.link].visual.forEach(visual => {
-  let visuals = linkMap[revolutes[0].parent.$.link].visual;
+  let visuals = linkMap[revolutes[0].parent.$.link]?.visual;
   if (visuals) {
     if (!Array.isArray(visuals)) {
       visuals = [visuals];
@@ -191,6 +191,7 @@ async function urdfLoader2(planeEl,
     jEl.appendChild(axisEl);
     if (joint.$.type === 'revolute') axesList.push(axisEl);
     realAxes.push({el: axisEl, type: joint.$.type});
+    axisEl.jointType = joint.$.type;
     // next
     parentEl = axisEl;
     // *** visuals
