@@ -1,24 +1,26 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe'
 
 export function registerResetTarget(component) {
-  console.debug('event-forwarder: register component:',component.name,'of el',component.el.id);
+  globalThis.__customLogger?.debug('event-forwarder: register component:',component.name,'of el',component.el.id);
   if (component.id) {
-    console.debug('event-forwarder: register reset: component has id:',component.id);
+    globalThis.__customLogger?.debug('event-forwarder: register reset: component has id:',component.id);
   }
   const newData = { ... component.data };
   // if passing the same object reference, setAttribute may not work properly
   // and it use default value of the schema instead.
-  // console.warn('event-forwarder: register reset: component data:',newData);
+  // globalThis.__customLogger?.warn('event-forwarder: register reset: component data:',newData);
   // if (newData) {
-  //   console.log('event-forwarder: register reset: component data:',newData);
-  //   console.debug('event-forwarder: register reset: component data:',newData);
+  //   globalThis.__customLogger?.log('event-forwarder: register reset: component data:',newData);
+  //   globalThis.__customLogger?.debug('event-forwarder: register reset: component data:',newData);
   // }
     
   if (!(component.el.resetTargets && Array.isArray(component.el.resetTargets))) {
     component.el.resetTargets = [];
   }
   const componentStr = component?.id ? component.name + '__' + component.id : component.name;
-  console.debug('event-forwarder: componentStr:',componentStr);
+  globalThis.__customLogger?.debug('event-forwarder: componentStr:',componentStr);
   component.el.resetTargets.push({
     name: componentStr,
     defaultValue: newData
@@ -28,9 +30,9 @@ export function registerResetTarget(component) {
 function resetComponents(el) {
   if (el.resetTargets && Array.isArray(el.resetTargets)) {
     el.resetTargets.forEach( (target) => {
-      // console.debug('event-forwarder: reset component:',target.name,'of el',el.id);
+      // globalThis.__customLogger?.debug('event-forwarder: reset component:',target.name,'of el',el.id);
       el.removeAttribute(target.name);
-      // console.debug('event-forwarder:',target.name,target.defaultValue,'set to el',el.id);
+      // globalThis.__customLogger?.debug('event-forwarder:',target.name,target.defaultValue,'set to el',el.id);
       el.setAttribute(target.name, target.defaultValue);
       el.components[target.name]?.play();
     });
@@ -78,16 +80,16 @@ AFRAME.registerComponent('attach-to-another', {
 	// attach this.el to robot's endLink
 	const endLink = robot?.endLink;
 	if (!endLink) {
-	  console.warn('endLink:',endLink);
-	  console.warn(`Robot ${robot.id} has no endLink to attach to.`);
+	  globalThis.__customLogger?.warn('endLink:',endLink);
+	  globalThis.__customLogger?.warn(`Robot ${robot.id} has no endLink to attach to.`);
 	  return;
 	}
 	if (robot?.axes == null || !Array.isArray(robot.axes)) {
-	  console.warn(`Robot ${robot.id} has no axes array to attach to.`);
+	  globalThis.__customLogger?.warn(`Robot ${robot.id} has no axes array to attach to.`);
 	  return;
 	}
-	// console.debug('QQQQQ endLink.hasLoaded?',endLink.hasLoaded);
-	console.debug('QQQQQ Attaching this.data.axis:',this.data.axis,
+	// globalThis.__customLogger?.debug('QQQQQ endLink.hasLoaded?',endLink.hasLoaded);
+	globalThis.__customLogger?.debug('QQQQQ Attaching this.data.axis:',this.data.axis,
 		    'to robot:',robot.id,
 		    'with axes:',robot.axes.length,
 		    'endLink:',endLink.id);
@@ -109,7 +111,7 @@ AFRAME.registerComponent('attach-to-another', {
 			       { target: this.el.id,
 				 event: this.data.event });
 	    // this.el.play();
-	    console.debug(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
+	    globalThis.__customLogger?.debug(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
 			  this.data.axis>=robot.axes.length
 			  ? `endLink :${endLink.id}`
 			  : `axis ${this.data.axis}`);
@@ -132,23 +134,23 @@ AFRAME.registerComponent('attach-to-another', {
 	    this.el.addEventListener('loaded', onLoaded, {once: true});
 	  }
 	} catch (e) {
-	  console.error('appendChild failed:',e);
+	  globalThis.__customLogger?.error('appendChild failed:',e);
 	}
       };
       const robotEl = document.getElementById(this.data.to);
-      // console.debug('QQQQQ attach-to-another: found robotEl.id:', robotEl.id);
+      // globalThis.__customLogger?.debug('QQQQQ attach-to-another: found robotEl.id:', robotEl.id);
       if (robotEl?.endLink && Array.isArray(robotEl?.axes) ) { // robot has been registered
 	attachToRobot(robotEl);
       } else if (typeof robotEl?.addEventListener === 'function') {
 	robotEl.addEventListener('robot-registered', () => {
-	  // console.debug(`QQQQQ Received robot-registered event from ${this.data.to}`,
+	  // globalThis.__customLogger?.debug(`QQQQQ Received robot-registered event from ${this.data.to}`,
 	  // 	     'and attaching now.');
 	  // // You can also check the id, axes, and endLinkEl in the event detail.
 	  attachToRobot(robotEl);
 	  this.parentRobotEl = robotEl;
 	});
       } else {
-	console.warn(`Cannot attach to ${this.data.to}: not found or invalid robot entity.`);
+	globalThis.__customLogger?.warn(`Cannot attach to ${this.data.to}: not found or invalid robot entity.`);
       }
     };
   },
@@ -161,7 +163,7 @@ AFRAME.registerComponent('attach-to-another', {
     }
   },
   pause: function() {
-    // console.debug('attach-to-another: pause called for', this.el.id);
+    // globalThis.__customLogger?.debug('attach-to-another: pause called for', this.el.id);
   },
   remove: function() {
     if (this.parentRobotEl) {
@@ -195,7 +197,7 @@ AFRAME.registerComponent('event-forwarder', {
 	this.eventForwarders.push({name: evtName, handler: forwardEvent});
       });
     // } else {
-    //   console.warn('event-forwarder: target is not an a-entity:',
+    //   globalThis.__customLogger?.warn('event-forwarder: target is not an a-entity:',
     // 		   this.data.target);
     // }
     registerResetTarget(this);

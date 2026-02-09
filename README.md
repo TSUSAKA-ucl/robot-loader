@@ -37,22 +37,27 @@ The components in the table below are defined in this repository
 |`add-frameObject` | `axesFrame.js`|
 |`arm-motion-ui` | `armMotionUI.js`|
 |`attach-color-recursively` | `ChangeOpacity.js`|
-|`attach-event-broadcaster` | `attachToAnother.js`|
 |`attach-opacity-recursively` | `ChangeOpacity.js`|
 |`attach-to-another` | `attachToAnother.js`|
 |`base-mover` | `baseMover.js`|
 |`change-color` | `ChangeOpacity.js`|
 |`change-opacity` | `ChangeOpacity.js`|
+|`change-original-color` | `ChangeOpacity.js`|
+|`change-original-color-recursively` | `ChangeOpacity.js`|
 |`event-distributor` | `robotRegistry.js`|
+|`event-forwarder` | `attachToAnother.js`|
+|`exact_solution` | `reflectWorkerJoints.js`|
+|`finger-closer` | `fingerCloser.js`|
 |`ik-worker` | `ikWorker.js`|
 |`joint-desirable` | `ikWorker.js`|
+|`joint-desirable-vlimit` | `ikWorker.js`|
+|`joint-move-to` | `jointMoveTo.js`|
 |`joint-weight` | `ikWorker.js`|
 |`reflect-collision` | `reflectCollision.js`|
+|`reflect-joint-limits` | `reflectJointLimits.js`|
 |`reflect-worker-joints` | `reflectWorkerJoints.js`|
 |`robot-loader` | `robotLoader.js`|
 |`robot-registry` | `robotRegistry.js`|
-|`set-joints-directly-in-degree` | `reflectWorkerJoints.js`|
-|`set-joints-directly` | `reflectWorkerJoints.js`|
 |`target-selector` | `robotRegistry.js`|
 |`thumbmenu-event-handler` | `vrControllerThumbMenu.js`|
 |`thumbstick-menu` | `vrControllerThumbMenu.js`|
@@ -61,7 +66,10 @@ The components in the table below are defined in this repository
 ```mermaid
 graph TD
     a-scene --> baseEntity["base a-entity
-    	    	(plane,circle, etc.)"]
+    	    	(plane,circle, etc.)
+				this DOM represent the entire robot"]
+	style baseEntityDesc fill:none,stroke:none,stroke-width:0px;
+	baseEntity  ~~~ baseEntityDesc["<small>this DOM represents the entire robot</small>"]
     baseEntity --> baseLink
     baseLink --> visual0_0
     baseLink --> visual0_1

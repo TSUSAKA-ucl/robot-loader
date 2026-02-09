@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 const THREE = window.AFRAME.THREE;
 
@@ -6,7 +8,7 @@ AFRAME.registerComponent('robot-loader', {
     model: {type: 'string', default: 'jaka_zu_5'},
   },
   init: function() {
-    console.debug('### START robot-loader for:',this.data.model);
+    globalThis.__customLogger?.debug('### START robot-loader for:',this.data.model);
     this.el.model = null;
     const onLoaded = async () => {
       if (await urdfLoader2(this.el, this.data.model)) {
@@ -14,7 +16,7 @@ AFRAME.registerComponent('robot-loader', {
 	// robot-loaderは入れ子になっているケースがあるのでbubblingすると不具合を起こす
 	this.el.emit('robot-dom-ready', null, false);
       } else {
-	console.error('urdfLoader causes error.',
+	globalThis.__customLogger?.error('urdfLoader causes error.',
 		      'next event is not emitted.');
       }
     };
@@ -46,9 +48,9 @@ async function urdfLoader2(planeEl,
     }
   }
   if (robotIdString !== planeEl.id) {
-    console.error('robotIdString does not match planeEl.id:',
+    globalThis.__customLogger?.error('robotIdString does not match planeEl.id:',
 		  robotIdString, planeEl?.id);
-    console.error('Ignore robotIdString');
+    globalThis.__customLogger?.error('Ignore robotIdString');
     robotIdString = planeEl.id;
   }
 
@@ -57,24 +59,24 @@ async function urdfLoader2(planeEl,
   let base = null;
 
   const urdfPath = robotModel + '/' + urdfFile;
-  console.log("Loading robot model from:", urdfPath);
+  globalThis.__customLogger?.log("Loading robot model from:", urdfPath);
   const response1 = await fetch(urdfPath);
   if (!response1.ok) {
-    console.error('ERROR status:',response1.status, ', in Fetch',urdfPath);
+    globalThis.__customLogger?.error('ERROR status:',response1.status, ', in Fetch',urdfPath);
     return;
   }
   const gltfDirPath = robotModel + '/';
   const linkPath = robotModel + '/' + linkFile;
-  console.log("Loading link map from:", linkPath);
+  globalThis.__customLogger?.log("Loading link map from:", linkPath);
   const response2 = await fetch(linkPath);
   if (!response2.ok) {
-    console.error('ERROR status:',response2.status, ', in Fetch', linkPath);
+    globalThis.__customLogger?.error('ERROR status:',response2.status, ', in Fetch', linkPath);
     return;
   }
   const modifierPath = robotModel + '/' + modifierFile;
   const response3 = await fetch(modifierPath);
   if (!response3.ok) {
-    console.warn('cannot find URDF modifier:', modifierPath);
+    globalThis.__customLogger?.warn('cannot find URDF modifier:', modifierPath);
   }
   let urdf = null;
   let urdfIsSorted = false;
@@ -89,13 +91,13 @@ async function urdfLoader2(planeEl,
       urdf = urdfRaw;
     }
   } catch (error) {
-    console.error('Error parsing urdf file:', error);
+    globalThis.__customLogger?.error('Error parsing urdf file:', error);
     return null; // DO NOTHING
   }
   try {
     linkMap = await response2.json();
   } catch (error) {
-    console.error('Error parsing link file:', error);
+    globalThis.__customLogger?.error('Error parsing link file:', error);
     return null; // DO NOTHING
   }
   if (response3.ok) {
@@ -104,12 +106,12 @@ async function urdfLoader2(planeEl,
       updateLeaves(urdf, modifiers);
       updateLeaves(linkMap, modifiers);
     } catch (error) {
-      console.warn('parsing modifier file:', error);
+      globalThis.__customLogger?.warn('parsing modifier file:', error);
       // CONTINUE
     }
   }
   //
-  console.log('updated urdf:',urdf);
+  globalThis.__customLogger?.log('updated urdf:',urdf);
   let urdfArray = Object.values(urdf);
   if (!urdfIsSorted) {
     urdfArray = sortJointsByHierarchy(urdfArray);
@@ -117,11 +119,11 @@ async function urdfLoader2(planeEl,
   const revolutes = urdfArray.filter(obj => (obj.$.type === 'revolute' ||
 					     obj.$.type === 'prismatic' ||
 					     obj.$.type === 'fixed'));
-  // console.debug('1: type of base:', typeof base, base);
+  // globalThis.__customLogger?.debug('1: type of base:', typeof base, base);
   base = document.createElement('a-entity');
-  // console.debug('2: type of base:', typeof base, base);
+  // globalThis.__customLogger?.debug('2: type of base:', typeof base, base);
   base.setAttribute('class', 'link');
-  // console.debug("base link:", revolutes[0].parent.$.link);
+  // globalThis.__customLogger?.debug("base link:", revolutes[0].parent.$.link);
   // const meshes = linkMap[revolutes[0].parent.$.link].visual.forEach(visual => 
   //   visual.geometry.mesh?.$.filename);
   // linkMap[revolutes[0].parent.$.link].visual.forEach(visual => {
@@ -136,7 +138,7 @@ async function urdfLoader2(planeEl,
   for (const visual of visuals) {
     const origin = visual.origin;
     const filename = visual.geometry.mesh?.$.filename;
-    console.debug('Base visual geometry.mesh.$.filename:', filename,
+    globalThis.__customLogger?.debug('Base visual geometry.mesh.$.filename:', filename,
 		  'origin:', origin);
     const el = document.createElement('a-entity');
     el.setAttribute('class', 'visual');
@@ -145,12 +147,12 @@ async function urdfLoader2(planeEl,
     if (visual.geometry.mesh.$.scale) {
       el.setAttribute('scale', visual.geometry.mesh.$.scale);
     }
-    // console.debug('Setting gltf-model to:', gltfDirPath + filename);
+    // globalThis.__customLogger?.debug('Setting gltf-model to:', gltfDirPath + filename);
     await new Promise((resolve)=>{
       const cleanup = (success) => {
 	el.removeEventListener('model-loaded', onLoaded);
 	el.removeEventListener('model-error', onError);
-	console.debug('LLLL loader success:', success,
+	globalThis.__customLogger?.debug('LLLL loader success:', success,
 		      ' cleanup listeners for:', filename);
       };
       const onLoaded = () => { cleanup(true); resolve(true); };
@@ -195,7 +197,7 @@ async function urdfLoader2(planeEl,
     // next
     parentEl = axisEl;
     // *** visuals
-    // console.debug("Processing joint:", joint.$.name,
+    // globalThis.__customLogger?.debug("Processing joint:", joint.$.name,
     // 		"child link:", joint.child.$.link);
     let visuals = linkMap[joint.child.$.link].visual;
     if (visuals) {
@@ -206,7 +208,7 @@ async function urdfLoader2(planeEl,
       visuals = [];
     }
     visuals.forEach(visual => {
-      console.debug('Joint visual geometry.mesh.$.filename:',
+      globalThis.__customLogger?.debug('Joint visual geometry.mesh.$.filename:',
 		    visual.geometry.mesh?.$.filename);
     });
     // linkMap[joint.child.$.link].visual.map(visual => {
@@ -214,7 +216,7 @@ async function urdfLoader2(planeEl,
       const origin = visual.origin;
       const filename = visual.geometry.mesh?.$.filename;
       // visual.geometry.mesh?.$.filename).filter(filename => filename);
-      console.debug('Joint meshes:', filename, 'origin:', origin);
+      globalThis.__customLogger?.debug('Joint meshes:', filename, 'origin:', origin);
       const el = document.createElement('a-entity');
       el.setAttribute('class', 'visual');
       axisEl.appendChild(el);
@@ -226,7 +228,7 @@ async function urdfLoader2(planeEl,
 	const cleanup = (success) => {
 	  el.removeEventListener('model-loaded', onLoaded);
 	  el.removeEventListener('model-error', onError);
-	  console.debug('MMMM loader success:', success,
+	  globalThis.__customLogger?.debug('MMMM loader success:', success,
 		      ' cleanup listeners for:', filename);
 	};
 	const onLoaded = () => { cleanup(true); resolve(true); };
@@ -238,22 +240,22 @@ async function urdfLoader2(planeEl,
       });
     }
   }
-  console.log('######## Final: id:',planeEl.id,
+  globalThis.__customLogger?.log('######## Final: id:',planeEl.id,
 	      'base link:', base, 'end link:', parentEl);
 
   const id = planeEl.id;
   const endLinkEl = parentEl;
   const axes = axesList;
   const registerRobotFunc = () => { // 
-    console.debug('#>registerRobotFunc<# planeEl.id:',planeEl?.id, 'endLinkEl:',endLinkEl);
+    globalThis.__customLogger?.debug('#>registerRobotFunc<# planeEl.id:',planeEl?.id, 'endLinkEl:',endLinkEl);
     const robotRegistryComp = planeEl.sceneEl.robotRegistryComp;
     if (robotRegistryComp.get(id)) {
-      console.warn('robot:',id,'already registered');
+      globalThis.__customLogger?.warn('robot:',id,'already registered');
     }
     robotRegistryComp.add(id,
 			  {el: planeEl, axes: axes, endLink: endLinkEl});
-    // console.debug('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
-    console.debug('######## ', id, ' registered with axes(length):',
+    // globalThis.__customLogger?.debug('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
+    globalThis.__customLogger?.debug('######## ', id, ' registered with axes(length):',
 		Object.keys(axes).length,
 		'endLink(id):', endLinkEl.id);
     planeEl.axes = axes;
@@ -314,10 +316,10 @@ function consoleChildLink(el) {
   if (el) {
     const linkEl = el.querySelector('.link');
     if (linkEl) {
-      console.log('Child link:', linkEl);
+      globalThis.__customLogger?.log('Child link:', linkEl);
       consoleChildLink(linkEl);
     } else {
-      console.log('No child link found in:', el);
+      globalThis.__customLogger?.log('No child link found in:', el);
     }
   }
 }
@@ -353,7 +355,7 @@ function sortJointsByHierarchy(urdfData) {
     }
   }
   if (orderedJoints.length !== urdfData.length) {
-    console.warn('Cycle detected or disconnected components in URDF joints');
+    globalThis.__customLogger?.warn('Cycle detected or disconnected components in URDF joints');
   }
   return orderedJoints;
 }

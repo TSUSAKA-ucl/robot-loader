@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 // const THREE = window.AFRAME.THREE;
 // import IkWorkerManager from './IkWorkerManager.js';
@@ -22,7 +24,7 @@ AFRAME.registerComponent('ik-worker', {
       const topicBridgeWebSocketURL =
 	    // `${bridgeProtocol}//${location.hostname}:${bridgePort}`;
 	    null;
-      console.debug('UUUUUUU call IkWorkerManager with model',this.el.model);
+      globalThis.__customLogger?.debug('UUUUUUU call IkWorkerManager with model',this.el.model);
       this.robotRegistryFunc = null;
       this.el.addEventListener('ik-worker-ready', () => {
 	this.robotRegistryFunc = () => {
@@ -30,7 +32,7 @@ AFRAME.registerComponent('ik-worker', {
 	  const robotRegistryComp = this.el.sceneEl.robotRegistryComp;
 	  robotRegistryComp.add(id, {worker: this.el.workerRef,
 				     workerData: this.el.workerData});
-	  console.debug('Robot ', id, ' worker added:', this.el.workerRef);
+	  globalThis.__customLogger?.debug('Robot ', id, ' worker added:', this.el.workerRef);
 	  this.el.emit('ik-worker-start'); // what do i do next?
 	};
 	this.robotRegistryFunc();
@@ -74,7 +76,7 @@ AFRAME.registerComponent('joint-weight', {
   // 	    && !isNaN(parseInt(jointName))) {
   // 	  this.map[jointName] = weight;
   // 	} else {
-  // 	  console.warn(`Invalid joint name for joint-weight: ${jointName}`);
+  // 	  globalThis.__customLogger?.warn(`Invalid joint name for joint-weight: ${jointName}`);
   // 	}
   //     }
   //   });
@@ -109,7 +111,7 @@ function parseJointMap (map, dataStr) {
     if (name && !isNaN(valNum)) {
       map[name] = valNum;
     } else {
-      console.error(`Invalid joint desirable setting: ${pairStr}`);
+      globalThis.__customLogger?.error(`Invalid joint desirable setting: ${pairStr}`);
     }
   });
 }
@@ -125,7 +127,7 @@ AFRAME.registerComponent('joint-desirable', {
     const upperMap = {};
     const lowerMap = {};
     const gainMap = {};
-    console.debug('Parsing joint-desirable:', this.data);
+    globalThis.__customLogger?.debug('Parsing joint-desirable:', this.data);
     parseJointMap(upperMap, this.data.upper);
     parseJointMap(lowerMap, this.data.lower);
     parseJointMap(gainMap, this.data.gain);
@@ -136,12 +138,12 @@ AFRAME.registerComponent('joint-desirable', {
     });
     Object.entries(upperMap).forEach( ([jointName, upper]) => {
       if (!this.desirable[jointName]) {
-	console.warn(`Upper desirable without gain for joint: ${jointName} keep ignored.`);
+	globalThis.__customLogger?.warn(`Upper desirable without gain for joint: ${jointName} keep ignored.`);
       }
     });
     Object.entries(lowerMap).forEach( ([jointName, lower]) => {
       if (!this.desirable[jointName]) {
-	console.warn(`Lower desirable without gain for joint: ${jointName} keep ignored.`);
+	globalThis.__customLogger?.warn(`Lower desirable without gain for joint: ${jointName} keep ignored.`);
       }
     });
   },
@@ -158,7 +160,7 @@ AFRAME.registerComponent('joint-desirable', {
 			upper: descObj.upper,
 			lower: descObj.lower,
 			gain: descObj.gain };
-	  console.debug('in AF component desirable postMessage:',msg);
+	  globalThis.__customLogger?.debug('in AF component desirable postMessage:',msg);
 	  this.el.workerRef.current.postMessage(msg);
 	});
       }
@@ -184,7 +186,7 @@ AFRAME.registerComponent('joint-desirable-vlimit', {
     if (this.data.all) {
       this.desirableVlimit = { velocityLimit: this.data.all };
     } else {
-      console.debug('Parsing joint-desirable-vlimit:', this.data.each);
+      globalThis.__customLogger?.debug('Parsing joint-desirable-vlimit:', this.data.each);
       parseJointMap(this.desirableVlimit, this.data.each);
     }
   },

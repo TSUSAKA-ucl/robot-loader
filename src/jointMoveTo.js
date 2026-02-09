@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 
 AFRAME.registerComponent('joint-move-to', {

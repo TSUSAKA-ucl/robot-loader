@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 import {updateColor} from './colorUtils.js';
 import {registerResetTarget} from './attachToAnother.js';
@@ -18,7 +20,7 @@ export function numberToEl(num, el) {
 function changeLinksColor(linkEl, color) {
   for (let j = 0; j < linkEl?.children?.length; j++) {
     const childEl = linkEl.children[j];
-    console.debug('Status: Changing color of childEl due to collision:',
+    globalThis.__customLogger?.debug('Status: Changing color of childEl due to collision:',
                   childEl);
     if (childEl.classList.contains('visual') &&
         childEl.hasAttribute('gltf-model')) {
@@ -43,7 +45,7 @@ AFRAME.registerComponent('reflect-collision', {
   // **** tick ****
   tick: function() {
     if (this.el.workerData?.current?.status) {
-      // console.debug('Status: workerData.current.status:',
+      // globalThis.__customLogger?.debug('Status: workerData.current.status:',
       //                    this.el.workerData.current.status);
       const collisionPairs = this.el.workerData.current?.status?.collisions;
       if (collisionPairs) {
@@ -58,11 +60,11 @@ AFRAME.registerComponent('reflect-collision', {
         }
       } else if (collisionPairs.length > 0) {
         const uniqueFlat = [...new Set(collisionPairs.flat(Infinity))];
-        console.debug('Status: collisionPairs:', collisionPairs,
+        globalThis.__customLogger?.debug('Status: collisionPairs:', collisionPairs,
                       ' uniqueFlat:', uniqueFlat);
         for (let i = 0; i < this.el.axes.length + 1; i++) {
           const linkEl = numberToEl(i, this.el);
-          // console.debug('Status: Processing link index:', i,
+          // globalThis.__customLogger?.debug('Status: Processing link index:', i,
           //          'link:', linkEl);
           if (!uniqueFlat.includes(i)) {
             // non-collision: original color

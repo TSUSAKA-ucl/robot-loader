@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 // Don't import 'three' directly.
 // Please use the AFRAME.THREE to setRotationFromAxisAngle
 // instead of the THREE.js one.

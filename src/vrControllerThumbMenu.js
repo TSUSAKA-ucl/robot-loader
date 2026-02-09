@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 const THREE = AFRAME.THREE;
 
@@ -80,7 +82,7 @@ AFRAME.registerComponent('thumbstick-menu', {
     }
     const menuSelector = (evt) => {
       if (!this.menuVisible) return;
-      // console.log('evt.detail: ', evt.detail);
+      // globalThis.__customLogger?.log('evt.detail: ', evt.detail);
       // const [x, y] = evt.detail.axis; // -1..1
       const x = evt.detail.x;
       const y = evt.detail.y;
@@ -110,15 +112,15 @@ AFRAME.registerComponent('thumbstick-menu', {
 			    });
 
     this.el.addEventListener('thumbstickup', () => {
-      // console.debug('### thumbstick UP event');
-      // console.debug('current index: ', this.currentIndex);
-      // console.debug('menuVisible: ', this.menuVisible);
+      // globalThis.__customLogger?.debug('### thumbstick UP event');
+      // globalThis.__customLogger?.debug('current index: ', this.currentIndex);
+      // globalThis.__customLogger?.debug('menuVisible: ', this.menuVisible);
       if (!this.menuVisible) return;
       this.menuVisible = false;
       this.menuEls.forEach(el => { el.object3D.visible = false; });
       if (this.currentIndex >= 0) {
         // dispatch custom event with chosen index
-        // console.debug('emit menu number :', this.currentIndex);
+        // globalThis.__customLogger?.debug('emit menu number :', this.currentIndex);
         this.el.emit('thumbmenu-select', { index: this.currentIndex,
 					   texts: this.menuTexts,
 					   colors: this.menuColors,
@@ -126,7 +128,7 @@ AFRAME.registerComponent('thumbstick-menu', {
 					 });
       }
       this.currentIndex = -1;
-      // console.debug('### thumbstick UP menuColors reset:', this.menuColors);
+      // globalThis.__customLogger?.debug('### thumbstick UP menuColors reset:', this.menuColors);
       this.menuEls.forEach((el,i)=>{el.setAttribute('color',
 						    this.menuColors[i]);});
     });
@@ -137,7 +139,7 @@ AFRAME.registerComponent('thumbstick-menu', {
     this.currentIndex = index;
     this.menuEls.forEach((el, i) => {
       el.setAttribute('color', i === index ? 'yellow' : this.menuColors[i]);
-      // console.debug('## HIGHLIGHT ',i);
+      // globalThis.__customLogger?.debug('## HIGHLIGHT ',i);
     });
   }
 });
@@ -145,11 +147,11 @@ AFRAME.registerComponent('thumbstick-menu', {
 AFRAME.registerComponent('thumbmenu-event-handler', {
   init: function() {
     this.el.addEventListener('thumbmenu-select', (evt) => {
-      // console.debug('### menu select event:', evt.detail.index);
-      // console.debug('### menu index:', evt.detail.index);
-      // console.debug('### menu texts:', evt.detail.texts);
-      console.debug('### menu text[i]:', evt.detail.texts[evt.detail.index]);
-      // console.debug('### this.el.laserCylinder:', this.el.laserCylinder);
+      // globalThis.__customLogger?.debug('### menu select event:', evt.detail.index);
+      // globalThis.__customLogger?.debug('### menu index:', evt.detail.index);
+      // globalThis.__customLogger?.debug('### menu texts:', evt.detail.texts);
+      globalThis.__customLogger?.debug('### menu text[i]:', evt.detail.texts[evt.detail.index]);
+      // globalThis.__customLogger?.debug('### this.el.laserCylinder:', this.el.laserCylinder);
       if (evt.detail.texts[evt.detail.index] === 'ray' ||
 	  evt.detail.texts[evt.detail.index] === 'motion') {
 	if (this.el?.laserVisible) {
@@ -167,7 +169,7 @@ AFRAME.registerComponent('thumbmenu-event-handler', {
 });
 
 function flipRayOnOff(thisEl, tf) {
-  console.debug('### flip ray on/off. prev. laserVisible :', thisEl.laserVisible,
+  globalThis.__customLogger?.debug('### flip ray on/off. prev. laserVisible :', thisEl.laserVisible,
 	     ' arg tf:', tf);
   if (! ('laserVisible' in thisEl)) return;
   switch (tf) {
@@ -195,14 +197,14 @@ function flipRayOnOff(thisEl, tf) {
       const p = new THREE.Vector3(0.005, cylinderHeight*0.5, 0.015);
       cylinder.object3D.quaternion.copy(q);
       cylinder.object3D.position.copy(p.applyQuaternion(q));
-      // console.debug('ray x,y,z: ', ray.x, ray.y, ray.z);
+      // globalThis.__customLogger?.debug('ray x,y,z: ', ray.x, ray.y, ray.z);
     }
   }
   if (thisEl?.frameObject) {
     thisEl.frameObject.object3D.visible = ! thisEl.laserVisible;
-    console.debug('#### changeVisibility of frameObject :',
+    globalThis.__customLogger?.debug('#### changeVisibility of frameObject :',
 		thisEl.frameObject.object3D.visible);
   } else {
-    console.debug("#### vrController's frame doesn't exist yet.");
+    globalThis.__customLogger?.debug("#### vrController's frame doesn't exist yet.");
   }
 }

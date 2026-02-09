@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 // const THREE = AFRAME.THREE;
 
@@ -8,7 +10,7 @@ AFRAME.registerComponent('add-frame-to-joints', {
     length: {type: 'number', default: 0.3}
   },
   init: function() {
-    // console.debug('AAA enter add-frame-to-joints');
+    // globalThis.__customLogger?.debug('AAA enter add-frame-to-joints');
     const addAxesFrame = () => {
       const axesList = this.el.axes;
       axesList.slice(this.data.from, this.data.to >= 0 ? this.data.to + 1 : undefined)
@@ -16,7 +18,7 @@ AFRAME.registerComponent('add-frame-to-joints', {
 	  const frame = document.createElement('a-entity');
 	  frame.setAttribute('a-axes-frame', {length: this.data.length});
 	  axis.appendChild(frame);
-	  // console.debug('AAA add frame to axis:', axis);
+	  // globalThis.__customLogger?.debug('AAA add frame to axis:', axis);
 	});
     }
     if (this.el.axes) {

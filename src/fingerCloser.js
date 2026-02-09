@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 import {registerResetTarget} from './attachToAnother.js';
 
@@ -16,7 +18,7 @@ AFRAME.registerComponent('finger-closer', {
     debugTick: {type: 'boolean', default: false},
   },
   init: function() {
-    console.debug('event-forwarder: finger-close init component.data:',this.data);
+    globalThis.__customLogger?.debug('event-forwarder: finger-close init component.data:',this.data);
     const onLoading = () => {
       this.start = Date.now();
       this.interval = this.data.interval;
@@ -32,27 +34,27 @@ AFRAME.registerComponent('finger-closer', {
 	this.openDirection = -1;
       }
       this.el.addEventListener(this.data.openEvent, () => {
-	console.debug('open event received by:', this.el.id);
-	console.debug('schema:', this.data);
+	globalThis.__customLogger?.debug('open event received by:', this.el.id);
+	globalThis.__customLogger?.debug('schema:', this.data);
 	this.opening = true;
 	this.closing = false;
       });
       this.el.addEventListener(this.data.openStopEvent, () => {
-	console.debug('open stop event received by:', this.el.id);
-	console.debug('schema:', this.data);
+	globalThis.__customLogger?.debug('open stop event received by:', this.el.id);
+	globalThis.__customLogger?.debug('schema:', this.data);
 	this.opening = false;
       });
       this.el.addEventListener(this.data.closeEvent, () => {
-	console.debug('close event received by:', this.el.id);
+	globalThis.__customLogger?.debug('close event received by:', this.el.id);
 	this.closing = true;
 	this.opening = false;
       });
       this.el.addEventListener(this.data.closeStopEvent, () => {
-	console.debug('close stop event received by:', this.el.id);
+	globalThis.__customLogger?.debug('close stop event received by:', this.el.id);
 	this.closing = false;
 	if (this.data?.debugTick) this.data.debugTick = false;
       });
-      console.debug('event-forwarder: before register component.data:',this.data);
+      globalThis.__customLogger?.debug('event-forwarder: before register component.data:',this.data);
       registerResetTarget(this);
     };
     if (this.el.hasLoaded) {
@@ -64,7 +66,7 @@ AFRAME.registerComponent('finger-closer', {
   remove: function() {
   },
   tick: function(time, timeDelta) {
-    // console.debug('finger-closer loop:',this?.el?.id,' in axesUpdate', Date.now()-this?.start);
+    // globalThis.__customLogger?.debug('finger-closer loop:',this?.el?.id,' in axesUpdate', Date.now()-this?.start);
     if (this.el?.realAxes) {
       if (this.debugTime < 3000) {
 	this.debugTime += timeDelta;
@@ -73,7 +75,7 @@ AFRAME.registerComponent('finger-closer', {
       }
       if (this?.jointValues === undefined) {
 	this.jointValues = Array(this.el.realAxes.length).fill(0);
-	// console.debug('finger-closer: Initialized jointValues for',
+	// globalThis.__customLogger?.debug('finger-closer: Initialized jointValues for',
 	// 	     this.el.id, this.jointValues);
       } else {
 	if (this.opening || this.closing) {
@@ -82,9 +84,9 @@ AFRAME.registerComponent('finger-closer', {
 	  const deltaRadianClose = (this.data.closeSpeed * this.interval);
 	  for (let i = 0; i < jointValues.length; i++) {
 	    if (!this.stationaryJoints.includes(i)) {
-	      // console.debug(`joint ${i} value before: ${jointValues[i]}`);
+	      // globalThis.__customLogger?.debug(`joint ${i} value before: ${jointValues[i]}`);
 	      if (this.closing) {
-		// console.debug('finger-closer:',this.el.id,Date.now()-this.start,
+		// globalThis.__customLogger?.debug('finger-closer:',this.el.id,Date.now()-this.start,
 		// 	      ' closing joint',i, 'value:', jointValues[i]);
 		if (this.openDirection * (jointValues[i] - this.closeMaxRadian) < 0) {
 		  jointValues[i] += this.openDirection * deltaRadianClose;
@@ -93,7 +95,7 @@ AFRAME.registerComponent('finger-closer', {
 		}
 	      }
 	      if (this.opening) {
-		// console.debug('finger-closer:',this.el.id,Date.now()-this.start,
+		// globalThis.__customLogger?.debug('finger-closer:',this.el.id,Date.now()-this.start,
 		// 	      ' opening joint',i, 'value:', jointValues[i]);
 		if (this.openDirection * (jointValues[i] - this.openMaxRadian) > 0) {
 		  jointValues[i] -= this.openDirection * deltaRadianOpen;
@@ -108,7 +110,7 @@ AFRAME.registerComponent('finger-closer', {
 	if (this.jointValues) {
 	  this.el.realAxes.map((realAxis, idx) => {
 	    if (this.debugTime < 16) {
-	      console.debug('finger-closer:',realAxis.type,'joint',idx);
+	      globalThis.__customLogger?.debug('finger-closer:',realAxis.type,'joint',idx);
 	    }
 	    let thisJointValue = this.jointValues[idx];
 	    if (this.data?.debugTick) {
@@ -123,7 +125,7 @@ AFRAME.registerComponent('finger-closer', {
 						     thisJointValue);
 	    } else if (realAxis.type === 'prismatic') {
 	      if (this.debugTime < 16) {
-		console.debug('finger-closer:',this.el.id,Date.now()-this.start,
+		globalThis.__customLogger?.debug('finger-closer:',this.el.id,Date.now()-this.start,
 			      ' prismatic joint',idx, 'value:', thisJointValue,
 			      'axis:', realAxis.el.axis);
 	      }

@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 const THREE = AFRAME.THREE;
 import {registerResetTarget} from './attachToAnother.js';
@@ -13,18 +15,18 @@ AFRAME.registerComponent('base-mover', {
     this.el.addEventListener('gripdown', (evt) => { // can move
       this.canMove = true;
       this.vrControllerEl = evt.detail?.originalTarget;
-      console.log('base-mover gripdown', this.vrControllerEl);
+      globalThis.__customLogger?.log('base-mover gripdown', this.vrControllerEl);
     });
     this.el.addEventListener('gripup', (evt) => { // cannot move
       this.canMove = false;
       this.vrControllerEl = evt.detail?.originalTarget;
-      console.log('base-mover gripup', this.vrControllerEl);
+      globalThis.__customLogger?.log('base-mover gripup', this.vrControllerEl);
     });
     registerResetTarget(this);
   },
   tick: function (time, timeDelta) {
     if (!this.canMove) return;
-    console.debug('base-mover tick', this.vrControllerEl.thumbstick);
+    globalThis.__customLogger?.debug('base-mover tick', this.vrControllerEl.thumbstick);
     const velocityRatio = -this.vrControllerEl.thumbstick[1] || 0;
     const angularVelocityRatio = -this.vrControllerEl.thumbstick[0] || 0;
     const distance = (velocityRatio * this.data.velocityMax) * (timeDelta / 1000);

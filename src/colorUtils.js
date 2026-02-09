@@ -36,7 +36,7 @@ export function changeOriginalColor({el, newColor,
   // 	const tmp = node.material.color.clone();
   // 	node.material.color.set(newColor);
   // 	node.userData.originalColor = node.material.color.clone();
-  // 	console.debug('Color: changeOriginalColor set originalColor to ', node.userData.originalColor);
+  // 	globalThis.__customLogger?.debug('Color: changeOriginalColor set originalColor to ', node.userData.originalColor);
   // 	// node.material.color.copy(tmp);
   // 	if (newMetalness !== null) {
   // 	  node.userData.originalMetalness = newMetalness;
@@ -45,7 +45,7 @@ export function changeOriginalColor({el, newColor,
   // 	  node.userData.originalRoughness = newRoughness;
   // 	}
   // 	if (changeCurrent) {
-  // 	  console.debug('Color: changeOriginalColor set color to ', newColor);
+  // 	  globalThis.__customLogger?.debug('Color: changeOriginalColor set color to ', newColor);
   // 	  node.material.color.set(newColor);
   // 	  if (node.userData.originalMetalness) {
   // 	    node.material.metalness = node.userData.originalMetalness;

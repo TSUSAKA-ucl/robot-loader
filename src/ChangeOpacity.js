@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe'
 import {updateColor,
 	updateOpacity,
@@ -58,7 +60,7 @@ AFRAME.registerComponent('attach-opacity-recursively', {
       traverse(root);
     } else {
       this.el.addEventListener('robot-registered', () => {
-	console.debug('CCCCC add-event el:', this.el);
+	globalThis.__customLogger?.debug('CCCCC add-event el:', this.el);
 	traverse(root);
       });
     }

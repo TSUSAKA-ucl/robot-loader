@@ -1,3 +1,5 @@
+import {customLogger} from './customLogger.js'
+globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 const THREE = window.AFRAME.THREE;
 import {isoInvert, isoMultiply} from './isometry3.js';
@@ -38,7 +40,7 @@ AFRAME.registerComponent('arm-motion-ui', {
     const distance2 = cameraPosition.distanceTo(vrCtrlPosition)
     this.ratio = distance1/distance2;
     this.resetTimeDelta = 0;
-    // console.debug('MMMMM ctrlStartInv:',this.vrCtrlStartingPoseInv[0]
+    // globalThis.__customLogger?.debug('MMMMM ctrlStartInv:',this.vrCtrlStartingPoseInv[0]
     // 		 // , this.vrCtrlStartingPoseInv[1]
     // 		 ,' objStart:',this.objStartingPose[0]
     // 		 // ,this.objStartingPose[1]
@@ -76,7 +78,7 @@ AFRAME.registerComponent('arm-motion-ui', {
 
     this.el.addEventListener('triggerdown', (evt) => {
       evt.stopPropagation();
-      console.log('### trigger down event. laserVisible: ',
+      globalThis.__customLogger?.log('### trigger down event. laserVisible: ',
 		  evt.detail?.originalTarget.laserVisible);
       const ctrlEl = evt.detail?.originalTarget;
       this.vrControllerEl = ctrlEl;
@@ -100,7 +102,7 @@ AFRAME.registerComponent('arm-motion-ui', {
       }
     });
     this.el.addEventListener('triggerup', (evt) => {
-      console.log('### trigger up event');
+      globalThis.__customLogger?.log('### trigger up event');
       this.vrControllerEl = evt.detail?.originalTarget;
       this.triggerdownState = false;
 
@@ -128,7 +130,7 @@ AFRAME.registerComponent('arm-motion-ui', {
     const ctrlEl = this?.vrControllerEl;
     if (ctrlEl && 'laserVisible' in ctrlEl && !ctrlEl.laserVisible) {
       if (!this.el.workerData || !this.el.workerRef) {
-	console.warn('workerData or workerRef not ready yet.');
+	globalThis.__customLogger?.warn('workerData or workerRef not ready yet.');
 	return;
       }
       if (this.triggerdownState && ~ctrlEl.laserVisible) {
