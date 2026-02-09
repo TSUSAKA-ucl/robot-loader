@@ -2,7 +2,7 @@
 const noop = () => {}
 
 const customLogger = {
-  debug: console.debug,
+  debug: noop,
   log:  console.log,
   warn:  console.warn,
   error: console.error,
