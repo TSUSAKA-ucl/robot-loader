@@ -3,9 +3,15 @@ globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 
 AFRAME.registerComponent('joint-move-to', {
-  schema: { type: 'array'}, // target angles in radian
+  schema: {
+    default: [],
+    parse: function(value) {
+      if (Array.isArray(value)) return value;
+      if (typeof value === 'string') return value.split(',').map(Number);
+      return [];
+    },
+  }, // target angles in radian
   init: function() {
-    this.jointTargets = this.data.map(parseFloat);
     this.setJointTarget = (targets) => {
       if (this.el.workerData?.current?.joints?.length === targets.length) {
 	if (this.el.workerRef?.current) {
@@ -13,13 +19,18 @@ AFRAME.registerComponent('joint-move-to', {
 	    type: 'set_joint_targets',
 	    jointTargets: targets
 	  });
+	} else {
+	  globalThis.__customLogger.error('workerRef is not available');
 	}
+      } else {
+	globalThis.__customLogger.error('Length of joint targets does not match number of joints');
+	globalThis.__customLogger.error(`Expected ${this.el.workerData?.current?.joints?.length}, but got ${targets.length}`);
       }
     };
     this.done = false;
   },
   update: function() {
-    this.jointTargets = this.data.map(parseFloat);
+    this.jointTargets = this.data;
     this.done = false;
     if (this.el.workerData?.current?.status?.status === 'END') {
       this.setJointTarget(this.jointTargets);

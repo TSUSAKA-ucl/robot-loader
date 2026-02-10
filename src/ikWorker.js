@@ -7,7 +7,14 @@ import AFRAME from 'aframe';
 import { withObjReady } from './withObjReady.js';
 import IkWorkerManager from '@ucl-nuee/ik-cd-worker/IkWorkerManager.js';
 AFRAME.registerComponent('ik-worker', {
-  schema: { type: 'array'}, // intial joint value
+  schema: {
+    default: [],
+    parse: function(value) {
+      if (Array.isArray(value)) return value;
+      if (typeof value === 'string') return value.split(',').map(Number);
+      return [];
+    },
+  }, // intial joint value
   init: function() {
     this.el.addEventListener('robot-dom-ready', () => {
       // ****************
@@ -17,7 +24,7 @@ AFRAME.registerComponent('ik-worker', {
       this.el.workerData = {current: { joints: null,
 				       status: {}, pose: {} }};
       const workerData = this.el.workerData;
-      const initialJoints = this.data.map(parseFloat);
+      const initialJoints = this.data;
       // *** controller offset subscribe
       // const bridgeProtocol = location.protocol==='https:' ? 'wss:':'ws:';
       // const bridgePort = 9090;

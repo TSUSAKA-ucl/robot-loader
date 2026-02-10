@@ -24,3 +24,4 @@ dist-ssr
 *.sln
 *.sw?
 ucl-nuee-robot-loader-*.tgz
+src/reflectWorkerJoints-TandE.js
