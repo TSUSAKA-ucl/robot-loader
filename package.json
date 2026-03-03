@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "publishConfig": {
     "access": "public"
   },
@@ -8,19 +8,13 @@
   "description": "",
   "main": "index.js",
   "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "dependencies": {
-    "@ucl-nuee/ik-cd-worker": "workspace:*",
     "aframe": "^1.7.1",
     "eslint-plugin-react": "^7.37.5",
     "madge": "^8.0.0",
     "react": "^19.1.1",
-    "react-dom": "^19.1.1"
+    "react-dom": "^19.1.1",
+    "@ucl-nuee/ik-cd-worker": "0.4.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.33.0",
@@ -58,5 +52,10 @@
   "keywords": [],
   "author": "Yuji Tsusaka",
   "license": "ISC",
-  "packageManager": "pnpm@10.15.1"
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
 }
