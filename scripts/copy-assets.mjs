@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import fs from 'fs';
 import path from 'path';
 const scanDir = path.resolve('node_modules/@ucl-nuee');
