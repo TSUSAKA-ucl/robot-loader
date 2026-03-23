@@ -117,6 +117,7 @@ async function urdfLoader2(planeEl,
     urdfArray = sortJointsByHierarchy(urdfArray);
   }
   const revolutes = urdfArray.filter(obj => (obj.$.type === 'revolute' ||
+					     obj.$.type === 'continuous' ||
 					     obj.$.type === 'prismatic' ||
 					     obj.$.type === 'fixed'));
   // globalThis.__customLogger?.debug('1: type of base:', typeof base, base);
@@ -191,7 +192,9 @@ async function urdfLoader2(planeEl,
       axisEl.axis = axis.normalize();
     }
     jEl.appendChild(axisEl);
-    if (joint.$.type === 'revolute') axesList.push(axisEl);
+    if (joint.$.type === 'revolute' ||
+	joint.$.type === 'continuous'
+       ) axesList.push(axisEl);
     realAxes.push({el: axisEl, type: joint.$.type});
     axisEl.jointType = joint.$.type;
     // next

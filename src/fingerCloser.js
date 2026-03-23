@@ -3,36 +3,41 @@ globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 import {registerResetTarget} from './attachToAnother.js';
 
+// schema引数の文字列を、カンマセパレートの数値のarrayにparseする関数
+function parseArray(value) {
+  if (Array.isArray(value)) return value;
+  if (typeof value === 'string') return value.split(',').map(Number);
+  return [0];
+}
+
 AFRAME.registerComponent('finger-closer', {
   schema: {
+    initialJointValues: {parse: parseArray, default: [0]}, // in degrees
     openEvent: {type: 'string', default: 'bbuttondown'},
     openStopEvent: {type: 'string', default: 'bbuttonup'},
-    openSpeed: {type: 'number', default: 0.5}, // radian per second
-    openMax: {type: 'number', default: 0}, // in degrees
+    openSpeed: {parse: parseArray, default: [0.5]}, // radian per second
+    openMax: {parse: parseArray, default: [0]}, // in degrees
     closeEvent: {type: 'string', default: 'abuttondown'},
     closeStopEvent: {type: 'string', default: 'abuttonup'},
-    closeSpeed: {type: 'number', default: 0.5},// radian per second
-    closeMax: {type: 'number', default: 44}, // in degrees
+    closeSpeed: {parse: parseArray, default: [0.5]},// radian per second
+    closeMax: {parse: parseArray, default: [44]}, // in degrees
     stationaryJoints: {type: 'array', default: []}, // indices of joints that do not move
     interval: {type: 'number', default: 0.1}, // seconds
     debugTick: {type: 'boolean', default: false},
   },
   init: function() {
     globalThis.__customLogger?.debug('event-forwarder: finger-close init component.data:',this.data);
-    const onLoading = () => {
+    this.onLoading = () => {
       this.start = Date.now();
       this.interval = this.data.interval;
       this.intervalTimer = null;
       this.opening = false;
       this.closing = false;
-      this.openMaxRadian = this.data.openMax*Math.PI/180.0;
-      this.closeMaxRadian = this.data.closeMax*Math.PI/180.0;
+      this.jointValues = this.data.initialJointValues.map((deg) => deg*Math.PI/180.0);
+      this.openMaxRadian = this.data.openMax.map((deg) => deg*Math.PI/180.0);
+      this.closeMaxRadian = this.data.closeMax.map((deg) => deg*Math.PI/180.0);
       this.stationaryJoints = this.data.stationaryJoints.map((i) => parseInt(i));
-      if (this.closeMaxRadian >= this.openMaxRadian) {
-	this.openDirection = 1;
-      } else {
-	this.openDirection = -1;
-      }
+
       this.el.addEventListener(this.data.openEvent, () => {
 	globalThis.__customLogger?.debug('open event received by:', this.el.id);
 	globalThis.__customLogger?.debug('schema:', this.data);
@@ -54,13 +59,17 @@ AFRAME.registerComponent('finger-closer', {
 	this.closing = false;
 	if (this.data?.debugTick) this.data.debugTick = false;
       });
+
       globalThis.__customLogger?.debug('event-forwarder: before register component.data:',this.data);
       registerResetTarget(this);
     };
+  },
+  update: function() {
+    this.arrayInitialized = false;
     if (this.el.hasLoaded) {
-      onLoading();
+      this.onLoading();
     } else {
-      this.el.addEventListener('loaded', onLoading, {once: true});
+      this.el.addEventListener('loaded', this.onLoading, {once: true});
     }
   },
   remove: function() {
@@ -73,34 +82,51 @@ AFRAME.registerComponent('finger-closer', {
       } else {
 	this.debugTime = 0;
       }
-      if (this?.jointValues === undefined) {
-	this.jointValues = Array(this.el.realAxes.length).fill(0);
-	// globalThis.__customLogger?.debug('finger-closer: Initialized jointValues for',
-	// 	     this.el.id, this.jointValues);
+      if (!this.arrayInitialized) {
+	if (this.el.realAxes?.length > 0) {
+	  for (let i = 0; i < this.el.realAxes.length; i++) {
+	    if (this.jointValues[i] === undefined) {
+	      this.jointValues[i] = 0;
+	      // globalThis.__customLogger?.debug('finger-closer: Initialized jointValues for',
+	      // 	     this.el.id, 'joint', i, 'value', this.jointValues[i]);
+	    }
+	    if (this.openMaxRadian[i] === undefined) this.openMaxRadian[i] = this.openMaxRadian[0];
+	    if (this.closeMaxRadian[i] === undefined) this.closeMaxRadian[i] = this.closeMaxRadian[0];
+	    if (this.data.openSpeed[i] === undefined) this.data.openSpeed[i] = this.data.openSpeed[0];
+	    if (this.data.closeSpeed[i] === undefined) this.data.closeSpeed[i] = this.data.closeSpeed[0];
+	  }
+	  this.openDirection = Array(this.openMaxRadian.length).fill(1);
+	  for (let i = 0; i < this.openMaxRadian.length; i++) {
+	    if (this.closeMaxRadian[i] < this.openMaxRadian[i]) {
+	      this.openDirection[i] = -1;
+	    }
+	  }
+	  this.arrayInitialized = true;
+	}
       } else {
 	if (this.opening || this.closing) {
 	  const jointValues = this.jointValues;
-	  const deltaRadianOpen = (this.data.openSpeed * this.interval);
-	  const deltaRadianClose = (this.data.closeSpeed * this.interval);
+	  const deltaRadianOpen = this.data.openSpeed.map(s => s * this.interval);
+	  const deltaRadianClose = this.data.closeSpeed.map(s => s * this.interval);
 	  for (let i = 0; i < jointValues.length; i++) {
 	    if (!this.stationaryJoints.includes(i)) {
 	      // globalThis.__customLogger?.debug(`joint ${i} value before: ${jointValues[i]}`);
 	      if (this.closing) {
 		// globalThis.__customLogger?.debug('finger-closer:',this.el.id,Date.now()-this.start,
 		// 	      ' closing joint',i, 'value:', jointValues[i]);
-		if (this.openDirection * (jointValues[i] - this.closeMaxRadian) < 0) {
-		  jointValues[i] += this.openDirection * deltaRadianClose;
+		if (this.openDirection[i] * (jointValues[i] - this.closeMaxRadian[i]) < 0) {
+		  jointValues[i] += this.openDirection[i] * deltaRadianClose[i];
 		} else {
-		  jointValues[i] = this.closeMaxRadian; // limit
+		  jointValues[i] = this.closeMaxRadian[i]; // limit
 		}
 	      }
 	      if (this.opening) {
 		// globalThis.__customLogger?.debug('finger-closer:',this.el.id,Date.now()-this.start,
 		// 	      ' opening joint',i, 'value:', jointValues[i]);
-		if (this.openDirection * (jointValues[i] - this.openMaxRadian) > 0) {
-		  jointValues[i] -= this.openDirection * deltaRadianOpen;
+		if (this.openDirection[i] * (jointValues[i] - this.openMaxRadian[i]) > 0) {
+		  jointValues[i] -= this.openDirection[i] * deltaRadianOpen[i];
 		} else {
-		  jointValues[i] = this.openMaxRadian; // limit
+		  jointValues[i] = this.openMaxRadian[i]; // limit
 		}
 	      }
 	    }
