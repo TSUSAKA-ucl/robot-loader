@@ -33,11 +33,17 @@ AFRAME.registerComponent('base-mover', {
     const angle = (angularVelocityRatio * this.data.angularVelocityMax) * (timeDelta / 1000);
     const translation = this.el.object3D.position;
     const rotation = this.el.object3D.quaternion;
-    const translatoinDelta = new THREE.Vector3(distance, 0, 0).applyQuaternion(rotation);
-    const newPosition = translation.add(translatoinDelta);
+    const translationDelta = new THREE.Vector3(distance, 0, 0).applyQuaternion(rotation);
+    const newPosition = translation.add(translationDelta);
     const rotationDelta = new THREE.Quaternion(0, 0, Math.sin(angle/2), Math.cos(angle/2));
     const newRotation = rotation.multiply(rotationDelta);
     this.el.object3D.position.copy(newPosition);
     this.el.object3D.quaternion.copy(newRotation);
+    if (typeof this.el.workerRef?.current?.postMessage === 'function') {
+      this.el.object3D?.updateMatrixWorld();
+      const baseMatrixWorld = this.el.object3D.matrixWorld.elements;
+      this.el.workerRef.current.postMessage({type: 'set_base_coord',
+					     baseCoord: baseMatrixWorld});
+    }
   }
 });

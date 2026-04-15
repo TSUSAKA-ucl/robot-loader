@@ -9,3 +9,4 @@ const customLogger = {
 }
 
 export {customLogger};
+export default customLogger;
