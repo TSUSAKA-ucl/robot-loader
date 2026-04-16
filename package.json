@@ -39,6 +39,7 @@
     "./baseMover.js": "src/baseMover.js",
     "./ikWorker.js": "src/ikWorker.js",
     "./ignoreCollision.js": "src/ignoreCollision.js",
+    "./sendBaseCoord.js": "src/sendBaseCoord.js",
     "./reflectWorkerJoints.js": "src/reflectWorkerJoints.js",
     "./robotLoader.js": "src/robotLoader.js",
     "./robotRegistry.js": "src/robotRegistry.js",

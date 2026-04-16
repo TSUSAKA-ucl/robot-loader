@@ -3,6 +3,7 @@ globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 const THREE = AFRAME.THREE;
 import {registerResetTarget} from './attachToAnother.js';
+import './sendBaseCoord.js';
 
 AFRAME.registerComponent('base-mover', {
   schema: {
@@ -10,6 +11,10 @@ AFRAME.registerComponent('base-mover', {
     angularVelocityMax: { type: 'number', default: 0.5 },
   },
   init: function () {
+    // もしsend-base-coordコンポーネントが付いていなければ(何回付けても構わないため)つけておく
+    if (!this.el.getAttribute('send-base-coord')) {
+      this.el.setAttribute('send-base-coord', '');
+    }
     this.canMove = false;
     this.vrControllerEl = null;
     this.el.addEventListener('gripdown', (evt) => { // can move
