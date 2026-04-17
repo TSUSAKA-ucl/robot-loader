@@ -73,6 +73,9 @@ AFRAME.registerComponent('attach-to-another', {
     event: {type: 'string', default: ''},
   },
   init: function() {
+    if (!this.el.getAttribute('send-base-coord')) {
+      this.el.setAttribute('send-base-coord', '');
+    }
     // const events = parseSchemaEvents(this.data.event);
     // this.evtHandlers = [];
     this.onSceneLoaded = () => {
@@ -128,11 +131,11 @@ AFRAME.registerComponent('attach-to-another', {
 	    robot.emit('attached', {child: this.el}, false);
 	    this.el.emit('attach', {parent: robot, endLink: targetLink}, false);
 	  };
-	  if (targetLink.hasLoaded) {
+	  // if (targetLink.hasLoaded) { // sceneがhasLoadedになってから呼ばれるため不要のはず
 	    onLoaded();
-	  } else {
-	    this.el.addEventListener('loaded', onLoaded, {once: true});
-	  }
+	  // } else {
+	  //     targetLink.addEventListener('loaded', onLoaded, {once: true});
+	  // }
 	} catch (e) {
 	  globalThis.__customLogger?.error('appendChild failed:',e);
 	}
