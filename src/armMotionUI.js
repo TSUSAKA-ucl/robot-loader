@@ -2,6 +2,7 @@ import {customLogger} from './customLogger.js'
 globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 const THREE = window.AFRAME.THREE;
+import '@ucl-nuee/ik-cd-worker/IkWorkerParamsComponents.js'; // registerComponents for worker parameters
 import {isoInvert, isoMultiply} from './isometry3.js';
 import {registerResetTarget} from './attachToAnother.js';
 
@@ -76,10 +77,17 @@ AFRAME.registerComponent('arm-motion-ui', {
     this.worldToBase = [ pos, quat ];
     this.baseToWorld = isoInvert(this.worldToBase);
 
+    // もしthis.el.workerData.current?.status?.collisions?.lengthが
+
     this.el.addEventListener('triggerdown', (evt) => {
+      setTimeout(() => this.el.setAttribute('set-ignore-collisions', 'false'),
+		 100); // set-ignore-collisionsをfalseにするのを少し遅らせて衝突状態から抜けだせるようにする
       evt.stopPropagation();
       globalThis.__customLogger?.log('### trigger down event. laserVisible: ',
 		  evt.detail?.originalTarget.laserVisible);
+      // set-ignore-collisionsコンポーネントが付いているかどうかの確認のため全コンポーネント名をconsole.logする
+      globalThis.__customLogger?.log('### this.el.id:', this.el.id,
+		  'components:', Object.keys(this.el.components));
       const ctrlEl = evt.detail?.originalTarget;
       this.vrControllerEl = ctrlEl;
       if (!this.vrControllerEl.laserVisible) {
@@ -107,12 +115,16 @@ AFRAME.registerComponent('arm-motion-ui', {
       this.triggerdownState = false;
 
       const iso3 = workerPose(this.el);
+	  this.frameMarker.object3D.position.copy(iso3[0]);
+	  this.frameMarker.object3D.quaternion.copy(iso3[1]);
+	  this.el.setAttribute('set-ignore-collisions', 'true');
       if (iso3) {
 	const frameMarkerResetFunc = () => {
 	  this.frameMarker.object3D.position.copy(iso3[0]);
 	  this.frameMarker.object3D.quaternion.copy(iso3[1]);
+	  this.el.setAttribute('set-ignore-collisions', 'true');
 	}
-	this.returnTimerId = setTimeout(frameMarkerResetFunc, 2000);
+	this.returnTimerId = setTimeout(frameMarkerResetFunc, 1000);
       }
     });
     this.pptPrev = new THREE.Vector3();

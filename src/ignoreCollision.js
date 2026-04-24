@@ -78,7 +78,7 @@ AFRAME.registerComponent('ignore-collision', {
     // console.log('$$$$$$$ enter postIgnorePairs. data:', this.data);
     const el = this.el;
     const data = this.data;
-    // otherEntity.isWorkerReadyがtrueでなければaddEventListenerして待つ
+    // otherEntity.ikWorkerReadyがtrueでなければaddEventListenerして待つ
     const realPostFunc = () => {
       if (typeof otherEntity.abId !== 'number') {
 	// この場合はcd-workerと関係していないので無視してよいが、とりあえず警告を出す

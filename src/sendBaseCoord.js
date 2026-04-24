@@ -2,8 +2,12 @@ import {customLogger} from './customLogger.js'
 globalThis.__customLogger = customLogger;
 // tick毎にthis.el.object3Dの位置姿勢を調べて、変化していたらworkerに送るコンポーネント
 import AFRAME from 'aframe';
+import {registerResetTarget} from './attachToAnother.js';
 
 AFRAME.registerComponent('send-base-coord', {
+  init: function () {
+    registerResetTarget(this);
+  },
   update: function () {
     this.prevBaseCoord = new THREE.Matrix4();
     this.updated = false;
