@@ -44,7 +44,7 @@ AFRAME.registerComponent('ik-worker', {
 	  robotRegistryComp.add(id, {worker: this.el.workerRef,
 				     workerData: this.el.workerData});
 	  globalThis.__customLogger?.debug('Robot ', id, ' worker added:', this.el.workerRef);
-	  this.el.emit('ik-worker-start'); // what do i do next?
+	  this.el.emit('ik-worker-start',null,false); // what do i do next?
 	};
 	this.robotRegistryFunc();
       });

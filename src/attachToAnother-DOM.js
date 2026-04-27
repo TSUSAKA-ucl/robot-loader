@@ -1,9 +1,48 @@
 import {customLogger} from './customLogger.js'
 globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe'
-const THREE = window.AFRAME.THREE;
 
-export function registerResetTarget() {
+export function registerResetTarget(component) {
+  customLogger?.debug('event-forwarder: register component:',component.name,'of el',component.el.id);
+  if (component.id) {
+    customLogger?.debug('event-forwarder: register reset: component has id:',component.id);
+  }
+  const newData = { ... component.data };
+  // if passing the same object reference, setAttribute may not work properly
+  // and it use default value of the schema instead.
+  // customLogger?.warn('event-forwarder: register reset: component data:',newData);
+  // if (newData) {
+  //   customLogger?.log('event-forwarder: register reset: component data:',newData);
+  //   customLogger?.debug('event-forwarder: register reset: component data:',newData);
+  // }
+    
+  if (!(component.el.resetTargets && Array.isArray(component.el.resetTargets))) {
+    component.el.resetTargets = [];
+  }
+  const componentStr = component?.id ? component.name + '__' + component.id : component.name;
+  customLogger?.debug('event-forwarder: componentStr:',componentStr);
+  component.el.resetTargets.push({
+    name: componentStr,
+    defaultValue: newData
+  });
+}
+
+function resetComponents(el) {
+  if (el.resetTargets && Array.isArray(el.resetTargets)) {
+    el.resetTargets.forEach( (target) => {
+      // customLogger?.debug('event-forwarder: reset component:',target.name,'of el',el.id);
+      el.removeAttribute(target.name);
+      // customLogger?.debug('event-forwarder:',target.name,target.defaultValue,'set to el',el.id);
+      el.setAttribute(target.name, target.defaultValue);
+      // el.components[target.name]?.play();
+    });
+    setTimeout(()=> {el.play();}, 0);
+  }
+  if (el.attached && Array.isArray(el.attached)) {
+    el.attached.forEach( (childEl) => {
+      resetComponents(childEl);
+    });
+  }
 }
 
 function parseSchemaEvents(eventNames) {
@@ -28,73 +67,24 @@ function parseSchemaEvents(eventNames) {
   return events;
 }
 
-// function invertIsometry3(source, target) {
-//     const te = source.elements;
-//     const tt = target.elements;
-
-//     // 回転成分（3x3）の転置
-//     tt[0] = te[0];  tt[1] = te[4];  tt[2] = te[8];
-//     tt[4] = te[1];  tt[5] = te[5];  tt[6] = te[9];
-//     tt[8] = te[2];  tt[9] = te[6];  tt[10] = te[10];
-
-//     // 平行移動成分 (tx, ty, tz)
-//     const tx = te[12];
-//     const ty = te[13];
-//     const tz = te[14];
-
-//     // 新しい平行移動成分 = -(R^T * T)
-//     tt[12] = -(tt[0] * tx + tt[4] * ty + tt[8] * tz);
-//     tt[13] = -(tt[1] * tx + tt[5] * ty + tt[9] * tz);
-//     tt[14] = -(tt[2] * tx + tt[6] * ty + tt[10] * tz);
-
-//     // 固定値
-//     tt[3] = 0; tt[7] = 0; tt[11] = 0;
-//     tt[15] = 1;
-// }
-
 AFRAME.registerComponent('attach-to-another', {
-  after: ['set-joints-directly-in-degree',
-	  'set-joints-directly',
-	  'reflect-worker-joints',
-	  'base-mover',
-	 ],
-  before: ['send-base-coord'],
   schema: {
     to: {type: 'string'},
     axis: {type: 'number', default: Number.MAX_SAFE_INTEGER},
     event: {type: 'string', default: ''},
   },
-  // このコンポーネントはbase-moverとは共存できない
-  // このコンポーネントを使うときはsend-base-coordコンポーネントを自動的に付与する
-  // this.newParent
-  // this.newParent.object3D
-  // this.originalParent
-  // this.originalParent.object3D
-  // **** 案1 ****
-  // initでobject3D.matrixAutoUpdateをfalseにする: removeで元の値に戻す
-  // object3D.matrixWorldAutoUpdateもfalseにする: removeで元の値に戻す
-  // newParent.object3DをupdateMatrixWorld
-  // newParent.object3D.matrixWorldに(updateかinitで保存しておいた)自分のmatrixを掛ける
-  // それを自分のobject3D.matrixWorldにセットする
-  // **** 案2(テストして案1がだめなら) ****
-  // initでobject3D.matrixAutoUpdatesをfalseにする: removeで元の値に戻す
-  // object3D.matrixWorldAutoUpdateはtrueにする(たぶん自動計算すると思われる): removeで元の値に戻す
-  // tickで、
-  // originalParentをupdateMatrixWorldしてinvertIsometry3する
-  // その結果に、newParentをupdateMatrixWorldしたmatrixWorldを掛ける
-  // updateかinitで保存しておいた自分のmatrixを掛ける
   init: function() {
-    this.newParent = null;
     if (!this.el.getAttribute('send-base-coord')) {
-      // ik-workerにこのentityのmatrixWorldを送る。
-      // ただしdoUpdateMatrixWorldフラグがfalseになるようにする
-      this.el.setAttribute('send-base-coord', 'toUpdate: false');
+      this.el.setAttribute('send-base-coord', '');
     }
+    // const events = parseSchemaEvents(this.data.event);
+    // this.evtHandlers = [];
     this.onSceneLoaded = () => {
       const attachToRobot = (robot) => {
 	// attach this.el to robot's endLink
 	const endLink = robot?.endLink;
 	if (!endLink) {
+	  customLogger?.warn('QQQQQ endLink:',endLink);
 	  customLogger?.warn(`QQQQQ Robot ${robot.id} has no endLink to attach to.`);
 	  return;
 	}
@@ -102,6 +92,11 @@ AFRAME.registerComponent('attach-to-another', {
 	  customLogger?.warn(`QQQQQ Robot ${robot.id} has no axes array to attach to.`);
 	  return;
 	}
+	// customLogger?.debug('QQQQQ endLink.hasLoaded?',endLink.hasLoaded);
+	customLogger?.log('QQQQQ Attaching this.data.axis:',this.data.axis,
+		    'to robot:',robot.id,
+		    'with axes:',robot.realAxes.length,
+		    'endLink:',endLink.id);
 	try {
 	  const targetAxisNum = this.data.axis-1;
 	  let targetLink;
@@ -111,29 +106,25 @@ AFRAME.registerComponent('attach-to-another', {
 	  } else {
 	    targetLink = robot.realAxes[targetAxisNum].el;
 	  }
-	  // this.el.attached;
-	  robot.setAttribute('event-forwarder__'+this.el.id,
-			     { target: this.el.id,
-			       event: this.data.event });
+	  const tmpResetTargets = this.el.resetTargets;
+	  const tmpAttached = this.el.attached;
+	  targetLink.appendChild(this.el);
+	  this.el.resetTargets = tmpResetTargets;
+	  this.el.attached = tmpAttached;
+	    robot.setAttribute('event-forwarder__'+this.el.id,
+			       { target: this.el.id,
+				 event: this.data.event });
 	  // this.el.play();
 	  customLogger?.debug(`QQQQQ Attached ${this.el.id} to ${robot.id}'s`,
 			      this.data.axis>=robot.realAxes.length
 			      ? `endLink :${endLink.id}`
 			      : `axis ${this.data.axis}`);
-	  this.newParent = targetLink;
-	  this.parentRobotEl = robot;
-	  this.originalMatrixAutoUpdate = this.el.object3D.matrixAutoUpdate
-	  this.originalMatrixWorldAutoUpdate = this.el.object3D.matrixWorldAutoUpdate
-	  this.el.object3D.matrixAutoUpdate = false;
-	  this.el.object3D.matrixWorldAutoUpdate = false;
-	  this.el.object3D.updateMatrix()
-	  this.orignalMatrix = this.el.object3D.matrix.clone();
 	  this.el.removeAttribute('position');
 	  this.el.removeAttribute('rotation');
 	  this.el.removeAttribute('scale');
-	  // 意味は無いはず: this.el.object3D.position.set(0, 0, 0);
-	  // 意味は無いはず: this.el.object3D.quaternion.set(0, 0, 0, 1);
-
+	  this.el.object3D.position.set(0, 0, 0);
+	  this.el.object3D.quaternion.set(0, 0, 0, 1);
+	  resetComponents(this.el);
 	  if (!(robot.attached && Array.isArray(robot.attached))) {
 	    robot.attached = [];
 	  }
@@ -147,29 +138,25 @@ AFRAME.registerComponent('attach-to-another', {
 	    // {type:'stop_dependency', stopAbId: abId}で伝える
 	    if (typeof this.el.abId === 'number' && robot.workerRef?.current) {
 	      const stopDependencyMsg = {type:'stop_dependency',
-					 stopAbId: this.el.abId,
-					};
+					 stopAbId: this.el.abId};
 	      if (typeof robot.workerRef.current.postMessage === 'function') {
 		robot.workerRef.current.postMessage(stopDependencyMsg);
-		customLogger?.log('## stop_dependency message posted from',
-				  this.el.id, 'to robot', robot.id,
-				  'message:', stopDependencyMsg);
 	      } else {
-		customLogger?.warn('## stop_dependency: attach-to-another: ',
-				   'robot.workerRef.current has no postMessage function.',
+		customLogger?.warn('## stop_dependency: attach-to-another: robot.workerRef.current has no postMessage function.',
 				   'robot.workerRef.current:', robot.workerRef.current);
 	      }
+	      customLogger?.log('## stop_dependency message posted from', this.el.id, 'to robot', robot.id,
+				'message:', stopDependencyMsg);
 	    } else {
-	      customLogger?.warn('attach-to-another: cannot stop dependency',
-				 ' because abId or workerRef is missing.',
+	      customLogger?.warn('attach-to-another: cannot stop dependency because abId or workerRef is missing.',
 				 'el.abId:', this.el.abId,
 				 'robot.workerRef:', robot.workerRef);
 	    }
 	  };
-	  if (robot.ikWorkerReady) {
+	  if (this.el.ikWorkerReady) {
 	    onIkWorkerReady();
 	  } else {
-	    robot.addEventListener('ik-worker-ready', onIkWorkerReady, {once: true});
+	    this.el.addEventListener('ik-worker-ready', onIkWorkerReady, {once: true});
 	  }
 	} catch (e) {
 	  customLogger?.error('appendChild failed:',e);
@@ -185,6 +172,7 @@ AFRAME.registerComponent('attach-to-another', {
 	  // 	     'and attaching now.');
 	  // // You can also check the id, axes, and endLinkEl in the event detail.
 	  attachToRobot(robotEl);
+	  this.parentRobotEl = robotEl;
 	});
       } else {
 	customLogger?.warn(`Cannot attach to ${this.data.to}: not found or invalid robot entity.`);
@@ -206,29 +194,12 @@ AFRAME.registerComponent('attach-to-another', {
     if (this.parentRobotEl) {
       // if parentRobotEl has event-forwarder component, remove it
       this.parentRobotEl.removeAttribute('event-forwarder__'+this.el.id);
-      // remove this.el from parentRobotEl.attached
-      if (this.parentRobotEl.attached && Array.isArray(this.parentRobotEl.attached)) {
-	this.parentRobotEl.attached = this.parentRobotEl.attached.filter( (child) => child !== this.el);
-      }
     }
-    if (this.newParent) {
-      // this.newParent.remove(this.el);
-      this.newParent = null;
-    }
-    if (this.originalMatrixAutoUpdate !== undefined) {
-      this.el.object3D.matrixAutoUpdate = this.originalMatrixAutoUpdate;
-    }
-    if (this.originalMatrixWorldAutoUpdate !== undefined) {
-      this.el.object3D.matrixWorldAutoUpdate = this.originalMatrixWorldAutoUpdate;
-    }
-  },
-  tick: function() {
-    if (this.newParent) {
-      this.newParent.object3D.updateMatrixWorld();
-      const newParentMatrixWorld = this.newParent.object3D.matrixWorld;
-      const newMatrix = new THREE.Matrix4().multiplyMatrices(newParentMatrixWorld, this.orignalMatrix);
-      this.el.object3D.matrixWorld.copy(newMatrix);
-    }
+    // Remove event listeners
+    // this.evtHandlers.forEach( (evtObj) => {
+    //   this.el.removeEventListener(evtObj.name, evtObj.handler);
+    // });
+    // this.evtHandlers = [];
   }
 });
 

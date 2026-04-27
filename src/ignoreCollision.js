@@ -92,16 +92,30 @@ AFRAME.registerComponent('ignore-collision', {
 	}));
 	if (ignorePairs.length > 0) {
 	  // console.log('$$$$$$$$$ Posting ignore pairs to ik-worker:', ignorePairs);
-	  el.workerRef?.current?.postMessage({ type: 'ignore_pairs', ignorePairs }) ? null :
+	  if (typeof el.workerRef?.current?.postMessage === 'function') {
+	    el.workerRef.current.postMessage({ type: 'ignore_pairs', ignorePairs });
+	  } else {
 	    console.warn('Worker reference is not available to post ignore pairs.');
+	    console.warn('this.el.workerRef:', el.workerRef);
+	    console.warn('otherEntity.workerRef:', otherEntity.workerRef);
+	  }
 	}
       }
     };
-    if (otherEntity.ikWorkerReady) {
+    if (otherEntity.ikWorkerReady && this.el.ikWorkerReady) {
       realPostFunc();
-    }
-    else {
+    } else if (!otherEntity.ikWorkerReady && this.el.ikWorkerReady) {
       otherEntity.addEventListener('ik-worker-ready', realPostFunc, { once: true });
+    } else if (otherEntity.ikWorkerReady && !this.el.ikWorkerReady) {
+      this.el.addEventListener('ik-worker-ready', realPostFunc, { once: true });
+    } else {
+      this.el.addEventListener('ik-worker-ready', () => {
+	if (otherEntity.ikWorkerReady) {
+	  realPostFunc();
+	} else {
+	  otherEntity.addEventListener('ik-worker-ready', realPostFunc, { once: true });
+	}
+      }, { once: true });
     }
   }
 });

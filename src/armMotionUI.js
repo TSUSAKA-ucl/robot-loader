@@ -79,20 +79,27 @@ AFRAME.registerComponent('arm-motion-ui', {
 
     // もしthis.el.workerData.current?.status?.collisions?.lengthが
 
+    this.el.addEventListener('thumbstickdown', (evt) => {
+      evt.stopPropagation();
+      if (!this.triggerdownState) {
+	this.el.setAttribute('set-ignore-collisions', 'true');
+	// set-ignore-collisionsコンポーネントが付いているかどうかの確
+	// 認のため全コンポーネント名をconsole.logする
+	// globalThis.__customLogger?.log('### this.el.id:', this.el.id,
+	// 		  'components:', Object.keys(this.el.components));
+      }
+    });
+    this.el.addEventListener('thumbstickup', (evt) => {
+      this.el.setAttribute('set-ignore-collisions', 'false');
+    } );
     this.el.addEventListener('triggerdown', (evt) => {
-      setTimeout(() => this.el.setAttribute('set-ignore-collisions', 'false'),
-		 100); // set-ignore-collisionsをfalseにするのを少し遅らせて衝突状態から抜けだせるようにする
       evt.stopPropagation();
       globalThis.__customLogger?.log('### trigger down event. laserVisible: ',
 		  evt.detail?.originalTarget.laserVisible);
-      // set-ignore-collisionsコンポーネントが付いているかどうかの確認のため全コンポーネント名をconsole.logする
-      globalThis.__customLogger?.log('### this.el.id:', this.el.id,
-		  'components:', Object.keys(this.el.components));
       const ctrlEl = evt.detail?.originalTarget;
       this.vrControllerEl = ctrlEl;
       if (!this.vrControllerEl.laserVisible) {
 	if (this?.returnTimerId) clearTimeout(this.returnTimerId);
-	this.triggerdownState = true;
  	const iso3 = workerPose(this.el);
 	if (iso3) {
 	  this.frameMarker.object3D.position.copy(iso3[0]);
@@ -105,6 +112,7 @@ AFRAME.registerComponent('arm-motion-ui', {
 	    this.worldToBase = [ pos, quat ];
 	    this.baseToWorld = isoInvert(this.worldToBase);
 	    this.setStartPoseAndRatio(iso3);
+	    this.triggerdownState = true;
 	  }
 	}
       }
@@ -115,14 +123,15 @@ AFRAME.registerComponent('arm-motion-ui', {
       this.triggerdownState = false;
 
       const iso3 = workerPose(this.el);
-	  this.frameMarker.object3D.position.copy(iso3[0]);
-	  this.frameMarker.object3D.quaternion.copy(iso3[1]);
-	  this.el.setAttribute('set-ignore-collisions', 'true');
+      this.frameMarker.object3D.position.copy(iso3[0]);
+      this.frameMarker.object3D.quaternion.copy(iso3[1]);
+      // this.el.setAttribute('set-ignore-collisions', 'true');
       if (iso3) {
 	const frameMarkerResetFunc = () => {
 	  this.frameMarker.object3D.position.copy(iso3[0]);
 	  this.frameMarker.object3D.quaternion.copy(iso3[1]);
-	  this.el.setAttribute('set-ignore-collisions', 'true');
+	  this.setStartPoseAndRatio(iso3);
+	  // this.el.setAttribute('set-ignore-collisions', 'true');
 	}
 	this.returnTimerId = setTimeout(frameMarkerResetFunc, 1000);
       }
