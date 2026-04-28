@@ -47,7 +47,8 @@ AFRAME.registerComponent('ik-worker', {
 	  this.el.emit('ik-worker-start',null,false); // what do i do next?
 	};
 	this.robotRegistryFunc();
-      });
+      },
+			       { once: true} );
       this.removeWorker = IkWorkerManager({robotName: this.el.model,
 					   entity: this.el,
 					   initialJoints,

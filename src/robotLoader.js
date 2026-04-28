@@ -255,8 +255,8 @@ async function urdfLoader2(planeEl,
     if (robotRegistryComp.get(id)) {
       globalThis.__customLogger?.warn('robot:',id,'already registered');
     }
-    robotRegistryComp.add(id,
-			  {el: planeEl, axes: axes, endLink: endLinkEl});
+    robotRegistryComp.newId(id,
+			    {el: planeEl, axes: axes, endLink: endLinkEl});
     // globalThis.__customLogger?.debug('#><><><# planeEl.id:',planeEl?.id, 'endLinkEl:',planeEl.endLink);
     globalThis.__customLogger?.debug('######## ', id, ' registered with axes(length):',
 		Object.keys(axes).length,

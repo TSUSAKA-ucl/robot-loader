@@ -13,11 +13,22 @@ AFRAME.registerComponent('robot-registry', {
   get: function(id) {
     return this.objects.get(id)?.data;
   },
-  add: function(id, data) {
-    globalThis.__customLogger?.log('Registry: registry add id:', id);
+  newId: function(id, data) {
+    globalThis.__customLogger?.log('Registry: registry new id:', id);
     if (id) {
       if (this.get(id)) {
-	globalThis.__customLogger?.warn('registry add already exist id:', id);
+	globalThis.__customLogger?.error('registry new already exist id:',
+					 id);
+      } else {
+	this.set(id, data);
+      }
+    }
+  },
+  add: function(id, data) {
+    globalThis.__customLogger?.debug('Registry: registry add id:', id);
+    if (id) {
+      if (this.get(id)) {
+	globalThis.__customLogger?.log('registry add already exist id:', id);
 	Object.assign(this.get(id), data);
 	globalThis.__customLogger?.debug('registry add data(type):', typeof this.get(id));
       } else {

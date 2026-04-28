@@ -88,7 +88,7 @@ AFRAME.registerComponent('attach-to-another', {
     if (!this.el.getAttribute('send-base-coord')) {
       // ik-workerにこのentityのmatrixWorldを送る。
       // ただしdoUpdateMatrixWorldフラグがfalseになるようにする
-      this.el.setAttribute('send-base-coord', 'toUpdate: false');
+      this.el.setAttribute('send-base-coord', 'doUpdate: false');
     }
     this.onSceneLoaded = () => {
       const attachToRobot = (robot) => {

@@ -39,7 +39,7 @@ AFRAME.registerComponent('ignore-collision', {
   },
 
   parse: function () {
-    console.log('Parsing ignore-collision schema value:', this.data);
+    // console.log('Parsing ignore-collision schema value:', this.data);
     // DOM elと整数のペアの配列を返す。
     const otherEntity = this.data.other ? document.getElementById(this.data.other) : null;
     const linkPairArray = this.data.data.map(pairStr => {
@@ -50,7 +50,7 @@ AFRAME.registerComponent('ignore-collision', {
       }
       return { myLink, otherLink };
     }).filter(pair => pair !== null);
-    console.log('Parsed ignore-collision pairs:', linkPairArray);
+    // console.log('Parsed ignore-collision pairs:', linkPairArray);
     // 返すオブジェクトは、otherEntityとlinkPairArrayを含む形にする
     return {
       otherEntity,
