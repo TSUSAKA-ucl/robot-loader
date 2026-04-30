@@ -32,7 +32,8 @@ import AFRAME from 'aframe';
 AFRAME.registerComponent('ignore-collision', {
   // example usage:
   // ignore-collision="other:g1r-unitree-r-arm; data: 0/1, 0/0, 1/0"
-  // 
+  // ignore-collision_t="other:g1r-unitree-r-thumb; data: 0/1, 0/0, 1/0"
+  multiple: true,
   schema: {
     other: { type: 'string' },
     data: { type: 'array' }
@@ -79,43 +80,43 @@ AFRAME.registerComponent('ignore-collision', {
     const el = this.el;
     const data = this.data;
     // otherEntity.ikWorkerReadyがtrueでなければaddEventListenerして待つ
-    const realPostFunc = () => {
-      if (typeof otherEntity.abId !== 'number') {
-	// この場合はcd-workerと関係していないので無視してよいが、とりあえず警告を出す
-	console.warn(`Entity with ID ${data.other} does not have a valid abId. Skipping ignore pairs for this entity.`);
-	return;
-      } else {
-	const ignorePairs = linkPairs.map(pair => ({
-	  myLink: pair.myLink,
-	  otherAbId: otherEntity.abId,
-	  otherLink: pair.otherLink
-	}));
-	if (ignorePairs.length > 0) {
-	  // console.log('$$$$$$$$$ Posting ignore pairs to ik-worker:', ignorePairs);
-	  if (typeof el.workerRef?.current?.postMessage === 'function') {
-	    el.workerRef.current.postMessage({ type: 'ignore_pairs', ignorePairs });
-	  } else {
-	    console.warn('Worker reference is not available to post ignore pairs.');
-	    console.warn('this.el.workerRef:', el.workerRef);
-	    console.warn('otherEntity.workerRef:', otherEntity.workerRef);
+    const iHaveAbId = () => {
+      const realPostFunc = () => {
+	if (typeof otherEntity.abId !== 'number' || otherEntity.abId < 0) {
+	  // この場合はcd-workerと関係していないので無視してよいが、とりあえず警告を出す
+	  console.warn(`Entity with ID ${data.other} does not have a valid abId.`,
+		       ` Skipping ignore pairs for this entity.`);
+	  return;
+	} else {
+	  const ignorePairs = linkPairs.map(pair => ({
+	    myLink: pair.myLink,
+	    otherAbId: otherEntity.abId,
+	    otherLink: pair.otherLink
+	  }));
+	  if (ignorePairs.length > 0) {
+	    // console.log('$$$$$$$$$ Posting ignore pairs to ik-worker:', ignorePairs);
+	    if (typeof el.workerRef?.current?.postMessage === 'function') {
+	      el.workerRef.current.postMessage({ type: 'ignore_pairs', ignorePairs });
+	      globalThis.__customLogger.log('Post ignore_pairs: id:',this.el.id,
+					    'ignorePairs:', ignorePairs);
+	    } else {
+	      console.warn('Worker reference is not available to post ignore pairs.');
+	      console.warn('el.workerRef:', el.workerRef);
+	      console.warn('otherEntity.workerRef:', otherEntity.workerRef);
+	    }
 	  }
 	}
+      };
+      if (typeof otherEntity.abId === 'number' && otherEntity.abId >= 0) {
+	realPostFunc();
+      } else {
+	otherEntity.addEventListener('ab-id-ready', realPostFunc, { once: true });
       }
     };
-    if (otherEntity.ikWorkerReady && this.el.ikWorkerReady) {
-      realPostFunc();
-    } else if (!otherEntity.ikWorkerReady && this.el.ikWorkerReady) {
-      otherEntity.addEventListener('ik-worker-ready', realPostFunc, { once: true });
-    } else if (otherEntity.ikWorkerReady && !this.el.ikWorkerReady) {
-      this.el.addEventListener('ik-worker-ready', realPostFunc, { once: true });
+    if (typeof el.abId === 'number' && el.abId >= 0) {
+      iHaveAbId();
     } else {
-      this.el.addEventListener('ik-worker-ready', () => {
-	if (otherEntity.ikWorkerReady) {
-	  realPostFunc();
-	} else {
-	  otherEntity.addEventListener('ik-worker-ready', realPostFunc, { once: true });
-	}
-      }, { once: true });
+      el.addEventListener('ab-id-ready', iHaveAbId, {once: true});
     }
   }
 });

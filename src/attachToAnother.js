@@ -28,29 +28,29 @@ function parseSchemaEvents(eventNames) {
   return events;
 }
 
-// function invertIsometry3(source, target) {
-//     const te = source.elements;
-//     const tt = target.elements;
+function invertIsometry3(source, target) {
+    const te = source.elements;
+    const tt = target.elements;
 
-//     // 回転成分（3x3）の転置
-//     tt[0] = te[0];  tt[1] = te[4];  tt[2] = te[8];
-//     tt[4] = te[1];  tt[5] = te[5];  tt[6] = te[9];
-//     tt[8] = te[2];  tt[9] = te[6];  tt[10] = te[10];
+    // 回転成分（3x3）の転置
+    tt[0] = te[0];  tt[1] = te[4];  tt[2] = te[8];
+    tt[4] = te[1];  tt[5] = te[5];  tt[6] = te[9];
+    tt[8] = te[2];  tt[9] = te[6];  tt[10] = te[10];
 
-//     // 平行移動成分 (tx, ty, tz)
-//     const tx = te[12];
-//     const ty = te[13];
-//     const tz = te[14];
+    // 平行移動成分 (tx, ty, tz)
+    const tx = te[12];
+    const ty = te[13];
+    const tz = te[14];
 
-//     // 新しい平行移動成分 = -(R^T * T)
-//     tt[12] = -(tt[0] * tx + tt[4] * ty + tt[8] * tz);
-//     tt[13] = -(tt[1] * tx + tt[5] * ty + tt[9] * tz);
-//     tt[14] = -(tt[2] * tx + tt[6] * ty + tt[10] * tz);
+    // 新しい平行移動成分 = -(R^T * T)
+    tt[12] = -(tt[0] * tx + tt[4] * ty + tt[8] * tz);
+    tt[13] = -(tt[1] * tx + tt[5] * ty + tt[9] * tz);
+    tt[14] = -(tt[2] * tx + tt[6] * ty + tt[10] * tz);
 
-//     // 固定値
-//     tt[3] = 0; tt[7] = 0; tt[11] = 0;
-//     tt[15] = 1;
-// }
+    // 固定値
+    tt[3] = 0; tt[7] = 0; tt[11] = 0;
+    tt[15] = 1;
+}
 
 AFRAME.registerComponent('attach-to-another', {
   after: ['set-joints-directly-in-degree',
@@ -66,10 +66,12 @@ AFRAME.registerComponent('attach-to-another', {
   },
   // このコンポーネントはbase-moverとは共存できない
   // このコンポーネントを使うときはsend-base-coordコンポーネントを自動的に付与する
-  // this.newParent
+  // this.newParent		// targetLinkのentity
   // this.newParent.object3D
-  // this.originalParent
+  // this.parentRobotEl		// targetLinkが属するrobotのentity
+  // this.originalParent	// attach-to-anotherを付けたentityの元の親entity
   // this.originalParent.object3D
+  // this.orignalMatrix	// attach-to-anotherを付けたentityのattach前のmatrix
   // **** 案1 ****
   // initでobject3D.matrixAutoUpdateをfalseにする: removeで元の値に戻す
   // object3D.matrixWorldAutoUpdateもfalseにする: removeで元の値に戻す
@@ -85,6 +87,7 @@ AFRAME.registerComponent('attach-to-another', {
   // updateかinitで保存しておいた自分のmatrixを掛ける
   init: function() {
     this.newParent = null;
+    this.originalParent = null;
     if (!this.el.getAttribute('send-base-coord')) {
       // ik-workerにこのentityのmatrixWorldを送る。
       // ただしdoUpdateMatrixWorldフラグがfalseになるようにする
@@ -122,10 +125,11 @@ AFRAME.registerComponent('attach-to-another', {
 			      : `axis ${this.data.axis}`);
 	  this.newParent = targetLink;
 	  this.parentRobotEl = robot;
+	  this.originalParent = this.el.parentEl;
 	  this.originalMatrixAutoUpdate = this.el.object3D.matrixAutoUpdate
 	  this.originalMatrixWorldAutoUpdate = this.el.object3D.matrixWorldAutoUpdate
 	  this.el.object3D.matrixAutoUpdate = false;
-	  this.el.object3D.matrixWorldAutoUpdate = false;
+	  this.el.object3D.matrixWorldAutoUpdate = true;
 	  this.el.object3D.updateMatrix()
 	  this.orignalMatrix = this.el.object3D.matrix.clone();
 	  this.el.removeAttribute('position');
@@ -142,28 +146,36 @@ AFRAME.registerComponent('attach-to-another', {
 	  this.el.emit('attach', {parent: robot, endLink: targetLink}, false);
 
 	  const onIkWorkerReady = () => {
-	    // cd-workerがstop dependency listを作れるように、子(自分)の
-	    // workerのabIdをターゲット(親)robotのik-workerに
-	    // {type:'stop_dependency', stopAbId: abId}で伝える
-	    if (typeof this.el.abId === 'number' && robot.workerRef?.current) {
-	      const stopDependencyMsg = {type:'stop_dependency',
-					 stopAbId: this.el.abId,
-					};
-	      if (typeof robot.workerRef.current.postMessage === 'function') {
-		robot.workerRef.current.postMessage(stopDependencyMsg);
-		customLogger?.log('## stop_dependency message posted from',
-				  this.el.id, 'to robot', robot.id,
-				  'message:', stopDependencyMsg);
+	    const iHaveAbId = () => {
+	      // cd-workerがstop dependency listを作れるように、子(自分)の
+	      // workerのabIdをターゲット(親)robotのik-workerに
+	      // {type:'stop_dependency', stopAbId: abId}で伝える
+	      if (typeof this.el.abId === 'number' && robot.workerRef?.current) {
+		const stopDependencyMsg = {type:'stop_dependency',
+					   stopAbId: this.el.abId,
+					  };
+		if (typeof robot.workerRef.current.postMessage === 'function') {
+		  robot.workerRef.current.postMessage(stopDependencyMsg);
+		  customLogger?.log('## stop_dependency message posted from',
+				    this.el.id, 'to robot', robot.id,
+				    'message:', stopDependencyMsg);
+		} else {
+		  customLogger?.warn('## stop_dependency: attach-to-another: ',
+				     'robot.workerRef.current has no postMessage function.',
+				     'robot.workerRef.current:', robot.workerRef.current);
+		}
 	      } else {
-		customLogger?.warn('## stop_dependency: attach-to-another: ',
-				   'robot.workerRef.current has no postMessage function.',
-				   'robot.workerRef.current:', robot.workerRef.current);
+		customLogger?.warn('attach-to-another: cannot stop dependency',
+				   ' because abId or workerRef is missing.',
+				   'id:', this.el.id,
+				   'el.abId:', this.el.abId,
+				   'robot.workerRef:', robot.workerRef);
 	      }
+	    };
+	    if (typeof this.el.abId === 'number' && this.el.abId>=0) {
+	      iHaveAbId();
 	    } else {
-	      customLogger?.warn('attach-to-another: cannot stop dependency',
-				 ' because abId or workerRef is missing.',
-				 'el.abId:', this.el.abId,
-				 'robot.workerRef:', robot.workerRef);
+	      this.el.addEventListener('ab-id-ready', iHaveAbId, {once: true});
 	    }
 	  };
 	  if (robot.ikWorkerReady) {
@@ -224,10 +236,17 @@ AFRAME.registerComponent('attach-to-another', {
   },
   tick: function() {
     if (this.newParent) {
+      // 理由は不明だが案2(matrixWorldAutoUpdateをtrue)のほうが表示がカクつかないように見える
+      this.originalParent.object3D.updateMatrixWorld();
+      const invOriginalMatrixWorld = new THREE.Matrix4();
+      invertIsometry3(this.originalParent.object3D.matrixWorld, invOriginalMatrixWorld);
       this.newParent.object3D.updateMatrixWorld();
       const newParentMatrixWorld = this.newParent.object3D.matrixWorld;
-      const newMatrix = new THREE.Matrix4().multiplyMatrices(newParentMatrixWorld, this.orignalMatrix);
-      this.el.object3D.matrixWorld.copy(newMatrix);
+      const origToNew = new THREE.Matrix4().multiplyMatrices(invOriginalMatrixWorld, newParentMatrixWorld);
+      const finalMatrix = new THREE.Matrix4().multiplyMatrices(origToNew, this.orignalMatrix);
+      this.el.object3D.matrix.copy(finalMatrix);
+      // const newMatrix = new THREE.Matrix4().multiplyMatrices(newParentMatrixWorld, this.orignalMatrix);
+      // this.el.object3D.matrixWorld.copy(newMatrix);
     }
   }
 });

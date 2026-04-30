@@ -69,7 +69,7 @@ AFRAME.registerComponent('ik-worker', {
     }, {once: true});
   },
   remove:function() {
-    // if (this?.remove) this.remove();
+    if (typeof this.removeWorker === 'function') this.removeWorker();
   }
 });
 
