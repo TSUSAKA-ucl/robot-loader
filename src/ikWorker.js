@@ -16,9 +16,11 @@ AFRAME.registerComponent('ik-worker', {
     },
   }, // intial joint value
   init: function() {
-    // もしreflect-worker-jointsコンポーネントが付いていなければつけておく
-    if (!this.el.getAttribute('reflect-worker-joints')) {
-      this.el.setAttribute('reflect-worker-joints', '');
+    if (this.data?.length >= 1) {
+      // もしreflect-worker-jointsコンポーネントが付いていなければつけておく
+      if (!this.el.getAttribute('reflect-worker-joints')) {
+	this.el.setAttribute('reflect-worker-joints', '');
+      }
     }
     this.el.addEventListener('robot-dom-ready', () => {
       // ****************

@@ -1,5 +1,5 @@
 import {customLogger} from './customLogger.js'
-globalThis.__customLogger = customLogger;
+// globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe'
 
 AFRAME.registerComponent('robot-registry', {
@@ -14,10 +14,10 @@ AFRAME.registerComponent('robot-registry', {
     return this.objects.get(id)?.data;
   },
   newId: function(id, data) {
-    globalThis.__customLogger?.log('Registry: registry new id:', id);
+    customLogger?.log('Registry: registry new id:', id);
     if (id) {
       if (this.get(id)) {
-	globalThis.__customLogger?.error('registry new already exist id:',
+	customLogger?.error('registry new already exist id:',
 					 id);
       } else {
 	this.set(id, data);
@@ -25,17 +25,18 @@ AFRAME.registerComponent('robot-registry', {
     }
   },
   add: function(id, data) {
-    globalThis.__customLogger?.debug('Registry: registry add id:', id);
+    customLogger?.debug('Registry: registry add id:', id);
     if (id) {
       if (this.get(id)) {
-	globalThis.__customLogger?.log('registry add already exist id:', id);
+	customLogger?.log('registry add already exist id:', id);
 	Object.assign(this.get(id), data);
-	globalThis.__customLogger?.debug('registry add data(type):', typeof this.get(id));
+	customLogger?.debug('registry add data(type):',
+			    typeof this.get(id));
       } else {
 	this.set(id, data);
       }
     } else {
-      globalThis.__customLogger?.warn('registry add invalid id:', id, ' data:', data);
+      customLogger?.warn('registry add invalid id:', id, ' data:', data);
     }
   },
   getWhole: function(id) {
@@ -46,7 +47,7 @@ AFRAME.registerComponent('robot-registry', {
     if (checkListenerList(listenerEl, distributor)) {
       distributor.listenersList[id] = listenerEl;
       listenerEl.shouldListenEvents += 1;
-      globalThis.__customLogger?.log('enable listening event by', id);
+      customLogger?.log('enable listening event by', id);
     }
   },
   disableEventDelivery: function(id, distributor) {
@@ -56,7 +57,7 @@ AFRAME.registerComponent('robot-registry', {
       if (listenerEl.shouldListenEvents) {
 	listenerEl.shouldListenEvents -= 1;
       }
-      globalThis.__customLogger?.log('disable listening event by', id);
+      customLogger?.log('disable listening event by', id);
     }
   },
   eventDeliveryEnabled: function(id, distributor) {
@@ -71,11 +72,11 @@ AFRAME.registerComponent('robot-registry', {
   eventDeliveryOneLocation: function(id, distributor) {
     const idList = this.list();
     if (!idList.includes(id)) {
-      globalThis.__customLogger?.error('The specified id does not exist in the registry:', id);
+      customLogger?.error('The id does not exist in the registry:', id);
       return;
     }
     // const data = this.objects.get(id);
-    // globalThis.__customLogger?.debug('*#*# data:', data);
+    // customLogger?.debug('*#*# data:', data);
     const listenerEl = this.objects.get(id)?.data?.el;
     if (checkListenerList(listenerEl, distributor)) {
       Object.keys(distributor.listenersList).forEach(key => 
@@ -99,13 +100,13 @@ AFRAME.registerComponent('event-distributor', {
       // const robotRegistry = document.getElementById('robot-registry');
       // const robotRegistryComp = robotRegistry?.components['robot-registry'];
       if (!robotRegistryComp) {
-	globalThis.__customLogger?.error('robot-registry component not found!');
+	customLogger?.error('robot-registry component not found!');
 	return;
       }
       this.distributionFunc =  (evt) => {
 	const detail = evt.detail ? evt.detail : {};
 	robotRegistryComp.list().forEach(id => {
-	  // globalThis.__customLogger?.debug('*** event distributor: ', evtName, ' to ', id, 
+	  // customLogger?.debug('*** event distributor: ', evtName, ' to ', id, 
 	  // 	      ' enabled=', robotRegistryComp.eventDeliveryEnabled(id));
 	  const listenerEl = this.el?.listenersList[id];
 	  if (listenerEl) {
@@ -129,7 +130,8 @@ AFRAME.registerComponent('event-distributor', {
     } else {
       const distributorSetupHandler = () => {
 	distributorSetup();
-	this.el.sceneEl.removeEventListener('loaded', distributorSetupHandler);
+	this.el.sceneEl.removeEventListener('loaded',
+					    distributorSetupHandler);
       }
       this.el.sceneEl.addEventListener('loaded', distributorSetupHandler);
     }
@@ -156,7 +158,7 @@ AFRAME.registerComponent('target-selector', {
   },
   init: function () {
     const selectFunc = (selectedId) => {
-      globalThis.__customLogger?.debug('target-selector: selectFunc selectedId=', selectedId);
+      customLogger?.debug('target-selector: selectFunc selectedId=', selectedId);
       let distributorEl = null;
       if (this.el.getAttribute('event-distributor')) {
 	distributorEl = this.el;
@@ -168,7 +170,7 @@ AFRAME.registerComponent('target-selector', {
       if (distributorEl && robotRegistryComp && selectedId) {
 	for (const id of robotRegistryComp.list()) {
 	  if (selectedId === id) {
-	    globalThis.__customLogger?.debug('target-selector: select id=', id);
+	    customLogger?.debug('target-selector: select id=', id);
 	    robotRegistryComp.eventDeliveryOneLocation(id, distributorEl);
 	    break;
 	  }
@@ -184,7 +186,8 @@ AFRAME.registerComponent('target-selector', {
       const onLoaded = () => {
 	const selectedId = this.data.id;
 	const robotEl = document.getElementById(selectedId);
-	globalThis.__customLogger?.debug('target-selector: select id=', selectedId,'robotEl=', robotEl);
+	customLogger?.debug('target-selector: select id=',
+					 selectedId,'robotEl=', robotEl);
 	if (robotEl?.endLink) {
 	  selectFunc(selectedId);
 	} else {
@@ -211,12 +214,12 @@ function checkListenerList(listener, distributor) {
 	Number.isInteger(listener.shouldListenEvents)) {
 	return true;
       } else {
-	globalThis.__customLogger?.error('el.shoudListenEvents must be INTEGER. ',
+	customLogger?.error('el.shoudListenEvents must be INTEGER. ',
 		      listener?.shouldListenEvents);
 	return false;
       }
     } else {
-      globalThis.__customLogger?.error('distributor.listenersList must be a plain boject. :',
+      customLogger?.error('distributor.listenersList must be a plain boject. :',
 		    distributor?.listenersList);
       return false;
     }
