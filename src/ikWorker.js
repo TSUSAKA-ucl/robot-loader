@@ -3,9 +3,11 @@ globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 // const THREE = window.AFRAME.THREE;
 // import IkWorkerManager from './IkWorkerManager.js';
-
+import './reflectWorkerJoints.js';
 import { withObjReady } from './withObjReady.js';
 import IkWorkerManager from '@ucl-nuee/ik-cd-worker/IkWorkerManager.js';
+import '@ucl-nuee/ik-cd-worker/IkWorkerParamsComponents.js';
+
 AFRAME.registerComponent('ik-worker', {
   schema: {
     default: [],

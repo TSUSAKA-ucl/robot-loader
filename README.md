@@ -32,35 +32,55 @@ The components in the table below are defined in this repository
 
 | A-Frame components | file name |
 |--------------------|-----------|
-|`a-axes-frame` | `axesFrame.js`|
-|`add-frame-to-joints` | `addFrameToJoints.js`|
-|`add-frameObject` | `axesFrame.js`|
-|`arm-motion-ui` | `armMotionUI.js`|
-|`attach-color-recursively` | `ChangeOpacity.js`|
-|`attach-opacity-recursively` | `ChangeOpacity.js`|
-|`attach-to-another` | `attachToAnother.js`|
-|`base-mover` | `baseMover.js`|
-|`change-color` | `ChangeOpacity.js`|
-|`change-opacity` | `ChangeOpacity.js`|
-|`change-original-color` | `ChangeOpacity.js`|
-|`change-original-color-recursively` | `ChangeOpacity.js`|
-|`event-distributor` | `robotRegistry.js`|
-|`event-forwarder` | `attachToAnother.js`|
-|`exact_solution` | `reflectWorkerJoints.js`|
-|`finger-closer` | `fingerCloser.js`|
-|`ik-worker` | `ikWorker.js`|
-|`joint-desirable` | `ikWorker.js`|
-|`joint-desirable-vlimit` | `ikWorker.js`|
-|`joint-move-to` | `jointMoveTo.js`|
-|`joint-weight` | `ikWorker.js`|
-|`reflect-collision` | `reflectCollision.js`|
-|`reflect-joint-limits` | `reflectJointLimits.js`|
-|`reflect-worker-joints` | `reflectWorkerJoints.js`|
-|`robot-loader` | `robotLoader.js`|
-|`robot-registry` | `robotRegistry.js`|
-|`target-selector` | `robotRegistry.js`|
-|`thumbmenu-event-handler` | `vrControllerThumbMenu.js`|
-|`thumbstick-menu` | `vrControllerThumbMenu.js`|
+|`a-axes-frame`	|	`axesFrame.js`|
+|`add-frame-to-joints`	|	`addFrameToJoints.js`|
+|`add-frameObject`	|	`axesFrame.js`|
+|`arm-motion-ui`	|	`armMotionUI.js`|
+|`attach-color-recursively`	|	`ChangeOpacity.js`|
+|`attach-opacity-recursively`	|	`ChangeOpacity.js`|
+|`attach-to-another`	|	`attachToAnother-THREE.js`|
+|`base-mover`	|	`baseMover.js`|
+|`change-color`	|	`ChangeOpacity.js`|
+|`change-opacity`	|	`ChangeOpacity.js`|
+|`change-original-color-recursively`	|	`ChangeOpacity.js`|
+|`change-original-color`	|	`ChangeOpacity.js`|
+|`event-distributor`	|	`robotRegistry.js`|
+|`event-forwarder`	|	`attachToAnother-THREE.js`|
+|`exact_solution`	|	`reflectWorkerJoints.js`|
+|`finger-closer`	|	`fingerCloser.js`|
+|`finger-closer2`	|	`fingerCloser.js`|
+|`ignore-collision`	|	`ignoreCollision.js`|
+|`ik-worker`	|	`ikWorker.js`|
+|`joint-desirable-vlimit`	|	`ikWorker.js`|
+|`joint-desirable`	|	`ikWorker.js`|
+|`joint-move-to`	|	`jointMoveTo.js`|
+|`joint-weight`	|	`ikWorker.js`|
+|`reflect-collision`	|	`reflectCollision.js`|
+|`reflect-collision`	|	`reflectCollisionRealAxes.js`|
+|`reflect-joint-limits`	|	`reflectJointLimits.js`|
+|`reflect-worker-joints`	|	`reflectWorkerJoints.js`|
+|`robot-loader`	|	`robotLoader.js`|
+|`robot-registry`	|	`robotRegistry.js`|
+|`send-base-coord`	|	`sendBaseCoord.js`|
+|`set-joints-directly`	|	`reflectWorkerJoints.js`|
+|`set-joints-directly-in-degree`	|	`reflectWorkerJoints.js`|
+|`still-objects`	|	`stillObjects.js`|
+|`target-selector`	|	`robotRegistry.js`|
+|`thumbmenu-event-handler`	|	`vrControllerThumbMenu.js`|
+|`thumbstick-menu`	|	`vrControllerThumbMenu.js`|
+
+
+## defined in `ik-cd-worker` package
+
+| A-Frame components | file name |
+|--------------------|-----------|
+|`set-exact-solution`	|	`IkWorkerParamsComponents.js`|
+|`set-ignore-joint-limits`	|	`IkWorkerParamsComponents.js`|
+|`set-ignore-collisions`	|	`IkWorkerParamsComponents.js`|
+|`set-joint-limit-keep-moving`	|	`IkWorkerParamsComponents.js`|
+|`suppress-cd-worker`	|	`IkWorkerParamsComponents.js`|
+|`cd-worker-log-timing`	|	`IkWorkerParamsComponents.js`|
+|`cd-worker-log-collision`	|	`IkWorkerParamsComponents.js`|
 
 ## a-entity tree example made by robot-loader
 ```mermaid
@@ -95,3 +115,4 @@ graph TD
 `visual` a-entity represents a visual mesh of each link.
 Please refer to the [URDF specification](https://wiki.ros.org/urdf/XML/joint) for more details
 about joints and links.
+

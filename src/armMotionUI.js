@@ -5,6 +5,7 @@ const THREE = window.AFRAME.THREE;
 import '@ucl-nuee/ik-cd-worker/IkWorkerParamsComponents.js'; // registerComponents for worker parameters
 import {isoInvert, isoMultiply} from './isometry3.js';
 import {registerResetTarget} from './attachToAnother.js';
+import './axesFrame.js';
 
 function workerPose(el) {
   const pose = el?.workerData?.current?.pose;

@@ -2,6 +2,7 @@ import {customLogger} from './customLogger.js'
 globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 // const THREE = AFRAME.THREE;
+import './axesFrame.js';
 
 AFRAME.registerComponent('add-frame-to-joints', {
   schema: {
