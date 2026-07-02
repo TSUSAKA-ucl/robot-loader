@@ -1,0 +1,28 @@
+# robot-loader/src および ik-cd-worker/src がa-entityに付与する
+# カスタムproperties
+#
+# grep "emit *( *'" *js ../../ik-cd-worker/src/*js |\
+# sed -e "s/^.*emit *( *'//"|sed -e "s/'.*$//" |\
+# sort -u > ../all-custom-events.txt
+#
+# ik-worker関係
+abId
+ikWorkerReady
+workerData
+workerRef
+
+# robot-loader関係
+axes
+realAxes
+endLink
+
+# attach-to-another関係
+attached
+resetTargets : OBSOLETE
+
+# VR controller関係
+laserCylinder
+laserCylinderHeight
+laserVisible
+listenersList
+thumbstick

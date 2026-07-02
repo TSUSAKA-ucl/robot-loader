@@ -1,0 +1,23 @@
+# robot-loader/src および ik-cd-worker/src が使用するcustom events
+#
+# grep 'this\.el\.[a-zA-Z0-9_]\+ *[^a-zA-Z0-9_(]' *js | \
+# sed -e 's/^.*this\.el\.\([a-zA-Z0-9_]\+\) *[^a-zA-Z0-9_(].*$/\1/'|\
+# sort -u > ../all-entities-properties.txt
+
+# ik-worker関係
+ab-id-ready
+cd-worker-ready
+ik-worker-arrival
+ik-worker-ready
+ik-worker-start
+
+# robot-loader関係
+robot-dom-ready
+robot-registered
+
+# attach-to-another関係
+attach
+attached
+
+# VR controller関係
+thumbmenu-select
