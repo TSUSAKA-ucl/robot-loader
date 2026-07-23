@@ -79,6 +79,10 @@ AFRAME.registerComponent('ignore-collision', {
     // console.log('$$$$$$$ enter postIgnorePairs. data:', this.data);
     const el = this.el;
     const data = this.data;
+    if (!otherEntity) {
+      customLogger?.error('ignore-collision: other entity not found for ID:', data.other);
+      return;
+    }
     // otherEntity.ikWorkerReadyがtrueでなければaddEventListenerして待つ
     const iHaveAbId = () => {
       const realPostFunc = () => {

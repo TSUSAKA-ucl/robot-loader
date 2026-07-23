@@ -188,6 +188,11 @@ AFRAME.registerComponent('target-selector', {
 	const robotEl = document.getElementById(selectedId);
 	customLogger?.debug('target-selector: select id=',
 					 selectedId,'robotEl=', robotEl);
+	if (!robotEl) {
+	  customLogger?.error('target-selector: robotEl not found for id=',
+			      selectedId);
+	  return;
+	}
 	if (robotEl?.endLink) {
 	  selectFunc(selectedId);
 	} else {
