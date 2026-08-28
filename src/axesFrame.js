@@ -3,29 +3,29 @@ globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
 const THREE = AFRAME.THREE;
 
-// let controllerPosition = null;
-// let controllerQuaternion = null;
-AFRAME.registerComponent('add-frameObject', {
-  init: function () {
-    // globalThis.__customLogger?.debug('#### parent:',this.el.parentNode,
-    //              '#### this.el:', this.el);
-    const addToParent = () => {
-      this.el.parentNode.frameObject = this.el;
-    };
-    if (this.el.parentNode.hasLoaded) {
-      addToParent();
-    } else {
-      this.el.parentNode.addEventListener('loaded', addToParent);
-    }
-  // },
-  // tick() {
-  //   if (controllerPosition && controllerQuaternion) {
-  //     this.el.object3D.position.copy(controllerPosition);
-  //     this.el.object3D.quaternion.copy(controllerQuaternion);
-  //   }
-  }
-});
-//                 oculus-touch-controls="hand: right"
+// // let controllerPosition = null;
+// // let controllerQuaternion = null;
+// AFRAME.registerComponent('add-frameObject', {
+//   init: function () {
+//     // globalThis.__customLogger?.debug('#### parent:',this.el.parentNode,
+//     //              '#### this.el:', this.el);
+//     const addToParent = () => {
+//       this.el.parentNode.frameObject = this.el;
+//     };
+//     if (this.el.parentNode.hasLoaded) {
+//       addToParent();
+//     } else {
+//       this.el.parentNode.addEventListener('loaded', addToParent);
+//     }
+//   // },
+//   // tick() {
+//   //   if (controllerPosition && controllerQuaternion) {
+//   //     this.el.object3D.position.copy(controllerPosition);
+//   //     this.el.object3D.quaternion.copy(controllerQuaternion);
+//   //   }
+//   }
+// });
+// //                 oculus-touch-controls="hand: right"
 
 AFRAME.registerComponent('a-axes-frame', {
   schema: {

@@ -1,6 +1,6 @@
 {
   "name": "@ucl-nuee/robot-loader",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "publishConfig": {
     "access": "public"
   },
@@ -15,7 +15,7 @@
     "aframe": "^1.7.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "@ucl-nuee/ik-cd-worker": "1.0.7"
+    "@ucl-nuee/ik-cd-worker": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -24,8 +24,6 @@
     "@vitejs/plugin-react": "^5.0.0",
     "dependency-cruiser": "^17.0.2",
     "eslint": "^10.7.0",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^16.3.0",
     "vite": "^7.1.2",
     "vite-plugin-static-copy": "^3.1.2"
@@ -44,12 +42,15 @@
     "./robotRegistry.js": "src/robotRegistry.js",
     "./vrControllerThumbMenu.js": "src/vrControllerThumbMenu.js",
     "./ChangeOpacity.js": "src/ChangeOpacity.js",
+    "./changeOpacity.js": "src/changeOpacity.js",
     "./reflectCollision.js": "src/reflectCollision.js",
     "./reflectJointLimits.js": "src/reflectJointLimits.js",
     "./jointMoveTo.js": "src/jointMoveTo.js",
     "./fingerCloser.js": "src/fingerCloser.js",
     "./oneAxisMover.js": "src/oneAxisMover.js",
-    "./stillObjects.js": "src/stillObjects.js"
+    "./multipleTogether.js": "src/multipleTogether.js",
+    "./stillObjects.js": "src/stillObjects.js",
+    "./worldMotionUI.js": "src/worldMotionUI.js"
   },
   "bin": {
     "copy-assets": "./scripts/copy-assets.mjs"

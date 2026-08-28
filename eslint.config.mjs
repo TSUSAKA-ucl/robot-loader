@@ -1,6 +1,5 @@
 import globals from "globals";
 import pluginJs from "@eslint/js";
-import pluginReact from "eslint-plugin-react";
 
 export default [
   {
@@ -16,11 +15,11 @@ export default [
       },
     },
     plugins: {
-      react: pluginReact,   // ← plugin を追加
+      // react: pluginReact,   // ← plugin を追加
     },
     rules: {
-      ...pluginReact.configs.recommended.rules, // ← React の recommended rules を展開
-      "react/react-in-jsx-scope": "off",        // ← React 17+ なら不要なので off
+      // ...pluginReact.configs.recommended.rules, // ← React の recommended rules を展開
+      // "react/react-in-jsx-scope": "off",        // ← React 17+ なら不要なので off
     },
     settings: {
       react: {

@@ -19,6 +19,7 @@ AFRAME.registerComponent('joint-move-to', {
 	    type: 'set_joint_targets',
 	    jointTargets: targets
 	  });
+	  globalThis.__customLogger.warn('### set_joint_targets Posted');
 	} else {
 	  globalThis.__customLogger.error('workerRef is not available');
 	}
@@ -32,11 +33,15 @@ AFRAME.registerComponent('joint-move-to', {
   update: function() {
     this.jointTargets = this.data;
     this.done = false;
+    globalThis.__customLogger.warn('in joint-move-to, worker status:',
+				   this.el.workerData?.current?.status?.status);
     if (this.el.workerData?.current?.status?.status === 'END') {
       this.setJointTarget(this.jointTargets);
       this.done = true;
     } else {
       this.el.addEventListener('ik-worker-arrival', () => {
+	globalThis.__customLogger.warn('in joint-move-to, before setJointTarget:',
+				       this.el.workerData?.current?.status?.status);
 	this.setJointTarget(this.jointTargets);
 	this.done = true;
       }, { once: true });

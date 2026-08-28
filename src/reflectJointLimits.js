@@ -20,6 +20,17 @@ AFRAME.registerComponent('reflect-joint-limits', {
       const limitedStatus = this.el.workerData.current?.status?.limit_flag;
       if (limitedStatus) {
 	if (limitedStatus.length === this.el.axes.length) {
+	  if (this.prevLimitedStatus === undefined) {
+	    this.prevLimitedStatus = new Int32Array(limitedStatus.length).fill(0);
+	  }
+	  let axesCount = 0;
+	  while (axesCount < limitedStatus.length &&
+		 limitedStatus[axesCount] === this.prevLimitedStatus[axesCount]) {
+	    axesCount++;
+	  }
+	  if (axesCount !== limitedStatus.length) {
+	    globalThis.__customLogger?.warn('reflect-joint-limits', 'limitedStatus', limitedStatus);
+	  }
 	  let colored = false;
 	  limitedStatus.forEach((flag, idx) => {
 	    if (flag === 0 && !this.colored) return; // skip processing

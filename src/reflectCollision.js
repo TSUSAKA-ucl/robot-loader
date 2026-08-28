@@ -60,7 +60,7 @@ AFRAME.registerComponent('reflect-collision', {
         }
       } else if (collisionPairs.length > 0) {
         const uniqueFlat = [...new Set(collisionPairs.flat(Infinity))];
-        globalThis.__customLogger?.debug('Status: collisionPairs:', collisionPairs,
+        globalThis.__customLogger?.warn('Status: collisionPairs:', collisionPairs,
                       ' uniqueFlat:', uniqueFlat);
         for (let i = 0; i < this.el.axes.length + 1; i++) {
           const linkEl = numberToEl(i, this.el);
@@ -71,6 +71,7 @@ AFRAME.registerComponent('reflect-collision', {
             changeLinksColor(linkEl, 'original');
           } else {
             // collision
+	    globalThis.__customLogger?.warn('### DETECT COLLISION:', this.el?.id, i);
             changeLinksColor(linkEl, this.data.color);
             this.colored = true;
           }

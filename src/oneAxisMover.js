@@ -21,6 +21,7 @@ AFRAME.registerComponent('one-axis-mover', {
     interval: {type: 'number', default: 0.1}, // seconds
   },
   init: function () {
+    this.scalar = this.data.init; // 他のcomponentが参照するためinitで初期化
     if (!this.el.getAttribute('send-base-coord')) {
       this.el.setAttribute('send-base-coord', '');
     }

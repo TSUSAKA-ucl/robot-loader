@@ -1,6 +1,7 @@
 import {customLogger} from './customLogger.js'
 // globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe'
+import { VR_EVENTS } from './vrControllerEvents.js'
 
 AFRAME.registerComponent('robot-registry', {
   init: function () {
@@ -47,6 +48,7 @@ AFRAME.registerComponent('robot-registry', {
     if (checkListenerList(listenerEl, distributor)) {
       distributor.listenersList[id] = listenerEl;
       listenerEl.shouldListenEvents += 1;
+      listenerEl.emit('should-listen-event-changed', {shouldListenEvents: listenerEl.shouldListenEvents}, false);
       customLogger?.log('enable listening event by', id);
     }
   },
@@ -56,6 +58,7 @@ AFRAME.registerComponent('robot-registry', {
       delete distributor.listenersList[id];
       if (listenerEl.shouldListenEvents) {
 	listenerEl.shouldListenEvents -= 1;
+	listenerEl.emit('should-listen-event-changed', {shouldListenEvents: listenerEl.shouldListenEvents}, false);
       }
       customLogger?.log('disable listening event by', id);
     }
@@ -116,12 +119,7 @@ AFRAME.registerComponent('event-distributor', {
 	});
       };
 
-      ['thumbmenu-select',
-       'triggerdown', 'triggerup', 'gripdown', 'gripup',
-       'abuttondown', 'abuttonup', 'bbuttondown', 'bbuttonup',
-       'xbuttondown', 'xbuttonup', 'ybuttondown', 'ybuttonup',
-       'thumbstickmoved', 'thumbstickdown', 'thumbstickup',
-      ].forEach(evtName => {
+      VR_EVENTS.forEach(evtName => {
 	this.el.addEventListener(evtName, this.distributionFunc);
       });
     };
@@ -141,11 +139,7 @@ AFRAME.registerComponent('event-distributor', {
     if (!robotRegistryComp) {
       return;
     }
-    ['thumbmenu-select',
-     'triggerdown', 'triggerup', 'gripdown', 'gripup',
-     'abuttondown', 'abuttonup', 'bbuttondown', 'bbuttonup',
-     'thumbstickmoved', 'thumbstickdown', 'thumbstickup',
-    ].forEach(evtName => {
+    VR_EVENTS.forEach(evtName => {
       this.el.removeEventListener(evtName, this.distributionFunc);
     });
   }
@@ -219,7 +213,7 @@ function checkListenerList(listener, distributor) {
 	Number.isInteger(listener.shouldListenEvents)) {
 	return true;
       } else {
-	customLogger?.error('el.shoudListenEvents must be INTEGER. ',
+	customLogger?.error('el.shouldListenEvents must be INTEGER. ',
 		      listener?.shouldListenEvents);
 	return false;
       }

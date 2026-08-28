@@ -7,6 +7,8 @@ import {isoInvert, isoMultiply} from './isometry3.js';
 import {registerResetTarget} from './attachToAnother.js';
 import './axesFrame.js';
 
+// ### いずれ newObjPoseUI.js を使って書き換える
+
 function workerPose(el) {
   const pose = el?.workerData?.current?.pose;
   if (pose) {
@@ -142,8 +144,26 @@ AFRAME.registerComponent('arm-motion-ui', {
     registerResetTarget(this);
   },
 
+  dumyLaserLineThree: function () {
+    this.laserLineTHREE = true;
+  },
+  undefineLaserLineThree: function () {
+    this.laserLineTHREE = null;
+  },
   // ********
   tick: function (time, timeDelta) {
+    if (this.laserLineTHREE) {
+      if (this?.vrControllerEl?.laserVisible) {
+        this.laserLineTHREE.visible = this.vrControllerEl.laserVisible
+      }
+    } else {
+      if (this?.vrControllerEl) {
+        const lineMesh = this.vrControllerEl?.getObject3D('line');
+        if (lineMesh && lineMesh instanceof THREE.Object3D) {
+          this.laserLineTHREE = lineMesh;
+        }
+      }
+    }
     this.resetTimeDelta += timeDelta;
     if (!this.el?.shouldListenEvents) {
       this.triggerdownState = false;
