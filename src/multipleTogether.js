@@ -71,11 +71,14 @@ AFRAME.registerComponent('multiple-together', {
   schema: {
     targets: { type: 'array', default: [] } // 例: ["obj1", "obj2"]
   },
-
+  // arm-motion-uiのtickがここのdummySlotのobject3Dを見る前にこのコンポーネントが
+  // newObjPoseUI()でthis.el.object3Dの位置姿勢を更新しておく必要があるので
+  before: ['arm-motion-ui'],
   init: function () {
     this.validEntities = [];
+    this.originalProperties = new WeakMap();
     this.dummySlots = new Map(); // entityId -> { object3D, el }
-    this.relativeTransforms = new Map(); // entityId -> { position, quaternion }
+    // this.relativeTransforms = new Map(); // entityId -> { position, quaternion }
 
     // Three.js 計算用の作業用変数（GC削減）
     this.tmpVec = new THREE.Vector3();
@@ -91,9 +94,9 @@ AFRAME.registerComponent('multiple-together', {
   },
 
   setupTargets: function () {
-    globalThis.__customLogger?.warn('multiple-together: setupTargets', 'targets:', this.data.targets);
+    globalThis.__customLogger?.log('multiple-together: setupTargets', 'targets:', this.data.targets);
     const promises = this.data.targets.map(selector => {
-      globalThis.__customLogger?.warn('multiple-together: setupTargets', 'selector:', selector);
+      globalThis.__customLogger?.log('multiple-together: setupTargets', 'selector:', selector);
       return new Promise(resolve => {
         const targetEl = document.getElementById(selector);
 	  // || document.querySelector(selector);
@@ -108,28 +111,42 @@ AFRAME.registerComponent('multiple-together', {
     });
 
     Promise.all(promises).then(entities => {
-      globalThis.__customLogger?.warn('multiple-together: setupTargets', entities.map(el => el?.id).join(', '));
+      globalThis.__customLogger?.log('multiple-together: setupTargets', entities.map(el => el?.id).join(', '));
       // arm-motion-ui が付いているEntityのみを抽出
       this.validEntities = entities.filter(el => el && el.components['arm-motion-ui']);
 
       // ターゲットごとに超軽量なダミーオブジェクトを作成
       this.validEntities.forEach(el => {
-        const dummyObject3D = new THREE.Object3D();
-
-        // 最小限のダミー構造（DOMを作らない）
-        const dummySlot = {
-          object3D: dummyObject3D,
-          // arm-motion-ui 側で originalTarget.el.object3D や originalTarget.object3D
-          // どちらのアクセス方法でもエラーにならないためのダミー参照
-          el: null 
-        };
-        dummySlot.el = dummySlot;
-
+	// worldDirect schemaを保存する
+	this.originalProperties.set(el, { worldDirect: el.getAttribute('arm-motion-ui').worldDirect });
+        el.setAttribute('arm-motion-ui', 'worldDirect', true); // ダミーコントローラーの一時的モード変更
+        // const dummyObject3D = new THREE.Object3D();
+        // // 最小限のダミー構造（DOMを作らない）
+        // const dummySlot = {
+        //   object3D: dummyObject3D,
+        //   // arm-motion-ui 側で originalTarget.el.object3D や originalTarget.object3D
+        //   // どちらのアクセス方法でもエラーにならないためのダミー参照
+	//   laserVisible: false,
+        //   el: null 
+        // };
+        // dummySlot.el = dummySlot;
+        const dummySlot = document.createElement('a-entity');
+        dummySlot.setAttribute('a-axes-frame', 'color: blue; length: 0.1; radius: 0.003; sphere: 0.02');
+        dummySlot.setAttribute('color', 'blue');
+        dummySlot.setAttribute('scale', '0.5 0.5 0.5');
+        this.el.appendChild(dummySlot);
+        dummySlot.laserVisible = false;
+        dummySlot.object3D.position.set(0, 0, 0);
+        dummySlot.object3D.quaternion.set(0, 0, 0, 1);
+        dummySlot.object3D.scale.set(1, 1, 1);
+        dummySlot.object3D.updateMatrixWorld();
+        dummySlot.el = null;
+        dummySlot.correspondingEntityId = el.id;
         this.dummySlots.set(el.id, dummySlot);
 
 	// 各valid entityのtickが動き出すように shouldListenEvents をインクリメント
-	if (typeof this.el?.shouldListenEvents === 'number') {
-	  this.el.shouldListenEvents++;
+	if (typeof el?.shouldListenEvents === 'number') {
+	  el.shouldListenEvents++;
 	}
       });
 
@@ -154,8 +171,8 @@ AFRAME.registerComponent('multiple-together', {
     const quaternions = [];
 
     this.validEntities.forEach(el => {
-      el.object3D.getWorldPosition(this.targetWorldPos);
-      el.object3D.getWorldQuaternion(this.targetWorldRot);
+      el.endLink.object3D.getWorldPosition(this.targetWorldPos);
+      el.endLink.object3D.getWorldQuaternion(this.targetWorldRot);
       avgPos.add(this.targetWorldPos);
       quaternions.push(this.targetWorldRot.clone());
     });
@@ -164,10 +181,25 @@ AFRAME.registerComponent('multiple-together', {
     // 簡易的な平均回転の適用
     const avgRot = quaternions[0];
 
+    // 2.0 一時的にdummySlotsのobject3Dをこの親から切り離して
+    // 対応するvalidEntitiesのendLink.object3Dのworld値とworld値を一致させる
+    this.dummySlots.forEach(dummySlot => {
+      this.el.sceneEl.object3D.attach(dummySlot.object3D);
+      const correspondingEntity = this.validEntities.find(el => el.id === dummySlot.correspondingEntityId);
+      if (correspondingEntity) {
+        dummySlot.object3D.position.copy(correspondingEntity.endLink.object3D.getWorldPosition(new THREE.Vector3()));
+        dummySlot.object3D.quaternion.copy(correspondingEntity.endLink.object3D.getWorldQuaternion(new THREE.Quaternion()));
+        dummySlot.object3D.updateMatrixWorld();
+      }
+    });
     // 2. 自身の Object3D を平均位置・姿勢に移動
     this.el.object3D.position.copy(avgPos);
     this.el.object3D.quaternion.copy(avgRot);
     this.el.object3D.updateMatrixWorld();
+    // 2.1 再度、dummySlotsを自身の子に戻す
+    this.dummySlots.forEach(dummySlot => {
+      this.el.object3D.attach(dummySlot.object3D);
+    });
 
     this.vrControllerEl = evt.detail?.originalTarget;
     newObjPoseConstsWorld(this, this.vrControllerEl,
@@ -175,35 +207,28 @@ AFRAME.registerComponent('multiple-together', {
 			  this.el.sceneEl.camera.position);
     this.triggerdownState = true;
 
-    const parentWorldInv = new THREE.Matrix4()
-      .copy(this.el.object3D.matrixWorld)
-      .invert();
+    // 3. 各 Entity の「この Entity に対する相対位置姿勢」はTHREEが
+    // 自動的に一定値に保つためrelativeTransformsは廃止する
+    // this.validEntities.forEach(el => {
+    //   // 各el(robot)に対応するdummy controllerを取得
+    //   const dummySlot = this.dummySlots.get(el.id);
+    //   // this.el(multiple-togetherの付いているentity)からの相対変換行列
+    //   el.object3D.updateMatrixWorld();
+    //   const relativeMatrix = new THREE.Matrix4()
+    //     .multiplyMatrices(parentWorldInv, el.object3D.matrixWorld);
 
-    // 3. 各 Entity の「この Entity に対する相対位置姿勢」を記憶 & ダミー同期
-    this.validEntities.forEach(el => {
-      const dummySlot = this.dummySlots.get(el.id);
+    //   const relPos = new THREE.Vector3();
+    //   const relRot = new THREE.Quaternion();
+    //   const relScale = new THREE.Vector3();
+    //   relativeMatrix.decompose(relPos, relRot, relScale);
 
-      // ダミーのワールド位置をターゲットEntityの現在位置に同期
-      el.object3D.getWorldPosition(dummySlot.object3D.position);
-      el.object3D.getWorldQuaternion(dummySlot.object3D.quaternion);
-      dummySlot.object3D.updateMatrixWorld();
-
-      // 自身からの相対変換行列を計算して記憶
-      const relativeMatrix = new THREE.Matrix4()
-        .multiplyMatrices(parentWorldInv, el.object3D.matrixWorld);
-
-      const relPos = new THREE.Vector3();
-      const relRot = new THREE.Quaternion();
-      const relScale = new THREE.Vector3();
-      relativeMatrix.decompose(relPos, relRot, relScale);
-
-      this.relativeTransforms.set(el.id, { position: relPos,
-					   quaternion: relRot });
-    });
+    //   this.relativeTransforms.set(el.id, { position: relPos,
+    //     				   quaternion: relRot });
+    // });
   },
 
   onVREvents: function (evt) {
-    globalThis.__customLogger?.warn('multiple-together: onVREvents', evt.type,
+    globalThis.__customLogger?.log('multiple-together: onVREvents', evt.type,
 				    'from', evt.detail?.originalTarget?.id,
 				    ' to', this.validEntities.map(el => el.id).join(', '),
 				   ' length:', this.validEntities.length);
@@ -222,6 +247,8 @@ AFRAME.registerComponent('multiple-together', {
       });
 
       // バブルアップなし (bubbles = false) でターゲット Entity に投げる
+      globalThis.__customLogger?.log('multi: emit: type:',evt.type,
+				      'to id:', el.id);
       el.emit(evt.type, newDetail, false);
     });
   },
@@ -238,28 +265,28 @@ AFRAME.registerComponent('multiple-together', {
 
     const selfWorldMatrix = this.el.object3D.matrixWorld;
 
-    // 5. 毎フレーム、ダミーのワールド位置姿勢を「自身のワールド位置姿勢 + 相対位置姿勢」に更新
-    this.validEntities.forEach(el => {
-      const rel = this.relativeTransforms.get(el.id);
-      const dummySlot = this.dummySlots.get(el.id);
-      if (!rel || !dummySlot) return;
+    // // 5. 毎フレーム、ダミーのワールド位置姿勢を「自身のワールド位置姿勢 + 相対位置姿勢」に更新
+    // this.validEntities.forEach(el => {
+    //   const rel = this.relativeTransforms.get(el.id);
+    //   const dummySlot = this.dummySlots.get(el.id);
+    //   if (!rel || !dummySlot) return;
 
-      // 相対変換行列を作成
-      this.tmpMatrix.makeRotationFromQuaternion(rel.quaternion);
-      this.tmpMatrix.setPosition(rel.position);
+    //   // 相対変換行列を作成
+    //   this.tmpMatrix.makeRotationFromQuaternion(rel.quaternion);
+    //   this.tmpMatrix.setPosition(rel.position);
 
-      // 自身のワールド行列 × 相対行列 ＝ ダミーの新しいワールド行列
-      const dummyWorldMatrix = new THREE.Matrix4()
-        .multiplyMatrices(selfWorldMatrix, this.tmpMatrix);
+    //   // 自身のワールド行列 × 相対行列 ＝ ダミーの新しいワールド行列
+    //   const dummyWorldMatrix = new THREE.Matrix4()
+    //     .multiplyMatrices(selfWorldMatrix, this.tmpMatrix);
 
-      dummyWorldMatrix.decompose(
-        dummySlot.object3D.position,
-        dummySlot.object3D.quaternion,
-        this.tmpVec
-      );
+    //   dummyWorldMatrix.decompose(
+    //     dummySlot.object3D.position,
+    //     dummySlot.object3D.quaternion,
+    //     this.tmpVec
+    //   );
 
-      dummySlot.object3D.updateMatrixWorld();
-    });
+    //   dummySlot.object3D.updateMatrixWorld();
+    // });
   },
 
   remove: function () {
@@ -272,10 +299,19 @@ AFRAME.registerComponent('multiple-together', {
     this.validEntities.forEach(el => {
       if (typeof el?.shouldListenEvents === 'number') {
 	el.shouldListenEvents--;
+	// ダミーコントローラーの一時的モード変更を元に戻す
+        el.setAttribute('arm-motion-ui', 'worldDirect', this.originalProperties.get(el)?.worldDirect ?? false);
+	this.originalProperties.delete(el);
+      }
+    });
+    this.dummySlots.forEach(dummySlot => {
+      if (dummySlot && dummySlot.parentNode) {
+        dummySlot.parentNode.removeChild(dummySlot);
       }
     });
     this.dummySlots.clear();
-    this.relativeTransforms.clear();
+    // this.relativeTransforms.clear();
+    this.validEntities = [];
   }
 });
 
@@ -289,13 +325,14 @@ AFRAME.registerComponent('reserve-multiple-together', {
       const el = this.el;
       const robotRegistryComp = el.sceneEl.robotRegistryComp;
       if (robotRegistryComp.get(id)) {
-	globalThis.__customLogger?.warn('robot:',id,'already registered');
+	globalThis.__customLogger?.log('robot:',id,'already registered');
       }
       const axes = [];
       const realAxes = [];
       const endLinkEl = el;
-      customLogger?.warn('reserve-multiple-together: registerRobotFunc id=', id,
-			  'el=', el, 'axes=', axes, 'endLinkEl=', endLinkEl);
+      customLogger?.log('reserve-multiple-together: registerRobotFunc id=', id,
+			 // 'el=', el,
+			 'axes=', axes, 'endLinkEl.id=', endLinkEl.id);
       robotRegistryComp.newId(id, {el: el, axes: axes, endLink: endLinkEl});
       globalThis.__customLogger?.debug('#><><><# planeEl.id:',el?.id,
 				       'endLinkEl:',el.endLink);
@@ -310,8 +347,7 @@ AFRAME.registerComponent('reserve-multiple-together', {
     };
     const onDomReady = () => {
       const setRemoveFunc = () => {
-	globalThis.__customLogger?.warn('### ', this.el.id,
-					'shouldListenEvents changed to',
+	globalThis.__customLogger?.log(`### "${this.el.id}"s shouldListenEvents is`,
 					this.el?.shouldListenEvents);
 	if (this.el?.shouldListenEvents > 0) {
 	  this.el.setAttribute('multiple-together',

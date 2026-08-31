@@ -25,6 +25,9 @@ function workerPose(el) {
 
 // this component is indended to be attached to an robot-plane
 AFRAME.registerComponent('arm-motion-ui', {
+  schema: {
+    worldDirect: {type: 'boolean', default: false},
+  },
   setStartPoseAndRatio: function (objectPose) {
     // Before enter this function, this.worldToBase must ALREADY be
     // calculated and this.vrControllerEl must be set. In this
@@ -54,7 +57,7 @@ AFRAME.registerComponent('arm-motion-ui', {
     const myColor = this.el.getAttribute('material').color;
     const frameMarker = document.createElement('a-entity');
     frameMarker.setAttribute('a-axes-frame', {
-      length: 0.10,
+      length: 0.075,
       radius: 0.005,
       sphere: 0.02,
       color: myColor ? myColor : 'blue',
@@ -97,7 +100,7 @@ AFRAME.registerComponent('arm-motion-ui', {
     } );
     this.el.addEventListener('triggerdown', (evt) => {
       evt.stopPropagation();
-      globalThis.__customLogger?.log('### trigger down event. laserVisible: ',
+      globalThis.__customLogger?.log('arm-motion-ui ### trigger down event. laserVisible: ',
 		  evt.detail?.originalTarget.laserVisible);
       const ctrlEl = evt.detail?.originalTarget;
       this.vrControllerEl = ctrlEl;
@@ -175,24 +178,34 @@ AFRAME.registerComponent('arm-motion-ui', {
 	globalThis.__customLogger?.warn('workerData or workerRef not ready yet.');
 	return;
       }
-      if (this.triggerdownState && ~ctrlEl.laserVisible) {
-	const vrControllerPose = isoMultiply(this.baseToWorld,
-					     [ctrlEl.object3D.position,
-					      ctrlEl.object3D.quaternion]);
-	const vrControllerDelta = isoMultiply(this.vrCtrlStartingPoseInv,
-                                              vrControllerPose);
-	vrControllerDelta[0] = vrControllerDelta[0].multiplyScalar(1.0);
-	vrControllerDelta[1].normalize();
-	const vrCtrlToObj = [new THREE.Vector3(0, 0, 0),
-                             this.vrCtrlStartingPoseInv[1].clone()
-                             .multiply(this.objStartingPose[1])];
-	const ObjToVrCtrl = [new THREE.Vector3(0, 0, 0),
-                             vrCtrlToObj[1].clone().conjugate()];
-	const newObjPose = isoMultiply(isoMultiply(this.objStartingPose,
-                                                   isoMultiply(ObjToVrCtrl,
-                                                               vrControllerDelta)),
-                                       vrCtrlToObj);
-	newObjPose[1].normalize();
+      if (this.triggerdownState && !ctrlEl.laserVisible) {
+	let newObjPose;
+	if (this.data.worldDirect) {
+	  // ctrlEl.object3Dのworldのpos,quatを取り出す
+	  const worldPos = new THREE.Vector3();
+	  const worldQuat = new THREE.Quaternion();
+	  ctrlEl.object3D.getWorldPosition(worldPos);
+	  ctrlEl.object3D.getWorldQuaternion(worldQuat);
+	  newObjPose = isoMultiply(this.baseToWorld, [worldPos, worldQuat]);
+	} else {
+	  const vrControllerPose = isoMultiply(this.baseToWorld,
+					       [ctrlEl.object3D.position,
+						ctrlEl.object3D.quaternion]);
+	  const vrControllerDelta = isoMultiply(this.vrCtrlStartingPoseInv,
+						vrControllerPose);
+	  vrControllerDelta[0] = vrControllerDelta[0].multiplyScalar(1.0);
+	  vrControllerDelta[1].normalize();
+	  const vrCtrlToObj = [new THREE.Vector3(0, 0, 0),
+                               this.vrCtrlStartingPoseInv[1].clone()
+                               .multiply(this.objStartingPose[1])];
+	  const ObjToVrCtrl = [new THREE.Vector3(0, 0, 0),
+                               vrCtrlToObj[1].clone().conjugate()];
+	  newObjPose = isoMultiply(isoMultiply(this.objStartingPose,
+                                                     isoMultiply(ObjToVrCtrl,
+								 vrControllerDelta)),
+					 vrCtrlToObj);
+	  newObjPose[1].normalize();
+	}
 	this.frameMarker.object3D.position.copy(newObjPose[0]);
 	this.frameMarker.object3D.quaternion.copy(newObjPose[1]);
 	const m4 = new THREE.Matrix4();

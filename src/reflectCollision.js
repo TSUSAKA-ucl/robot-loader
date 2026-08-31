@@ -37,11 +37,15 @@ function changeLinksColor(linkEl, color) {
 AFRAME.registerComponent('reflect-collision', {
   schema: {
     color: {type: 'string', default: 'red'},
+    logLevel: {type: 'string', default: 'none',
+	       oneOf: ['none', 'warn', 'info', 'debug']},
   },
   init: function () {
     registerResetTarget(this);
   },
-
+  update: function () {
+    this.notifier = globalThis.__customLogger[this.data.logLevel];
+  },
   // **** tick ****
   tick: function() {
     if (this.el.workerData?.current?.status) {
@@ -60,8 +64,8 @@ AFRAME.registerComponent('reflect-collision', {
         }
       } else if (collisionPairs.length > 0) {
         const uniqueFlat = [...new Set(collisionPairs.flat(Infinity))];
-        globalThis.__customLogger?.warn('Status: collisionPairs:', collisionPairs,
-                      ' uniqueFlat:', uniqueFlat);
+	this.notifier?.('Status: collisionPairs:', collisionPairs,
+			' uniqueFlat:', uniqueFlat);
         for (let i = 0; i < this.el.axes.length + 1; i++) {
           const linkEl = numberToEl(i, this.el);
           // globalThis.__customLogger?.debug('Status: Processing link index:', i,
@@ -71,7 +75,7 @@ AFRAME.registerComponent('reflect-collision', {
             changeLinksColor(linkEl, 'original');
           } else {
             // collision
-	    globalThis.__customLogger?.warn('### DETECT COLLISION:', this.el?.id, i);
+	    this.notifier?.('### DETECT COLLISION:', this.el?.id, i);
             changeLinksColor(linkEl, this.data.color);
             this.colored = true;
           }

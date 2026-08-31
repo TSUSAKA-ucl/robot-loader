@@ -9,6 +9,7 @@ AFRAME.registerComponent('reflect-joint-limits', {
   schema: {
     upperColor: {type: 'string', default: 'red'},
     lowerColor: {type: 'string', default: 'blue'},
+    logLevel: {type: 'string', default: 'none', oneOf: ['none', 'warn', 'info', 'debug']},
   },
   init: function () {
     registerResetTarget(this);
@@ -23,14 +24,19 @@ AFRAME.registerComponent('reflect-joint-limits', {
 	  if (this.prevLimitedStatus === undefined) {
 	    this.prevLimitedStatus = new Int32Array(limitedStatus.length).fill(0);
 	  }
-	  let axesCount = 0;
-	  while (axesCount < limitedStatus.length &&
-		 limitedStatus[axesCount] === this.prevLimitedStatus[axesCount]) {
-	    axesCount++;
+	  if (globalThis.__customLogger[this.data.logLevel]) {
+	    const logger = globalThis.__customLogger[this.data.logLevel];
+	    let axesCount = 0;
+	    while (axesCount < limitedStatus.length &&
+		   limitedStatus[axesCount] === this.prevLimitedStatus[axesCount]) {
+	      axesCount++;
+	    }
+	    if (axesCount !== limitedStatus.length) {
+	      logger('reflect-joint-limits', 'limitedStatus changed', limitedStatus);
+	    }
 	  }
-	  if (axesCount !== limitedStatus.length) {
-	    globalThis.__customLogger?.warn('reflect-joint-limits', 'limitedStatus', limitedStatus);
-	  }
+	  this.prevLimitedStatus.set(limitedStatus);
+	  // update colors
 	  let colored = false;
 	  limitedStatus.forEach((flag, idx) => {
 	    if (flag === 0 && !this.colored) return; // skip processing

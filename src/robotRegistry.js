@@ -6,13 +6,13 @@ import { VR_EVENTS } from './vrControllerEvents.js'
 AFRAME.registerComponent('robot-registry', {
   init: function () {
     this.el.sceneEl.robotRegistryComp = this;
-    this.objects = new Map();
+    this._robotList = new Map();
   },
   set: function(id, data) { // data: {el: robotEl, axes: [...axes]}
-    this.objects.set(id, {data: data});
+    this._robotList.set(id, {data: data});
   },
   get: function(id) {
-    return this.objects.get(id)?.data;
+    return this._robotList.get(id)?.data;
   },
   newId: function(id, data) {
     customLogger?.log('Registry: registry new id:', id);
@@ -41,10 +41,10 @@ AFRAME.registerComponent('robot-registry', {
     }
   },
   getWhole: function(id) {
-    return this.objects.get(id);
+    return this._robotList.get(id);
   },
   enableEventDelivery: function(id, distributor) {
-    const listenerEl = this.objects.get(id)?.data?.el;
+    const listenerEl = this._robotList.get(id)?.data?.el;
     if (checkListenerList(listenerEl, distributor)) {
       distributor.listenersList[id] = listenerEl;
       listenerEl.shouldListenEvents += 1;
@@ -53,7 +53,7 @@ AFRAME.registerComponent('robot-registry', {
     }
   },
   disableEventDelivery: function(id, distributor) {
-    const listenerEl = this.objects.get(id)?.data?.el;
+    const listenerEl = this._robotList.get(id)?.data?.el;
     if (checkListenerList(listenerEl, distributor)) {
       delete distributor.listenersList[id];
       if (listenerEl.shouldListenEvents) {
@@ -64,7 +64,7 @@ AFRAME.registerComponent('robot-registry', {
     }
   },
   eventDeliveryEnabled: function(id, distributor) {
-    const listenerEl = this.objects.get(id)?.data?.el;
+    const listenerEl = this._robotList.get(id)?.data?.el;
     if (checkListenerList(listenerEl, distributor)) {
       if (distributor.listenersList[id]) {
 	return true;
@@ -78,9 +78,9 @@ AFRAME.registerComponent('robot-registry', {
       customLogger?.error('The id does not exist in the registry:', id);
       return;
     }
-    // const data = this.objects.get(id);
+    // const data = this._robotList.get(id);
     // customLogger?.debug('*#*# data:', data);
-    const listenerEl = this.objects.get(id)?.data?.el;
+    const listenerEl = this._robotList.get(id)?.data?.el;
     if (checkListenerList(listenerEl, distributor)) {
       Object.keys(distributor.listenersList).forEach(key => 
 	this.disableEventDelivery(key, distributor));
@@ -88,10 +88,10 @@ AFRAME.registerComponent('robot-registry', {
     }
   },
   list: function() {
-    return Array.from(this.objects.keys());
+    return Array.from(this._robotList.keys());
   },
   remove: function(id) {
-    this.objects.delete(id);
+    this._robotList.delete(id);
   },
 });
 
