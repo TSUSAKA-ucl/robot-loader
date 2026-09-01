@@ -85,7 +85,13 @@ AFRAME.registerComponent('arm-motion-ui', {
 
     // もしthis.el.workerData.current?.status?.collisions?.lengthが
 
-    this.el.addEventListener('thumbstickdown', (evt) => {
+    const eventIgnored = (evt) => 
+	  !this.el.shouldListenEvents ||
+      (this.el.masterController &&
+       this.el.masterController !== evt.detail?.originalTarget);
+
+    this.thumbstickdownListener = (evt) => {
+      if (eventIgnored(evt)) return;
       evt.stopPropagation();
       if (!this.triggerdownState) {
 	this.el.setAttribute('set-ignore-collisions', 'true');
@@ -94,14 +100,17 @@ AFRAME.registerComponent('arm-motion-ui', {
 	// globalThis.__customLogger?.log('### this.el.id:', this.el.id,
 	// 		  'components:', Object.keys(this.el.components));
       }
-    });
-    this.el.addEventListener('thumbstickup', (evt) => {
+    };
+
+    this.thumbstickupListener = (evt) => {
+      if (eventIgnored(evt)) return;
       this.el.setAttribute('set-ignore-collisions', 'false');
-    } );
-    this.el.addEventListener('triggerdown', (evt) => {
+    };
+
+    this.triggerdownListener = (evt) => {
+      if (eventIgnored(evt)) return;
       evt.stopPropagation();
-      globalThis.__customLogger?.log('arm-motion-ui ### trigger down event. laserVisible: ',
-		  evt.detail?.originalTarget.laserVisible);
+      globalThis.__customLogger?.log('arm-motion-ui ### trigger down event. laserVisible: ', evt.detail?.originalTarget.laserVisible);
       const ctrlEl = evt.detail?.originalTarget;
       this.vrControllerEl = ctrlEl;
       if (!this.vrControllerEl.laserVisible) {
@@ -122,8 +131,10 @@ AFRAME.registerComponent('arm-motion-ui', {
 	  }
 	}
       }
-    });
-    this.el.addEventListener('triggerup', (evt) => {
+    };
+
+    this.triggerupListener = (evt) => {
+      if (eventIgnored(evt)) return;
       globalThis.__customLogger?.log('### trigger up event');
       this.vrControllerEl = evt.detail?.originalTarget;
       this.triggerdownState = false;
@@ -141,12 +152,21 @@ AFRAME.registerComponent('arm-motion-ui', {
 	}
 	this.returnTimerId = setTimeout(frameMarkerResetFunc, 1000);
       }
-    });
+    };
+    this.el.addEventListener('thumbstickdown', this.thumbstickdownListener);
+    this.el.addEventListener('thumbstickup', this.thumbstickupListener);
+    this.el.addEventListener('triggerdown', this.triggerdownListener);
+    this.el.addEventListener('triggerup', this.triggerupListener);
     this.pptPrev = new THREE.Vector3();
     this.qqtPrev = new THREE.Quaternion();
     registerResetTarget(this);
   },
-
+  remove: function () {
+    this.el.removeEventListener('thumbstickdown', this.thumbstickdownListener);
+    this.el.removeEventListener('thumbstickup', this.thumbstickupListener);
+    this.el.removeEventListener('triggerdown', this.triggerdownListener);
+    this.el.removeEventListener('triggerup', this.triggerupListener);
+  },
   dumyLaserLineThree: function () {
     this.laserLineTHREE = true;
   },

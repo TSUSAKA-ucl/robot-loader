@@ -1,51 +1,3 @@
-//
-// event-distributorとarm-motion-uiの間に割り込み、arm-motion-uiがvrControllerの
-// 位置姿勢と思っているものをすり替える。eventはそのままarm-motion-uiの付いているentity
-// に流す
-//
-// arm-motion-uiは、vrControllerからeventとobject3D.position, object3D.quaternionを
-// 取得しworkerPoseと諸々の計算でik-workerにdestinationをpostMessageする
-//
-// multiple-togetherは、vrControllerの各eventをlistenしてそれをschemeに示した
-// entityにforwarding(同じものをemit)する。さらにevent-distributorがdetailのoriginalTargetにバインドした
-// 元(vrController)のentityを自分が計算したobject3Dを持つダミーentityに付け替える
-// arm-motion-uiは、あたかもダミーentityのobject3Dの位置姿勢のvrControllerから
-// eventを受け取ったかのごとくに動く
-// arm-motion-uiは自entityのshouldListenEventsを見てik-workerを動かす(post destination)
-// かどうかを決めるためshouldListenEventsもインクリメントする必要がある
-//
-// どこにeventを配信するかの情報はtarget-selectorが保持している
-// target-selectorはschemaに定義されたeventをlistenし、そのdetailからテキストを取り出して
-// eventを配信する先のターゲットを設定する(selectFunc)。
-// selectFuncはevent-distributorとrobot-registryを取り出して、ターゲットid文字列と
-// distributorElを引数にrobotRegistryのeventDeliveryOneLocationを呼ぶ
-// eventDeliveryOneLocationは、distributorに登録されいてる全entity(id)中
-// 該当entityだけenebleEventDeliveryして他はdisableEventDeliveryする
-// enableEventDeliveryは、distributorのlistenerListにlistenerのentityを
-// 登録しlistenerのentityのshouldListenEventsをインクリメントする
-//
-// 最終的にメンテされるのはdistributorのlistenerListと各entityのshouldListenEventsプロパティー
-// このmultiple-togetherは、distributorに変わりobject3Dをすり替えてeventを複数に一斉配信するが
-// その前に配信先のshoudListenEventsプロパティーをインクリメントし
-// さらにarm-motion-ui用にダミーentityにはfalseのlaserVisibleプロパティーを付けておく必要がある
-// またarm-motion-uiのdummyLaserLineThree()を呼び出しておき配信をやめるときにundefineLaserLineThree()
-// を呼び出しておくと良い(必須ではないが無駄な計算を抑制できる)
-//
-// これらの動作を実現するためには、このmultiple-togetherをつけるentityをrobotRegistryに
-// 登録する必要がある。おなじentityに、multiple-togetherをsetAttribute/removeAttributeするための
-// reserve-multiple-togetherコンポーネントを定義して自分のentityのshouldListenEventsの値を見て>0になったら
-// setAttributeして、<=0になったらremoveAttributeすればよいが、reserverがtickでpollingするのは無駄なので
-// robotRegistryのenableEventDeliveryとdisableEventDeliveryを改造してshouldListenEventsが
-// 変化するときにshould-listen-event-changed eventをemitすることとする
-// (checkListenerListのon demand生成時は0なのでemit不要と言うことにする)
-//
-// robotRegistryへの登録はreserve-multiple-togetherコンポーネントを使いrobot-loaderは通さない。
-// robot-loaderのregisterRobotFuncと
-// 類似のコードでシンプルに登録する。axes=[], realAxes=[], endLinkEl=自分で、
-// robotRegistryComp.newId(id,{el: 自分, axes: axes, endLink: endLinkEl});
-// さらにrobot-registeredイベント用に自分にaxes,realAxes,endLinkElを付けて
-// robot-registeredをemitする
-//
 import {customLogger} from './customLogger.js'
 globalThis.__customLogger = customLogger;
 import AFRAME from 'aframe';
@@ -56,29 +8,27 @@ import {newObjPoseConstsWorld, newObjPoseUI} from './newObjPoseUI.js'
 // schemaで複数のentityのidを引数にとる
 // それらがloadedになった時にarm-motion-uiコンポーネントが付いているかどうか確認して
 // 付いていないentityは、このあと全て無視。付いているentityに対応して
-// ダミーコントローラー(el風の単なるTHREEのobject3D用のスロットだけ持つJavaScriptオブジェクト)を作る
+// ダミーコントローラー(el風の単なるTHREEのobject3D用のスロットだけ持つJavaScriptオブジェクト予定だが当面はa-entity)を作る
 // ダミーコントローラーの親はワールドで良い
 // このmultiple-togetherコンポーネントがvrController(event-distributorコンポーネント)からの
 // イベントを受け取ったら、以下を行う。
-// 1. 現在のこのentityのobject3Dをschemaのentityリストの全部の平均位置と平均的な姿勢に書き換え
-// 2. ダミーコントローラーのobject3Dを現在のschema entityリストのobject3Dと一致
-// 3. このentityとschema entityリストのentityの相対位置姿勢を固定値として記憶
+// 1. 現在のthis.el.object3Dを、全schemaのel.endlinkの平均的な位置姿勢に書き換え
+// 2. ダミーコントローラーのobject3Dを現在のschemaリストのel.endlinkのobject3Dと一致させる
 // 4. evt.detail?.originalTargetを、リストのentityに対応するダミーコントローラーのに書き換えてschemaのリストのentityに投げる(emit)
-// 5. tickで、ダミーコントローラーのobject3Dの更新を行う。ダミーコントローラーのワールド位置姿勢が、
-// このentityのobject3Dのワールド位置姿勢から3.で記憶した相対位置姿勢ずらしたところになるように、
-// ダミーコントローラーのobject3Dを書き換える。
+// 5. tickで、this.elはvrControllerの相対位置姿勢アルゴリズムで移動しダミーコントローラーのobject3Dは自動的に追従する
 AFRAME.registerComponent('multiple-together', {
   schema: {
     targets: { type: 'array', default: [] } // 例: ["obj1", "obj2"]
   },
   // arm-motion-uiのtickがここのdummySlotのobject3Dを見る前にこのコンポーネントが
-  // newObjPoseUI()でthis.el.object3Dの位置姿勢を更新しておく必要があるので
+  // newObjPoseUI()でthis.el.object3Dの位置姿勢を更新しておく必要があるのでbeforeに指定
   before: ['arm-motion-ui'],
   init: function () {
     this.validEntities = [];
     this.originalProperties = new WeakMap();
     this.dummySlots = new Map(); // entityId -> { object3D, el }
     // this.relativeTransforms = new Map(); // entityId -> { position, quaternion }
+    this.backupMasterController = new WeakMap();
 
     // Three.js 計算用の作業用変数（GC削減）
     this.tmpVec = new THREE.Vector3();
@@ -148,6 +98,8 @@ AFRAME.registerComponent('multiple-together', {
 	if (typeof el?.shouldListenEvents === 'number') {
 	  el.shouldListenEvents++;
 	}
+	this.backupMasterController.set(el, el.masterController);
+	el.masterController = dummySlot;
       });
 
       // イベントリスナーの登録（event-distributor等からのイベントを受信）
@@ -181,8 +133,8 @@ AFRAME.registerComponent('multiple-together', {
     // 簡易的な平均回転の適用
     const avgRot = quaternions[0];
 
-    // 2.0 一時的にdummySlotsのobject3Dをこの親から切り離して
-    // 対応するvalidEntitiesのendLink.object3Dのworld値とworld値を一致させる
+    // 一時的にdummySlotsをワールドに移動して、this.el.object3Dの位置姿勢を自由に変更できるようにする
+    // 対応するvalidEntitiesのendLink.object3Dのworld値とdummySlotのworld値を一致させる
     this.dummySlots.forEach(dummySlot => {
       this.el.sceneEl.object3D.attach(dummySlot.object3D);
       const correspondingEntity = this.validEntities.find(el => el.id === dummySlot.correspondingEntityId);
@@ -192,39 +144,21 @@ AFRAME.registerComponent('multiple-together', {
         dummySlot.object3D.updateMatrixWorld();
       }
     });
-    // 2. 自身の Object3D を平均位置・姿勢に移動
+    // this.el.object3D を平均位置・姿勢に移動
     this.el.object3D.position.copy(avgPos);
     this.el.object3D.quaternion.copy(avgRot);
     this.el.object3D.updateMatrixWorld();
-    // 2.1 再度、dummySlotsを自身の子に戻す
+    // dummySlotsのTHREE.object3Dをthis.el.object3Dの子にする
     this.dummySlots.forEach(dummySlot => {
       this.el.object3D.attach(dummySlot.object3D);
     });
+    // arm-motion-uiはworldDirect:trueにしているのでdummySlotsのobject3Dのワールド位置姿勢がそのまま目標値になる
 
     this.vrControllerEl = evt.detail?.originalTarget;
     newObjPoseConstsWorld(this, this.vrControllerEl,
 			  this.el,
 			  this.el.sceneEl.camera.position);
     this.triggerdownState = true;
-
-    // 3. 各 Entity の「この Entity に対する相対位置姿勢」はTHREEが
-    // 自動的に一定値に保つためrelativeTransformsは廃止する
-    // this.validEntities.forEach(el => {
-    //   // 各el(robot)に対応するdummy controllerを取得
-    //   const dummySlot = this.dummySlots.get(el.id);
-    //   // this.el(multiple-togetherの付いているentity)からの相対変換行列
-    //   el.object3D.updateMatrixWorld();
-    //   const relativeMatrix = new THREE.Matrix4()
-    //     .multiplyMatrices(parentWorldInv, el.object3D.matrixWorld);
-
-    //   const relPos = new THREE.Vector3();
-    //   const relRot = new THREE.Quaternion();
-    //   const relScale = new THREE.Vector3();
-    //   relativeMatrix.decompose(relPos, relRot, relScale);
-
-    //   this.relativeTransforms.set(el.id, { position: relPos,
-    //     				   quaternion: relRot });
-    // });
   },
 
   onVREvents: function (evt) {
@@ -255,6 +189,8 @@ AFRAME.registerComponent('multiple-together', {
 
   tick: function () {
     if (this.el?.shouldListenEvents && this.vrControllerEl) {
+      // this.elは vrControllerElの相対位置姿勢アルゴリズムで移動
+      // dummySlotは自動的に追従
       const newPose = newObjPoseUI(this, this.vrControllerEl);
       if (newPose) {
 	this.el.object3D.position.copy(newPose[0]);
@@ -262,31 +198,7 @@ AFRAME.registerComponent('multiple-together', {
       }
     }
     if (this.validEntities.length === 0) return;
-
     const selfWorldMatrix = this.el.object3D.matrixWorld;
-
-    // // 5. 毎フレーム、ダミーのワールド位置姿勢を「自身のワールド位置姿勢 + 相対位置姿勢」に更新
-    // this.validEntities.forEach(el => {
-    //   const rel = this.relativeTransforms.get(el.id);
-    //   const dummySlot = this.dummySlots.get(el.id);
-    //   if (!rel || !dummySlot) return;
-
-    //   // 相対変換行列を作成
-    //   this.tmpMatrix.makeRotationFromQuaternion(rel.quaternion);
-    //   this.tmpMatrix.setPosition(rel.position);
-
-    //   // 自身のワールド行列 × 相対行列 ＝ ダミーの新しいワールド行列
-    //   const dummyWorldMatrix = new THREE.Matrix4()
-    //     .multiplyMatrices(selfWorldMatrix, this.tmpMatrix);
-
-    //   dummyWorldMatrix.decompose(
-    //     dummySlot.object3D.position,
-    //     dummySlot.object3D.quaternion,
-    //     this.tmpVec
-    //   );
-
-    //   dummySlot.object3D.updateMatrixWorld();
-    // });
   },
 
   remove: function () {
@@ -303,6 +215,8 @@ AFRAME.registerComponent('multiple-together', {
         el.setAttribute('arm-motion-ui', 'worldDirect', this.originalProperties.get(el)?.worldDirect ?? false);
 	this.originalProperties.delete(el);
       }
+      el.masterController = this.backupMasterController.get(el);
+      this.backupMasterController.delete(el);
     });
     this.dummySlots.forEach(dummySlot => {
       if (dummySlot && dummySlot.parentNode) {
