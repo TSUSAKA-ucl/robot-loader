@@ -108,6 +108,7 @@ AFRAME.registerComponent('multiple-together', {
       });
       this.el.addEventListener('triggerdown', this.onVRTriggerDown);
       this.el.addEventListener('triggerup', this.onVRTriggerUp);
+      this.el.setAttribute('visible', 'true');
     });
   },
 
@@ -226,6 +227,7 @@ AFRAME.registerComponent('multiple-together', {
     this.dummySlots.clear();
     // this.relativeTransforms.clear();
     this.validEntities = [];
+    this.el.setAttribute('visible', 'false');
   }
 });
 
@@ -234,6 +236,7 @@ AFRAME.registerComponent('reserve-multiple-together', {
     targets: { type: 'array', default: [] } // 例: ["obj1", "obj2"]
   },
   init: function() {
+    this.el.setAttribute('visible', 'false');
     const registerRobotFunc = () => {
       const id = this.el?.id;
       const el = this.el;
