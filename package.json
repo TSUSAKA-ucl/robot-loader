@@ -15,7 +15,7 @@
     "aframe": "^1.7.1",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "@ucl-nuee/ik-cd-worker": "workspace:*"
+    "@ucl-nuee/ik-cd-worker": "1.0.8"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
