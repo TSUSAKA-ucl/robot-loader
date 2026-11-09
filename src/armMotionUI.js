@@ -144,7 +144,13 @@ AFRAME.registerComponent('arm-motion-ui', {
       this.frameMarker.object3D.quaternion.copy(iso3[1]);
       // this.el.setAttribute('set-ignore-collisions', 'true');
       if (iso3) {
+        // ik-workerのIK計算を止めるためにworkerData.current.poseをdestinationにする
+	const m4 = new THREE.Matrix4();
+	m4.compose(iso3[0], iso3[1], new THREE.Vector3(1,1,1));
+	this.el.workerRef?.current
+          ?.postMessage({ type: 'destination', endLinkPose: m4.elements });
 	const frameMarkerResetFunc = () => {
+          // frame markerの位置をik-workerが示すロボット先端の位置に移動
 	  this.frameMarker.object3D.position.copy(iso3[0]);
 	  this.frameMarker.object3D.quaternion.copy(iso3[1]);
 	  this.setStartPoseAndRatio(iso3);
